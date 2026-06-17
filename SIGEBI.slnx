@@ -1,7 +1,16 @@
 <Solution>
-  <Project Path="SIGEBI.Api/SIGEBI.Api.csproj" />
-  <Project Path="SIGEBI.AppEscritorio/SIGEBI.AppEscritorio.csproj" />
-  <Project Path="SIGEBI.Application/SIGEBI.Application.csproj" />
-  <Project Path="SIGEBI.Domain/SIGEBI.Domain.csproj" />
-  <Project Path="SIGEBI.Infrastructure/SIGEBI.Infrastructure.csproj" />
+  <Folder Name="/Aplication/">
+    <Project Path="SIGEBI.Application/SIGEBI.Application.csproj" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="SIGEBI.Domain/SIGEBI.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="SIGEBI.Infrastructure/SIGEBI.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Presentation/">
+    <Project Path="SIGEBI.Api/SIGEBI.Api.csproj" />
+    <Project Path="SIGEBI.AppEscritorio/SIGEBI.AppEscritorio.csproj" />
+    <Project Path="SIGEBI.AppWeb/SIGEBI.AppWeb.csproj" Id="f7f8243c-3316-4959-b506-9655421224f0" />
+  </Folder>
 </Solution>

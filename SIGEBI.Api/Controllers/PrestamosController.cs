@@ -4,7 +4,7 @@ namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class PrestamosController : ControllerBase
     {
         private static readonly string[] Summaries =
         [

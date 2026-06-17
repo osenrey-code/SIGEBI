@@ -12,12 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Middlewares\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\SIGEBI.Application\SIGEBI.Application.csproj" />
-    <ProjectReference Include="..\SIGEBI.Infrastructure\SIGEBI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
