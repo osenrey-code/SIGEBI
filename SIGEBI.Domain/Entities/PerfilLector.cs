@@ -4,6 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Domain.Entities
 {
+
     public class PerfilLector
     {
         public Guid Id { get; private set; }
@@ -29,5 +30,5 @@ namespace SIGEBI.Domain.Entities
             if (cantidadPerstamosActivos >= LimitePrestamos) { return false; }
             return true;
         }
-    }
+   
 }
