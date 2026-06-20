@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.UseCase.Administrative
 {
-    internal class AsignarPerfilLector
+    public class AsignarPerfilLector
     {
     }
 }

@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SIGEBI.Infrastructure.Persistencia;
 
 namespace SIGEBI.Api
 {
@@ -7,25 +9,34 @@ namespace SIGEBI.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            //Controladores
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+            //Conexion
+            builder.Services.AddDbContext<SIGEBIDbContext>(options =>
+               options.UseSqlServer(builder.Configuration.GetConnectionString("ConexionSQL")));
+
+            
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+           
             builder.Services.AddOpenApi();
 
             var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
+            // Encender la intefaz grafica de Swagger
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
-
+            //Mapear Rutas
             app.MapControllers();
 
             app.Run();

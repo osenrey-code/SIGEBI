@@ -25,5 +25,10 @@ namespace SIGEBI.Domain.Entities
             this.MontoMora = DiasRetraso * MontoMora;
             Estado = EstadoPenalizacion.Activa;
         }
+
+        public void ResolverPenalizacion()
+        {
+            Estado = EstadoPenalizacion.Resuelta;
+        }
     }
 }

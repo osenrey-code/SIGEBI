@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs
 {
-    internal class DevolucionDTO
+    public class DevolucionDTO
     {
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.UseCase.SuperVision
 {
-    internal class GenerarReportes
+     public class GenerarReportes
     {
     }
 }

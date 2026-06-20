@@ -1,15 +1,16 @@
 ﻿using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Domain.Entities
+   
 {
     public class Prestamo
     {
         public Guid Id { get; private set; }
         public Guid PerfilLectorId { get; private set; }
         public Guid RecursoId { get; private set; }
-        public DateTime FechaSolicitud { get; private set; }
-        public DateTime? FechaEntrega { get; private set; }
-        public DateTime? FechaMaximaDevolucion { get; private set; }
+        public DateTime FechaInicio { get; private set; }
+        public DateTime FechaLimite { get; private set; }
         public DateTime? FechaDevolucion { get; private set; }
         public EstadoPrestamo Estado { get; private set; }
 
@@ -24,7 +25,7 @@ namespace SIGEBI.Domain.Entities
             Id = Guid.NewGuid();
             this.PerfilLectorId = PerfilLectorId;
             this.RecursoId = RecursoId;
-            FechaSolicitud = DateTime.Now;
+            FechaInicio = DateTime.Now;
             Estado = EstadoPrestamo.Solicitado;
         }
 
@@ -32,25 +33,34 @@ namespace SIGEBI.Domain.Entities
         {
             if (Estado != EstadoPrestamo.Solicitado)
             {
-                throw new Exception("Este préstamo no está Solicitado.");
+                throw new BusinessExcepcion("Este préstamo no está Solicitado.");
             }
 
-            FechaEntrega = DateTime.Now;
-            FechaMaximaDevolucion = DateTime.Now.AddDays(diasPermitidos);
+            FechaInicio = DateTime.Now;
+            FechaLimite = DateTime.Now.AddDays(diasPermitidos);
             Estado = EstadoPrestamo.Activo;
         }
 
-        public bool RegistrarDevolucion()
+        public void RegistrarDevolucion(DateTime fechaActual)
         {
             if (Estado != EstadoPrestamo.Activo && Estado != EstadoPrestamo.Vencido)
             {
-                throw new Exception("El préstamo no está activo.");
+                throw new BusinessExcepcion("El préstamo no está activo.");
             }
 
-            FechaDevolucion = DateTime.Now;
+            FechaDevolucion = fechaActual;
             Estado = EstadoPrestamo.Devuelto;
+        }
 
-            return FechaDevolucion > FechaMaximaDevolucion;
+        public bool EsDevolucionTardia(DateTime fechaActual)
+        {
+            return fechaActual.Date > FechaLimite.Date;
+        }
+
+        public int CalcularDiasRetraso(DateTime fechaActual)
+        {
+            if (!EsDevolucionTardia(fechaActual)) return 0;
+            return (fechaActual.Date - FechaLimite.Date).Days;
         }
     }
 }

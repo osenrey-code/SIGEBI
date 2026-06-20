@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    internal interface IUsuario
+    public interface IUsuario : IBaseRepository<Usuario>
     {
+        Task<Usuario> ObtenerPorIdentificacionAsync(string identificacion);
     }
 }
