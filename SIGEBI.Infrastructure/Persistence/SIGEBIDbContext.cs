@@ -2,7 +2,7 @@
 
 namespace SIGEBI.Infrastructure.Persistencia
 {
-    internal class DbContext
+    internal class SIGEBIDbContext 
     {
     }
 }
