@@ -16,5 +16,10 @@ namespace SIGEBI.Domain.Entities
             Estado = EstadoPenalizacion.Resuelta;
             FechaResolucion = DateTime.Now;
         }
+
+        public void ResolverPenalizacion()
+        {
+            Estado = EstadoPenalizacion.Resuelta;
+        }
     }
 }
