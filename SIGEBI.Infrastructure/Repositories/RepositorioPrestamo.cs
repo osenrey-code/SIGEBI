@@ -12,33 +12,33 @@ using SIGEBI.Application.Interfaces.Repositories;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
-    public class RepositorioPrestamo : IRepositorioPrestamo
+    public class RepositorioPrestamo : RepositorioBase<Prestamo>, IRepositorioPrestamo
     {
-        private readonly SIGEBIDbContext _context;
-
-        public RepositorioPrestamo(SIGEBIDbContext context)
+        public RepositorioPrestamo(SIGEBIDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        public async Task Guardar(Prestamo prestamo)
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(Guid usuarioId)
         {
-            await _context.Prestamos.AddAsync(prestamo);
+            // Asumimos que un préstamo está activo si NO tiene fecha de devolución real
+            return await _dbSet
+                .Where(p => p.PerfilLectorId == usuarioId && p.FechaDevolucion == null)
+                .ToListAsync();
         }
 
-        public async Task<Prestamo?> ObtenerPorId(Guid id)
+        public async Task<int> ContarActivosPorUsuarioAsync(Guid usuarioId)
         {
-            return await _context.Prestamos
-                .Include(p => p.PerfilLector)
-                .Include(p => p.Recurso)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            // CountAsync es mucho más rápido y ligero para la BD que traer toda la lista
+            return await _dbSet
+                .CountAsync(p => p.PerfilLectorId == usuarioId && p.FechaDevolucion == null);
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerPrestamosActivosPorLectorAsync(Guid perfilLectorId)
+        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(Guid usuarioId)
         {
-            return await _context.Prestamos
-                .Where(p => p.PerfilLectorId == perfilLectorId &&
-                           (p.Estado == EstadoPrestamo.Activo || p.Estado == Domain.Enums.EstadoPrestamo.Vencido))
+            // RF-PRE-06: El historial completo, ordenado por los más recientes primero
+            return await _dbSet
+                .Where(p => p.PerfilLectorId == usuarioId)
+                .OrderByDescending(p => p.FechaInicio)
                 .ToListAsync();
         }
     }

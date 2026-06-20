@@ -5,8 +5,9 @@ using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IUsuario : IBaseRepository<Usuario>
+    public interface IUsuario : ReadOnly<Usuario>, Writer<Usuario>
     {
-        Task<Usuario> ObtenerPorIdentificacionAsync(string identificacion);
+        Task<Usuario?> ObtenerPorIdentificacionAsync(string identificacion);
+        Task<Usuario?> ObtenerConPerfilAsync(Guid id);
     }
 }

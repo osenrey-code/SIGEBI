@@ -5,8 +5,10 @@ using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioPenalizacion : IBaseRepository<PerfilLector>
+    public interface IRepositorioPenalizacion : ReadOnly<Penalizacion>, Writer<Penalizacion>
     {
-        Task<PerfilLector> ObtenerPorUsuarioIdAsync(Guid usuarioId);
+        Task<IEnumerable<Penalizacion>> ObtenerPorPerfilLectorAsync(Guid perfilLectorId);
+
+        Task<Penalizacion?> ObtenerActivaPorPerfilLectorAsync(Guid perfilLectorId);
     }
 }
