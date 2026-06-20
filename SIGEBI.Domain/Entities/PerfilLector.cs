@@ -30,5 +30,5 @@ namespace SIGEBI.Domain.Entities
             if (cantidadPerstamosActivos >= LimitePrestamos) { return false; }
             return true;
         }
-   
+    }
 }

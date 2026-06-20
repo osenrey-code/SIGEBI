@@ -13,5 +13,20 @@ namespace SIGEBI.Domain.Entities
         public DateTime FechaRegistro { get; private set; }
         public string ValoresAnteriores { get; private set; }
         public string ValoresNuevos { get; private set;  }
+
+        private RegistroAuditoria() { }
+
+        public RegistroAuditoria(string Usuario, string Accion, string TablaAfectada, string ValoresAnteriores,
+            string ValoresNuevos)
+        {
+            Id = Guid.NewGuid();
+            Usuario = string.IsNullOrWhiteSpace(Usuario) ? "Sitema/Anónimo" : Usuario;
+            this.Accion = Accion;
+            this.TablaAfectada = TablaAfectada;
+            FechaRegistro = DateTime.Now;
+            this.ValoresAnteriores = ValoresAnteriores;
+            this.ValoresNuevos = ValoresNuevos;
+        }
+        
     }
 }
