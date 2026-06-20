@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioPerfilLector : IBaseRepository<PerfilLector>
+    public interface IRepositorioPerfilLector : ReadOnly<PerfilLector>
     {
         Task<PerfilLector> ObtenerPorTipoUsuarioAsync(string tipoUsuario);
     }
