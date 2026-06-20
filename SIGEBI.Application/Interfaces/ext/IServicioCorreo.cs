@@ -4,7 +4,11 @@ using System.Text;
 
 namespace SIGEBI.Application.Interfaces.ext
 {
-    public interface IServicioCorreo
+    public interface IServicioCorreo : INotificador
     {
+        public async Task EnviarAsync(string destino, string mensaje)
+        {
+
+        }
     }
 }
