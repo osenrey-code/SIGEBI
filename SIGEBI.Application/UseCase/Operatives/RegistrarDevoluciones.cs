@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.UseCase.Operatives
 {
-    internal class RegistrarDevoluciones
+    public class RegistrarDevoluciones
     {
     }
 }

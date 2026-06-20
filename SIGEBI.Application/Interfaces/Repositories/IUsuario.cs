@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    internal interface IUsuario
+    public interface IUsuario
     {
     }
 }

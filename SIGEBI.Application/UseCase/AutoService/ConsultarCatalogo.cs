@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.UseCase.AutoService
 {
-    internal class ConsultarCatalogo
+    public class ConsultarCatalogo
     {
     }
 }
