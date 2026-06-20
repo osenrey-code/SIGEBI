@@ -4,7 +4,14 @@ using System.Text;
 
 namespace SIGEBI.Domain.Enums
 {
-    internal class TipoUsuario
+
+    public enum TipoUsuario
     {
-    }
+        Estudiante,
+        Docente,
+        Bibliotecario,
+        Administrador,
+        Auditor
+     }
+
 }
