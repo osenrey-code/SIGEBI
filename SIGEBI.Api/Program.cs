@@ -8,28 +8,35 @@ namespace SIGEBI.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            //Controladores
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
+            //Conexion
             builder.Services.AddDbContext<SIGEBIDbContext>(options =>
                options.UseSqlServer(builder.Configuration.GetConnectionString("ConexionSQL")));
 
-            // Add services to the container.
+            
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+           
             builder.Services.AddOpenApi();
 
             var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
+            // Encender la intefaz grafica de Swagger
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
-
+            //Mapear Rutas
             app.MapControllers();
 
             app.Run();
