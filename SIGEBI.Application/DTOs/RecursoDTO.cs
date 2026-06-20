@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs
 {
-    internal class RecursoDTO
+    public class RecursoDTO
     {
     }
 }

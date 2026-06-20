@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SIGEBI.Infrastructure.Persistencia;
 
 namespace SIGEBI.Api
 {
@@ -6,6 +8,8 @@ namespace SIGEBI.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddDbContext<SIGEBIDbContext>(options =>
+               options.UseSqlServer(builder.Configuration.GetConnectionString("ConexionSQL")));
 
             // Add services to the container.
 

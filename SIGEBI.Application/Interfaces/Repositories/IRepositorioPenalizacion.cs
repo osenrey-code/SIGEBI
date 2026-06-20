@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    internal class IRepositorioPenalizacion
+    public class IRepositorioPenalizacion
     {
     }
 }

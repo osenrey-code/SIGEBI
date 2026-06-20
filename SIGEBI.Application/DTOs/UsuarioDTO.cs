@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs
 {
-    internal class UsuarioDTO
+    public class UsuarioDTO
     {
     }
 }

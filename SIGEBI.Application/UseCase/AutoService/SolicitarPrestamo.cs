@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.UseCase.AutoService
 {
-    internal class SolicitarPrestamo
+    public class SolicitarPrestamo
     {
     }
 }

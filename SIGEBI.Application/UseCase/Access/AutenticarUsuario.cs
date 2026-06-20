@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Application.UseCase.Access
 {
-    internal class AutenticarUsuario
+    public class AutenticarUsuario
     {
     }
 }
