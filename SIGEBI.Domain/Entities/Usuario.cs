@@ -10,10 +10,39 @@ namespace SIGEBI.Domain.Entities
         public string Correo { get; set; } = string.Empty;
         public TipoUsuario Tipo { get; set; }
         public EstadoUsuario Estado { get; set; }
-        public int LimitePrestamos { get; set; }
 
-        public bool VerificarHabilitacion() => Estado == EstadoUsuario.Activo;
-        public bool TienePenalizacionActiva() => false; // se implementa después
-        public bool PuedeSolicitarPrestamo() => VerificarHabilitacion() && !TienePenalizacionActiva();
+
+        //Este perfil sera para los Estudiantes o Docentes
+        public PerfilLector? PerfilLector { get; private set; }
+
+        private Usuario() { }
+
+        public Usuario(string Identificacion, string NombreCompleto, string Correo, TipoUsuario Tipo)
+        {
+            Id = Guid.NewGuid();
+            this.Identificacion = Identificacion;
+            this.NombreCompleto = NombreCompleto;
+            this.Correo = Correo;
+            this.Tipo = Tipo;
+            Estado = EstadoUsuario.Activo;
+        }
+
+        public void Desactivar()
+        {
+            Estado = EstadoUsuario.Inactivo;
+        }
+
+        public void Activar()
+        {
+            Estado = EstadoUsuario.Activo;
+        }
+
+        public void AsignarPerfilLector(PerfilLector perfil)
+        {
+            if (Tipo != TipoUsuario.Estudiante && Tipo != TipoUsuario.Docente)
+                throw new Exception("Solo los estudiantes y docentes pueden tener un perfil de lector.");
+
+            PerfilLector = perfil;
+        }
     }
 }

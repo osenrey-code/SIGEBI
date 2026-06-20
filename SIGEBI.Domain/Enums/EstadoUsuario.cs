@@ -1,4 +1,8 @@
 ﻿namespace SIGEBI.Domain.Enums
 {
-    public enum EstadoUsuario { Activo, Inactivo }
+    public enum EstadoUsuario 
+    {
+        Activo,
+        Inactivo 
+    }
 }
