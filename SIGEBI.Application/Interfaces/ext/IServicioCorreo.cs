@@ -6,9 +6,6 @@ namespace SIGEBI.Application.Interfaces.ext
 {
     public interface IServicioCorreo : INotificador
     {
-        public async Task EnviarAsync(string destino, string mensaje)
-        {
-
-        }
+        Task EnviarCorreoAsync(string destinatario, string asunto, string mensajeHtml);
     }
 }
