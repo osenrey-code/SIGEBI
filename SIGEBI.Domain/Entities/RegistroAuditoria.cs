@@ -7,12 +7,12 @@ namespace SIGEBI.Domain.Entities
     public class RegistroAuditoria
     {
         public Guid Id { get; private set; }
-        public string Usuario { get; private set; }
-        public string Accion { get; private set; }
-        public string TablaAfectada { get; private set; }
+        public string Usuario { get; private set; } = string.Empty;
+        public string Accion { get; private set; } = string.Empty;
+        public string TablaAfectada { get; private set; } = string.Empty;
         public DateTime FechaRegistro { get; private set; }
-        public string ValoresAnteriores { get; private set; }
-        public string ValoresNuevos { get; private set;  }
+        public string ValoresAnteriores { get; private set; } = string.Empty;
+        public string ValoresNuevos { get; private set; } = string.Empty;
 
         private RegistroAuditoria() { }
 

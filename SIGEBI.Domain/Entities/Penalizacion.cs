@@ -5,7 +5,7 @@ namespace SIGEBI.Domain.Entities
     public class Penalizacion
     {
         public Guid Id { get; private set; }
-        public Guid perfilLectorId { get; private set; }
+        public Guid PerfilLectorId { get; private set; }
         public Guid PrestamoId { get; private set; }
         public int DiasRetraso { get; private set; }
         public decimal MontoMora { get; private set; }
@@ -19,7 +19,7 @@ namespace SIGEBI.Domain.Entities
         public Penalizacion(Guid PerfilLectorId, Guid PrestamoId, int DiasRetraso, decimal MontoMora)
         {
             Id = Guid.NewGuid();
-            this.perfilLectorId = PerfilLectorId;
+            this.PerfilLectorId = PerfilLectorId;
             this.PrestamoId = PrestamoId;
             this.DiasRetraso = DiasRetraso;
             this.MontoMora = DiasRetraso * MontoMora;

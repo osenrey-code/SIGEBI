@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using SIGEBI.Infrastructure.Persistencia;
+using SIGEBI.Infrastructure;
 
 namespace SIGEBI.Api
 {
@@ -11,19 +10,14 @@ namespace SIGEBI.Api
 
             //Controladores
             builder.Services.AddControllers();
+
+            //Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             //Conexion
-            builder.Services.AddDbContext<SIGEBIDbContext>(options =>
-               options.UseSqlServer(builder.Configuration.GetConnectionString("ConexionSQL")));
-
-            
-
-            builder.Services.AddControllers();
-           
-            builder.Services.AddOpenApi();
-
+            builder.Services.AddInfrastructureServices(builder.Configuration);
+          
             var app = builder.Build();
             // Encender la intefaz grafica de Swagger
             if (app.Environment.IsDevelopment())

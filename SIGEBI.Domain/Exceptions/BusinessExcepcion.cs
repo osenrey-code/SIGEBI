@@ -4,8 +4,8 @@ using System.Text;
 
 namespace SIGEBI.Domain.Exceptions
 {
-    internal class BusinessExcepcion : Exception
+    public class BusinessException : Exception
     {
-        public BusinessExcepcion(string mensaje) : base(mensaje) { }
+        public BusinessException(string mensaje) : base(mensaje) { }
     }
 }

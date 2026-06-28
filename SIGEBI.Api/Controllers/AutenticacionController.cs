@@ -4,8 +4,12 @@ namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PrestamosController : ControllerBase
+    public class AutenticacionController : ControllerBase
     {
-       
+        [HttpGet("estado")]
+        public IActionResult Estado()
+        {
+            return Ok(new { mensaje = "Controlador de autenticación conectado." });
+        }
     }
 }

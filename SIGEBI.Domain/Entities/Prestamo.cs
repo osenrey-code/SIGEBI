@@ -15,8 +15,8 @@ namespace SIGEBI.Domain.Entities
         public EstadoPrestamo Estado { get; private set; }
 
         
-        public PerfilLector PerfilLector { get; private set; }
-        public RecursoBibliografico Recurso { get; private set; }
+        public PerfilLector? PerfilLector { get; private set; }
+        public RecursoBibliografico? Recurso { get; private set; }
 
         private Prestamo() { }
 
@@ -33,7 +33,7 @@ namespace SIGEBI.Domain.Entities
         {
             if (Estado != EstadoPrestamo.Solicitado)
             {
-                throw new BusinessExcepcion("Este préstamo no está Solicitado.");
+                throw new BusinessException("Este préstamo no está Solicitado.");
             }
 
             FechaInicio = DateTime.Now;
@@ -45,7 +45,7 @@ namespace SIGEBI.Domain.Entities
         {
             if (Estado != EstadoPrestamo.Activo && Estado != EstadoPrestamo.Vencido)
             {
-                throw new BusinessExcepcion("El préstamo no está activo.");
+                throw new BusinessException("El préstamo no está activo.");
             }
 
             FechaDevolucion = fechaActual;

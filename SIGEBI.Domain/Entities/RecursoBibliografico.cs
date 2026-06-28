@@ -6,16 +6,16 @@ namespace SIGEBI.Domain.Entities
     public class RecursoBibliografico
     {
         public Guid Id { get; private set; }
-        public string Titulo { get; private set; } 
-        public string Autor { get; private set; } 
-        public string Categoria { get; private set; }
+        public string Titulo { get; private set; } = string.Empty;
+        public string Autor { get; private set; } = string.Empty;
+        public string Categoria { get; private set; } = string.Empty;
         public EstadoRecurso Estado { get; private set; }
 
         private RecursoBibliografico() { }
 
         public RecursoBibliografico(string Titulo, string Autor, string Categoria)
         {
-            if (string.IsNullOrWhiteSpace(Titulo)) throw new BusinessExcepcion("El título es obligatorio.");
+            if (string.IsNullOrWhiteSpace(Titulo)) throw new BusinessException("El título es obligatorio.");
             Id = Guid.NewGuid();
             this.Titulo = Titulo;
             this.Autor = Autor;
@@ -23,7 +23,7 @@ namespace SIGEBI.Domain.Entities
             Estado = EstadoRecurso.Disponible;
         }
 
-        public bool EspRestable()
+        public bool EstaDisponible()
         {
             return Estado == EstadoRecurso.Disponible;
         }
@@ -32,7 +32,7 @@ namespace SIGEBI.Domain.Entities
         {
             if (Estado != EstadoRecurso.Disponible)
             {
-                throw new BusinessExcepcion("El recurso no está disponible para préstamo.");
+                throw new BusinessException("El recurso no está disponible para préstamo.");
             }
             Estado = EstadoRecurso.Prestado;
         }

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Infrastructure.Persistence;
-using SIGEBI.Infrastructure.Persistencia;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Application.Interfaces.Repositories;
 

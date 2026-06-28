@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
-using SIGEBI.Infrastructure.Persistencia;
+using SIGEBI.Infrastructure.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -47,7 +47,7 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task<IEnumerable<Penalizacion>> ObtenerPorPerfilLectorAsync(Guid perfilLectorId)
         {
             return await _dbSet
-                .Where(p => p.perfilLectorId == perfilLectorId)
+                .Where(p => p.PerfilLectorId == perfilLectorId)
                 // Ajustado al nombre exacto de tu entidad
                 .ToListAsync();
         }
@@ -56,7 +56,7 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             // Usamos tu Enum EstadoPenalizacion.Activa y la propiedad Estado de tu entidad
             return await _dbSet
-                .FirstOrDefaultAsync(p => p.perfilLectorId == perfilLectorId
+                .FirstOrDefaultAsync(p => p.PerfilLectorId == perfilLectorId
                                       && p.Estado == SIGEBI.Domain.Enums.EstadoPenalizacion.Activa);
         }
     }

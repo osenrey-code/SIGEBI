@@ -2,7 +2,7 @@
 using SIGEBI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace SIGEBI.Infrastructure.Persistencia
+namespace SIGEBI.Infrastructure.Persistence
 {
 
     public class SIGEBIDbContext : DbContext

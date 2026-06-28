@@ -19,12 +19,12 @@ namespace SIGEBI.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(CorreoDestinatario))
             {
-                throw new BusinessExcepcion("El correo del destinatario es obligatorio.");
+                throw new BusinessException("El correo del destinatario es obligatorio.");
             }
 
             if (string.IsNullOrWhiteSpace(Mensaje))
             {
-                throw new BusinessExcepcion("El cuerpo de la notificación no puede estar vacío.");
+                throw new BusinessException("El cuerpo de la notificación no puede estar vacío.");
             }
 
             Id = Guid.NewGuid();

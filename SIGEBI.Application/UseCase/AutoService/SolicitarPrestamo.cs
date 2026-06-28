@@ -34,5 +34,6 @@ namespace SIGEBI.Application.UseCase.AutoService
             await _notificador.EnviarAsync(usuario.Correo, "Confirmación del Préstamo", "Tu préstamo fue registrado.");
             return new ResultadoDTO { Estado = "OK", Mensaje = "Préstamo registrado exitosamente" };
         }
+        
     } 
 }

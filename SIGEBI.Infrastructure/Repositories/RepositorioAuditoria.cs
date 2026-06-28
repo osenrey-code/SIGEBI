@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
-using SIGEBI.Infrastructure.Persistencia;
+using SIGEBI.Infrastructure.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text;
