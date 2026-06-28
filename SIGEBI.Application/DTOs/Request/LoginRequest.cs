@@ -6,5 +6,7 @@ namespace SIGEBI.Application.DTOs.Request
 {
     public class LoginRequest
     {
+        public string UsuarioOCorreo { get; set; } = string.Empty;
+        public string PassWord {  get; set; } = string.Empty;
     }
 }

@@ -4,10 +4,9 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs.Request
 {
-    public class AsignarPerfilLectorRequest
+    public class DesactivarUsuarioRequest
     {
         public Guid UsuarioId { get; set; }
-        public int LimitePrestamos { get; set; }
-        public int DiasPrestamo { get; set; }
+        public string Motivo { get; set; } = string.Empty;
     }
 }

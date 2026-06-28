@@ -10,7 +10,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
 {
     public class SolicitarPrestamo
     {
-        private readonly IRepositorioPrestamo _prestamo;
+       /* private readonly IRepositorioPrestamo _prestamo;
         private readonly INotificador _notificador;
         private readonly IUsuario _Usuario;
         public SolicitarPrestamo(IRepositorioPrestamo repositorio, INotificador notificador)
@@ -34,6 +34,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             await _notificador.EnviarAsync(usuario.Correo, "Confirmación del Préstamo", "Tu préstamo fue registrado.");
             return new RegistrarPrestamoPresencialRequest { Estado = "OK", Mensaje = "Préstamo registrado exitosamente" };
         }
+       */
         
     } 
 }
