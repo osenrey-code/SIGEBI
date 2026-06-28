@@ -6,70 +6,51 @@ using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
-    public class RegistrarUsuario
+    public class RegistrarUsuarioWeb
     {
         private readonly IUsuario _usuarios;
 
-        public RegistrarUsuario(IUsuario usuarios)
+        public RegistrarUsuarioWeb(IUsuario usuarios)
         {
             _usuarios = usuarios;
         }
 
         public async Task<ResultadoOperacionResponse<UsuarioResponse>> EjecutarAsync(
-            RegistrarUsuarioRequest request)
+            RegistrarUsuarioWebRequest request)
         {
-            if (request.UsuarioEjecutorId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "El usuario ejecutor es obligatorio."
-                );
-            }
-
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioEjecutorId
-            );
-
-            if (usuarioEjecutor is null)
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "El usuario ejecutor no existe."
-                );
-            }
-
-            if (usuarioEjecutor.Tipo != TipoUsuario.Administrador)
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "Solo un administrador puede registrar usuarios desde administración."
-                );
-            }
-
-            var errorValidacion = ValidarDatosBasicos(
+            var validacion = ValidarDatos(
                 request.NombreCompleto,
                 request.DocumentoIdentidad,
                 request.Correo,
                 request.PassWord,
                 request.TipoUsuario
-            );
+             );
 
-            if (errorValidacion is not null)
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(errorValidacion);
+            if (validacion is not  null)
+            {
+                return ResultadoOperacionResponse<UsuarioResponse>.Error(validacion);
+            }
 
             if (!Enum.TryParse<TipoUsuario>(request.TipoUsuario, true, out var tipoUsuario))
             {
                 return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "El tipo de usuario no es válido."
-                );
+                    "El tipo de usuario no es válido"
+                    );
+            }
+
+            if (tipoUsuario != TipoUsuario.Estudiante && tipoUsuario != TipoUsuario.Docente)
+            {
+                return ResultadoOperacionResponse<UsuarioResponse>.Error(
+                    "En el registro web solo se permiten usuarios Estudiante o Docente");
             }
 
             var usuarioExistente = await _usuarios.ObtenerPorIdentificacionAsync(
-                request.DocumentoIdentidad.Trim()
-            );
+                request.DocumentoIdentidad.Trim());
 
             if (usuarioExistente is not null)
             {
                 return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "Ya existe un usuario con esa identificación."
-                );
+                    "Ya existe un usuario con esa identificación.");
             }
 
             var correoExiste = await ExisteCorreoAsync(request.Correo.Trim());
@@ -77,8 +58,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             if (correoExiste)
             {
                 return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "Ya existe un usuario con ese correo."
-                );
+                    "Ya existe un usuario con este correo.");
             }
 
             var usuario = new Usuario(
@@ -86,32 +66,25 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 request.NombreCompleto.Trim(),
                 request.Correo.Trim(),
                 tipoUsuario
-            );
+             );
 
-            if (tipoUsuario == TipoUsuario.Estudiante ||
-                tipoUsuario == TipoUsuario.Docente)
-            {
-                var perfilLector = CrearPerfilLectorPorTipo(usuario.Id, tipoUsuario);
-
-                usuario.AsignarPerfilLector(perfilLector);
-            }
+         
+            var perfilLector = CrearPerfilLectorPorTipo(usuario.Id, tipoUsuario);
+            usuario.AsignarPerfilLector(perfilLector);
+            
 
             await _usuarios.AgregarAsync(usuario);
-
             var response = MapearUsuario(usuario);
+            return ResultadoOperacionResponse<UsuarioResponse>.Ok("" +
+                "Usuario registrado correctamente", response);
 
-            return ResultadoOperacionResponse<UsuarioResponse>.Ok(
-                "Usuario registrado correctamente desde administración.",
-                response
-            );
         }
 
         private async Task<bool> ExisteCorreoAsync(string correo)
         {
             var usuarios = await _usuarios.ObtenerTodosAsync();
-
             return usuarios.Any(u =>
-                u.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase));
+            u.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase));
         }
 
         private static PerfilLector CrearPerfilLectorPorTipo(
@@ -151,7 +124,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             };
         }
 
-        private static string? ValidarDatosBasicos(
+        private static string? ValidarDatos(
             string nombreCompleto,
             string documentoIdentidad,
             string correo,
@@ -159,22 +132,32 @@ namespace SIGEBI.Application.UseCase.Usuarios
             string tipoUsuario)
         {
             if (string.IsNullOrWhiteSpace(nombreCompleto))
+            {
                 return "El nombre completo es obligatorio.";
+            }
 
             if (string.IsNullOrWhiteSpace(documentoIdentidad))
+            {
                 return "El documento de identidad es obligatorio.";
+            }
 
             if (string.IsNullOrWhiteSpace(correo))
-                return "El correo es obligatorio.";
+            { 
+                return "El correo es obligatorio."; 
+            }
 
             if (string.IsNullOrWhiteSpace(password))
+            {
                 return "La contraseña es obligatoria.";
+            }
 
             if (string.IsNullOrWhiteSpace(tipoUsuario))
+            {
                 return "El tipo de usuario es obligatorio.";
+            }
 
             return null;
         }
-    }
-} 
 
+    }
+}

@@ -6,6 +6,7 @@ namespace SIGEBI.Application.DTOs.Request
 {
     public class DesactivarUsuarioRequest
     {
+        public Guid UsuarioEjecutorId { get; set; }
         public Guid UsuarioId { get; set; }
         public string Motivo { get; set; } = string.Empty;
     }
