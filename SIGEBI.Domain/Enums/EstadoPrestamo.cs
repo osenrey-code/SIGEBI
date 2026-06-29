@@ -5,6 +5,7 @@
        Solicitado,
        Activo, 
        Devuelto, 
-       Vencido 
+       Vencido ,
+       Rechazado
     }
 }

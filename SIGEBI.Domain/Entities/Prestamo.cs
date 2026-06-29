@@ -9,12 +9,14 @@ namespace SIGEBI.Domain.Entities
         public Guid Id { get; private set; }
         public Guid PerfilLectorId { get; private set; }
         public Guid RecursoId { get; private set; }
+        public DateTime FechaSolicitud { get; private set; }
         public DateTime FechaInicio { get; private set; }
         public DateTime FechaLimite { get; private set; }
         public DateTime? FechaDevolucion { get; private set; }
         public EstadoPrestamo Estado { get; private set; }
+        public string? MotivoRechazo { get; private set; }
 
-        
+
         public PerfilLector? PerfilLector { get; private set; }
         public RecursoBibliografico? Recurso { get; private set; }
 
@@ -25,7 +27,7 @@ namespace SIGEBI.Domain.Entities
             Id = Guid.NewGuid();
             this.PerfilLectorId = PerfilLectorId;
             this.RecursoId = RecursoId;
-            FechaInicio = DateTime.Now;
+            FechaSolicitud = DateTime.Now;
             Estado = EstadoPrestamo.Solicitado;
         }
 
@@ -34,6 +36,13 @@ namespace SIGEBI.Domain.Entities
             if (Estado != EstadoPrestamo.Solicitado)
             {
                 throw new BusinessException("Este préstamo no está Solicitado.");
+            }
+
+            if (diasPermitidos <= 0)
+            {
+                throw new BusinessException(
+                    "Los días permitidos deben ser mayores que cero."
+                );
             }
 
             FechaInicio = DateTime.Now;
@@ -50,6 +59,26 @@ namespace SIGEBI.Domain.Entities
 
             FechaDevolucion = fechaActual;
             Estado = EstadoPrestamo.Devuelto;
+        }
+
+        public void Rechazar(string motivo)
+        {
+            if (Estado != EstadoPrestamo.Solicitado)
+            {
+                throw new BusinessException(
+                    "Solo se pueden rechazar préstamos en estado Solicitado."
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(motivo))
+            {
+                throw new BusinessException(
+                    "El motivo del rechazo es obligatorio."
+                );
+            }
+
+            MotivoRechazo = motivo.Trim();
+            Estado = EstadoPrestamo.Rechazado;
         }
 
         public bool EsDevolucionTardia(DateTime fechaActual)
