@@ -1,10 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace SIGEBI.Application.DTOs.Response;
 
-namespace SIGEBI.Application.DTOs.Response
+public class RecursoResponse
 {
-    internal class RecursoResponse
-    {
-    }
+    public Guid Id { get; set; }
+
+    public string Identificador { get; set; } = string.Empty;
+
+    public string Titulo { get; set; } = string.Empty;
+
+    public string Autor { get; set; } = string.Empty;
+
+    public string Categoria { get; set; } = string.Empty;
+
+    public string Estado { get; set; } = string.Empty;
+
+    public int NumeroEjemplares { get; set; }
 }
