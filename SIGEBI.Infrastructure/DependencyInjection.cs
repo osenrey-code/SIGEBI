@@ -10,15 +10,21 @@ namespace SIGEBI.Infrastructure
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructureServices(
-            this IServiceCollection services,
-            IConfiguration configuration)
+           this IServiceCollection services,
+           IConfiguration configuration)
         {
             services.AddDbContext<SIGEBIDbContext>(options =>
-             options.UseSqlServer(configuration.GetConnectionString("ConexionSql")));
+                options.UseSqlServer(
+                    configuration.GetConnectionString("ConexionSql")
+                )
+            );
 
             services.AddScoped<IUsuario, RepositorioUsuario>();
-            services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
             services.AddScoped<IRepositorioPerfilLector, RepositorioPerfilLector>();
+
+            services.AddScoped<IRepositorioRecurso, RepositorioRecurso>();
+            services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
+            services.AddScoped<IRepositorioPenalizacion, RepositorioPenalizacion>();
 
             return services;
         }

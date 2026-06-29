@@ -1,3 +1,4 @@
+using SIGEBI.Api.Extensions;
 using SIGEBI.Infrastructure;
 
 namespace SIGEBI.Api
@@ -8,18 +9,16 @@ namespace SIGEBI.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            //Controladores
             builder.Services.AddControllers();
 
-            //Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //Conexion
+            builder.Services.AddApplicationUseCases();
             builder.Services.AddInfrastructureServices(builder.Configuration);
-          
+
             var app = builder.Build();
-            // Encender la intefaz grafica de Swagger
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -30,7 +29,6 @@ namespace SIGEBI.Api
 
             app.UseAuthorization();
 
-            //Mapear Rutas
             app.MapControllers();
 
             app.Run();
