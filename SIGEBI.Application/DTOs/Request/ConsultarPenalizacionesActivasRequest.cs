@@ -4,9 +4,11 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs.Request;
 
-public class ResolverPenalizacionRequest
+public class ConsultarPenalizacionesActivasRequest
 {
     public Guid UsuarioEjecutorId { get; set; }
 
-    public Guid PenalizacionId { get; set; }
+    public Guid? UsuarioId { get; set; }
+
+    public Guid? PerfilLectorId { get; set; }
 }
