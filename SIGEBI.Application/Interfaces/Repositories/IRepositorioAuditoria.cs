@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SIGEBI.Domain.Entities;
+﻿using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioAuditoria : ReadOnly<Auditoria>, Writer<Auditoria>
+    public interface IRepositorioAuditoria : ReadOnly<RegistroAuditoria>, Writer<RegistroAuditoria>
     {
-        Task<IEnumerable<Auditoria>> ObtenerPorUsuarioAsync(Guid usuarioId);
-
-        Task<IEnumerable<Auditoria>> ObtenerPorRangoFechaAsync(DateTime fechaInicio, DateTime fechaFin);
-
-        Task RegistrarAccionAsync(string usuarioId, string tipoAccion, string modulo, string detalle);
-
-        Task<IEnumerable<Auditoria>> ConsultarLogAsync(Guid? usuarioId, string? tipoAccion, DateTime? fechaInicio, DateTime? fechaFin);
+        Task<IEnumerable<RegistroAuditoria>> ConsultarAsync(
+            Guid? usuarioId,
+            string? accion,
+            string? entidadAfectada,
+            DateTime? fechaInicio,
+            DateTime? fechaFin);
     }
 }

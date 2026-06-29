@@ -27,6 +27,7 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IRepositorioRecurso, RepositorioRecurso>();
             services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
             services.AddScoped<IRepositorioPenalizacion, RepositorioPenalizacion>();
+            services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
 
             services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
             services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
