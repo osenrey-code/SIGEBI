@@ -1,10 +1,115 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Entities;
+
 
 namespace SIGEBI.Application.UseCase.Prestamos
 {
-    internal class ConsultarHistorialPrestamos
+    public class ConsultarHistorialPrestamos
     {
+        private readonly IRepositorioPrestamo _prestamos;
+        private readonly IUsuario _usuarios;
+
+        public ConsultarHistorialPrestamos(
+            IRepositorioPrestamo prestamos,
+            IUsuario usuarios)
+        {
+            _prestamos = prestamos;
+            _usuarios = usuarios;
+        }
+
+        public async Task<ResultadoOperacionResponse<List<PrestamoResponse>>> EjecutarAsync(
+            ConsultarHistorialPrestamosRequest request)
+        {
+            if (request.FechaInicio.HasValue &&
+                request.FechaFin.HasValue &&
+                request.FechaInicio.Value.Date > request.FechaFin.Value.Date)
+            {
+                return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
+                    "La fecha de inicio no puede ser mayor que la fecha final."
+                );
+            }
+
+            IEnumerable<Prestamo> prestamos;
+
+            if (request.UsuarioId.HasValue && request.UsuarioId.Value != Guid.Empty)
+            {
+                var usuario = await _usuarios.ObtenerConPerfilAsync(
+                    request.UsuarioId.Value
+                );
+
+                if (usuario is null)
+                {
+                    return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
+                        "El usuario no existe."
+                    );
+                }
+
+                if (usuario.PerfilLector is null)
+                {
+                    return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
+                        "El usuario no tiene perfil lector asignado."
+                    );
+                }
+
+                prestamos = await _prestamos.ObtenerHistorialPorUsuarioAsync(
+                    usuario.PerfilLector.Id
+                );
+            }
+            else
+            {
+                prestamos = await _prestamos.ObtenerTodosAsync();
+            }
+
+            if (request.RecursoId.HasValue && request.RecursoId.Value != Guid.Empty)
+            {
+                prestamos = prestamos.Where(p =>
+                    p.RecursoId == request.RecursoId.Value
+                );
+            }
+
+            if (request.FechaInicio.HasValue)
+            {
+                prestamos = prestamos.Where(p =>
+                    p.FechaSolicitud.Date >= request.FechaInicio.Value.Date
+                );
+            }
+
+            if (request.FechaFin.HasValue)
+            {
+                prestamos = prestamos.Where(p =>
+                    p.FechaSolicitud.Date <= request.FechaFin.Value.Date
+                );
+            }
+
+            var response = prestamos
+                .OrderByDescending(p => p.FechaSolicitud)
+                .Select(MapearPrestamo)
+                .ToList();
+
+            return ResultadoOperacionResponse<List<PrestamoResponse>>.Ok(
+                "Historial de préstamos consultado correctamente.",
+                response
+            );
+        }
+
+        private static PrestamoResponse MapearPrestamo(Prestamo prestamo)
+        {
+            return new PrestamoResponse
+            {
+                PrestamoId = prestamo.Id,
+                PerfilLectorId = prestamo.PerfilLectorId,
+                RecursoId = prestamo.RecursoId,
+
+                FechaSolicitud = prestamo.FechaSolicitud,
+                FechaInicio = prestamo.FechaInicio,
+                FechaLimite = prestamo.FechaLimite,
+                FechaDevolucion = prestamo.FechaDevolucion,
+
+                Estado = prestamo.Estado.ToString(),
+                MotivoRechazo = prestamo.MotivoRechazo
+            };
+        }
     }
 }
