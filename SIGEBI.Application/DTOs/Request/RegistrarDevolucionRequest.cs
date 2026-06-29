@@ -6,5 +6,7 @@ namespace SIGEBI.Application.DTOs.Request
 {
     public class RegistrarDevolucionRequest
     {
+        public Guid PrestamoId { get; set; }
+        public Guid BibliotecarioId { get; set; }
     }
 }

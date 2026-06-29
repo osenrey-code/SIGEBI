@@ -6,7 +6,7 @@ using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
 
-namespace SIGEBI.Application.UseCase.Operatives
+namespace SIGEBI.Application.UseCase.Prestamos
 {
     public class RegistrarPrestamoPresencial
     {

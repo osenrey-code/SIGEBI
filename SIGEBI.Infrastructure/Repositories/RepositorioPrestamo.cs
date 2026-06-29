@@ -19,25 +19,26 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(Guid usuarioId)
         {
-            // Asumimos que un préstamo está activo si NO tiene fecha de devolución real
             return await _dbSet
-                .Where(p => p.PerfilLectorId == usuarioId && p.FechaDevolucion == null)
+                .Where(p =>
+                    p.PerfilLectorId == usuarioId &&
+                    p.Estado == EstadoPrestamo.Activo)
                 .ToListAsync();
         }
 
         public async Task<int> ContarActivosPorUsuarioAsync(Guid usuarioId)
         {
-            // CountAsync es mucho más rápido y ligero para la BD que traer toda la lista
             return await _dbSet
-                .CountAsync(p => p.PerfilLectorId == usuarioId && p.FechaDevolucion == null);
+                .CountAsync(p =>
+                    p.PerfilLectorId == usuarioId &&
+                    p.Estado == EstadoPrestamo.Activo);
         }
 
         public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(Guid usuarioId)
         {
-            // RF-PRE-06: El historial completo, ordenado por los más recientes primero
             return await _dbSet
                 .Where(p => p.PerfilLectorId == usuarioId)
-                .OrderByDescending(p => p.FechaInicio)
+                .OrderByDescending(p => p.FechaSolicitud)
                 .ToListAsync();
         }
     }
