@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Infrastructure.Services;
 
 namespace SIGEBI.Infrastructure
 {
@@ -26,6 +28,8 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
             services.AddScoped<IRepositorioPenalizacion, RepositorioPenalizacion>();
 
+            services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
+            services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
             return services;
         }
     }

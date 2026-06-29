@@ -1,53 +1,75 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using SIGEBI.Application.Interfaces.ext;
 
 namespace SIGEBI.Infrastructure.Services
 {
-    public class ServicioCorreoSMTP
+    public class ServicioCorreoSMTP : IServicioCorreo
     {
         private readonly IConfiguration _configuration;
 
-        // Inyectamos IConfiguration para leer appsettings.json
         public ServicioCorreoSMTP(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public async Task EnviarCorreoAsync(string destinatario, string asunto, string mensajeHtml)
+        public async Task EnviarAsync(string destinatario, string asunto, string mensaje)
         {
-            // 1. Leer la configuración del servidor SMTP desde appsettings.json
-            string host = _configuration["ConfiguracionSmtp:Host"] ?? string.Empty;
-            int puerto = int.Parse(_configuration["ConfiguracionSmtp:Puerto"] ?? "587");
-            string usuario = _configuration["ConfiguracionSmtp:Usuario"] ?? string.Empty;
-            string contraseña = _configuration["ConfiguracionSmtp:Contraseña"] ?? string.Empty;
-            string remitente = _configuration["ConfiguracionSmtp:Remitente"] ?? string.Empty;
-
-            // 2. Configurar el cliente SMTP
-            using var smtpClient = new SmtpClient(host, puerto)
+            if (string.IsNullOrWhiteSpace(destinatario))
             {
-                Credentials = new NetworkCredential(usuario, contraseña),
-                EnableSsl = true // Fundamental para Gmail/Outlook
+                throw new ArgumentException("El destinatario es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(asunto))
+            {
+                throw new ArgumentException("El asunto es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(mensaje))
+            {
+                throw new ArgumentException("El mensaje es obligatorio.");
+            }
+
+            var host = _configuration["Smtp:Host"];
+            var puertoTexto = _configuration["Smtp:Port"];
+            var usuario = _configuration["Smtp:Username"];
+            var password = _configuration["Smtp:Password"];
+            var remitente = _configuration["Smtp:From"];
+
+            if (string.IsNullOrWhiteSpace(host) ||
+                string.IsNullOrWhiteSpace(puertoTexto) ||
+                string.IsNullOrWhiteSpace(remitente))
+            {
+                throw new InvalidOperationException(
+                    "La configuración SMTP está incompleta."
+                );
+            }
+
+            var puerto = int.Parse(puertoTexto);
+
+            using var cliente = new SmtpClient(host, puerto)
+            {
+                EnableSsl = true
             };
 
-            // 3. Ensamblar el mensaje
-            using var mailMessage = new MailMessage
+            if (!string.IsNullOrWhiteSpace(usuario) &&
+                !string.IsNullOrWhiteSpace(password))
             {
-                From = new MailAddress(remitente, "Sistema SIGEBI"),
+                cliente.Credentials = new NetworkCredential(usuario, password);
+            }
+
+            using var correo = new MailMessage
+            {
+                From = new MailAddress(remitente),
                 Subject = asunto,
-                Body = mensajeHtml,
-                IsBodyHtml = true 
+                Body = mensaje,
+                IsBodyHtml = false
             };
 
-            mailMessage.To.Add(destinatario);
+            correo.To.Add(destinatario);
 
-           
-            await smtpClient.SendMailAsync(mailMessage);
+            await cliente.SendMailAsync(correo);
         }
     }
 }

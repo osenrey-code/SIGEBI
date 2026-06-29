@@ -10,5 +10,8 @@ namespace SIGEBI.Application.Interfaces.Repositories
        
         Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(Guid usuarioId);
         Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(Guid usuarioId);
+        Task<IEnumerable<Prestamo>> ObtenerPrestamosProximosAVencerAsync(
+    DateTime fechaDesde,
+    DateTime fechaHasta);
     }
 }
