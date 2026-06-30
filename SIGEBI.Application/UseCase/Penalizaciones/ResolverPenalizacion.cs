@@ -1,8 +1,10 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Penalizaciones
 {
@@ -10,18 +12,24 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
     {
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IUsuario _usuarios;
+        private readonly IRepositorioPerfilLector _perfilLector;
+        private readonly INotificador _notificador;
 
-        public ResolverPenalizacion(
-            IRepositorioPenalizacion penalizaciones,
-            IUsuario usuarios)
+        public ResolverPenalizacion(IRepositorioPenalizacion penalizaciones, IUsuario usuarios,
+            IRepositorioPerfilLector perfilLector,
+            INotificador notificador)
         {
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
+            _perfilLector = perfilLector;
+            _notificador = notificador;
         }
 
         public async Task<ResultadoOperacionResponse<PenalizacionResponse>> EjecutarAsync(
             ResolverPenalizacionRequest request)
         {
+            // Validamos que venga el usuario que está ejecutando la acción.
+            // Este usuario debe ser quien resuelve la penalización en el sistema.
             if (request.UsuarioEjecutorId == Guid.Empty)
             {
                 return ResultadoOperacionResponse<PenalizacionResponse>.Error(
@@ -29,6 +37,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 );
             }
 
+            // Validamos que venga la penalización que se quiere resolver.
             if (request.PenalizacionId == Guid.Empty)
             {
                 return ResultadoOperacionResponse<PenalizacionResponse>.Error(
@@ -36,6 +45,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 );
             }
 
+            // Buscamos al usuario ejecutor para verificar si existe y si tiene permiso.
             var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
                 request.UsuarioEjecutorId
             );
@@ -47,6 +57,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 );
             }
 
+            // El usuario responsable debe estar activo para poder operar.
             if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
             {
                 return ResultadoOperacionResponse<PenalizacionResponse>.Error(
@@ -54,6 +65,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 );
             }
 
+            // Solo Bibliotecario o Administrador pueden resolver penalizaciones.
             if (usuarioEjecutor.Tipo != TipoUsuario.Bibliotecario &&
                 usuarioEjecutor.Tipo != TipoUsuario.Administrador)
             {
@@ -62,6 +74,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 );
             }
 
+            // Buscamos la penalización por su Id.
             var penalizacion = await _penalizaciones.ObtenerPorIdAsync(
                 request.PenalizacionId
             );
@@ -73,6 +86,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 );
             }
 
+            // Solo una penalización activa puede resolverse.
             if (penalizacion.Estado != EstadoPenalizacion.Activa)
             {
                 return ResultadoOperacionResponse<PenalizacionResponse>.Error(
@@ -80,11 +94,46 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 );
             }
 
-            penalizacion.Resolver(request.UsuarioEjecutorId);
+            // La penalización pertenece a un PerfilLector.
+            // Necesitamos ese perfil para saber cuál UsuarioId debe recibir la notificación.
+            var perfilLector = await _perfilLector.ObtenerPorIdAsync(
+                penalizacion.PerfilLectorId
+            );
 
+            if (perfilLector is null)
+            {
+                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
+                    "El perfil lector asociado a la penalización no existe."
+                );
+            }
+
+            try
+            {
+                
+                penalizacion.Resolver(request.UsuarioEjecutorId);
+            }
+            catch (BusinessException ex)
+            {
+                
+                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
+                    ex.Message
+                );
+            }
+
+            // Guardamos el cambio de estado de la penalización.
             await _penalizaciones.ActualizarAsync(penalizacion);
 
-            var response = MapearPenalizacion(penalizacion);
+            // Después de guardar, notificamos al estudiante/docente afectado.
+            await _notificador.NotificarPenalizacionResueltaAsync(
+                perfilLector.UsuarioId,
+                penalizacion.Id
+            );
+
+            // Convertimos la entidad a DTO de respuesta.
+            var response = MapearPenalizacion(
+                penalizacion,
+                perfilLector.UsuarioId
+            );
 
             return ResultadoOperacionResponse<PenalizacionResponse>.Ok(
                 "Penalización resuelta correctamente.",
@@ -92,14 +141,19 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             );
         }
 
-        private static PenalizacionResponse MapearPenalizacion(Penalizacion penalizacion)
+        private static PenalizacionResponse MapearPenalizacion(
+            Penalizacion penalizacion,
+            Guid usuarioId)
         {
             return new PenalizacionResponse
             {
                 Id = penalizacion.Id,
                 PerfilLectorId = penalizacion.PerfilLectorId,
-                UsuarioId = penalizacion.PerfilLector?.UsuarioId,
+
+  
+                UsuarioId = usuarioId,
                 Motivo = CrearMotivo(penalizacion),
+
                 Estado = penalizacion.Estado.ToString(),
                 FechaGeneracion = penalizacion.FechaGeneracion,
                 FechaResolucion = penalizacion.FechaResolucion,
