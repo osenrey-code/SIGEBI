@@ -15,19 +15,18 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly INotificador _notificador;
+        private readonly IAuditoriaService _auditoria;
 
-        public SolicitarPrestamo(
-            IUsuario usuarios,
-            IRepositorioRecurso recursos,
-            IRepositorioPrestamo prestamos,
-            IRepositorioPenalizacion penalizaciones,
-            INotificador notificador)
+        public SolicitarPrestamo(IUsuario usuarios, IRepositorioRecurso recursos,
+            IRepositorioPrestamo prestamos, IRepositorioPenalizacion penalizaciones,
+            INotificador notificador, IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
             _recursos = recursos;
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
             _notificador = notificador;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
@@ -127,6 +126,9 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             await _notificador.NotificarSolicitudPrestamoAsync(usuario.Id, prestamo.Id);
             var response = MapearPrestamo(prestamo);
+
+            await _auditoria.RegistrarAsync(usuario.Id, "Solicitar Préstamo",
+                "Prestamo", prestamo.Id, "Exitoso", $"El usuario solicitó el préstamo del recurso {recurso.Id}");
 
             return ResultadoOperacionResponse<PrestamoResponse>.Ok(
                 "Solicitud de préstamo registrada correctamente.",
