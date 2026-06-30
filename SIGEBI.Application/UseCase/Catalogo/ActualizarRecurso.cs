@@ -3,6 +3,7 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Application.Interfaces.ext;
 
 namespace SIGEBI.Application.UseCase.Catalogo
 {
@@ -10,13 +11,16 @@ namespace SIGEBI.Application.UseCase.Catalogo
     {
         private readonly IRepositorioRecurso _recursos;
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
 
         public ActualizarRecurso(
             IRepositorioRecurso recursos,
-            IUsuario usuarios)
+            IUsuario usuarios,
+            IAuditoriaService auditoria)
         {
             _recursos = recursos;
             _usuarios = usuarios;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<RecursoResponse>> EjecutarAsync(
@@ -92,6 +96,17 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 );
             }
 
+            // Guardamos cómo estaba el recurso antes de modificarlo.
+            // Esto sirve para que la auditoría pueda mostrar qué cambió.
+            var valoresAnteriores =
+                $"Identificador: {recurso.Identificador}; " +
+                $"Título: {recurso.Titulo}; " +
+                $"Autor: {recurso.Autor}; " +
+                $"Categoría: {recurso.Categoria}; " +
+                $"Número de ejemplares: {recurso.NumeroEjemplares}; " +
+                $"Estado: {recurso.Estado}";
+
+            // Aquí aplicamos el cambio real sobre la entidad del dominio.
             recurso.ActualizarInformacion(
                 request.Identificador.Trim(),
                 request.Titulo.Trim(),
@@ -100,7 +115,30 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 request.NumeroEjemplares
             );
 
+            // Guardamos los cambios del recurso en la base de datos.
             await _recursos.ActualizarAsync(recurso);
+
+            // Guardamos cómo quedó el recurso después de actualizarlo.
+            var valoresNuevos =
+                $"Identificador: {recurso.Identificador}; " +
+                $"Título: {recurso.Titulo}; " +
+                $"Autor: {recurso.Autor}; " +
+                $"Categoría: {recurso.Categoria}; " +
+                $"Número de ejemplares: {recurso.NumeroEjemplares}; " +
+                $"Estado: {recurso.Estado}";
+
+            // Registramos la acción en auditoría.
+            // El usuario ejecutor es quien hizo la modificación en el sistema.
+            await _auditoria.RegistrarAsync(
+                request.UsuarioEjecutorId,
+                "Actualizar recurso",
+                "RecursoBibliografico",
+                recurso.Id,
+                "Exitoso",
+                $"Se actualizó el recurso '{recurso.Titulo}'.",
+                valoresAnteriores,
+                valoresNuevos
+            );
 
             var response = MapearRecurso(recurso);
 
