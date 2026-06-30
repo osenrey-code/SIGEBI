@@ -1,5 +1,6 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
@@ -10,13 +11,14 @@ namespace SIGEBI.Application.UseCase.Catalogo
     {
         private readonly IRepositorioRecurso _recursos;
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
 
-        public CambiarEstadoRecurso(
-            IRepositorioRecurso recursos,
-            IUsuario usuarios)
+        public CambiarEstadoRecurso(IRepositorioRecurso recursos, IUsuario usuarios,
+            IAuditoriaService auditoria)
         {
             _recursos = recursos;
             _usuarios = usuarios;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<RecursoResponse>> EjecutarAsync(
@@ -84,10 +86,11 @@ namespace SIGEBI.Application.UseCase.Catalogo
                     out var nuevoEstado))
             {
                 return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El estado indicado no es válido. Estados permitidos: Disponible, Prestado, Reservado, FueraDeServicio."
+                    "El estado indicado no es válido. Estados permitidos: Disponible, Reservado, FueraDeServicio."
                 );
             }
 
+            // No permitimos poner un recurso como Prestado manualmente.
             if (nuevoEstado == EstadoRecurso.Prestado)
             {
                 return ResultadoOperacionResponse<RecursoResponse>.Error(
@@ -95,9 +98,44 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 );
             }
 
-            recurso.CambiarEstado(nuevoEstado);
+            // Si el recurso ya está prestado, tampoco permitimos cambiarlo manualmente.
+            // Primero debe registrarse su devolución desde el módulo de devoluciones.
+            if (recurso.Estado == EstadoRecurso.Prestado)
+            {
+                return ResultadoOperacionResponse<RecursoResponse>.Error(
+                    "Un recurso prestado no puede cambiarse manualmente desde catálogo. Primero debe registrarse la devolución."
+                );
+            }
 
+            if (recurso.Estado == nuevoEstado)
+            {
+                return ResultadoOperacionResponse<RecursoResponse>.Error(
+                    "El recurso ya tiene el estado indicado."
+                );
+            }
+
+            // Guardamos el estado anterior para la auditoría.
+            var valoresAnteriores =
+                $"Estado anterior: {recurso.Estado}";
+
+            recurso.CambiarEstado(nuevoEstado);
             await _recursos.ActualizarAsync(recurso);
+
+            // Guardamos el nuevo estado para la auditoría.
+            var valoresNuevos =
+                $"Estado nuevo: {recurso.Estado}";
+
+            // Registramos quién cambió el estado, sobre qué recurso y cuál fue el cambio.
+            await _auditoria.RegistrarAsync(
+                request.UsuarioEjecutorId,
+                "Cambiar estado de recurso",
+                "RecursoBibliografico",
+                recurso.Id,
+                "Exitoso",
+                $"Se cambió manualmente el estado del recurso '{recurso.Titulo}'.",
+                valoresAnteriores,
+                valoresNuevos
+            );
 
             var response = MapearRecurso(recurso);
 
