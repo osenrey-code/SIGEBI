@@ -5,6 +5,7 @@ using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
+using System.Net;
 
 namespace SIGEBI.Application.UseCase.Penalizaciones
 {
@@ -14,15 +15,17 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         private readonly IUsuario _usuarios;
         private readonly IRepositorioPerfilLector _perfilLector;
         private readonly INotificador _notificador;
+        private readonly IAuditoriaService _auditoria;
 
         public ResolverPenalizacion(IRepositorioPenalizacion penalizaciones, IUsuario usuarios,
             IRepositorioPerfilLector perfilLector,
-            INotificador notificador)
+            INotificador notificador, IAuditoriaService auditoria)
         {
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
             _perfilLector = perfilLector;
             _notificador = notificador;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<PenalizacionResponse>> EjecutarAsync(
@@ -127,6 +130,17 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             await _notificador.NotificarPenalizacionResueltaAsync(
                 perfilLector.UsuarioId,
                 penalizacion.Id
+            );
+
+            //Registrar Auditoria
+            await _auditoria.RegistrarAsync(
+            request.UsuarioEjecutorId,
+            "Resolver penalización",
+            "Penalizacion",
+            penalizacion.Id,
+            "Exitoso",
+            $"La penalización {penalizacion.Id} fue resuelta correctamente. " +
+            $"Usuario afectado: {perfilLector.UsuarioId}."
             );
 
             // Convertimos la entidad a DTO de respuesta.
