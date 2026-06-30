@@ -3,7 +3,7 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
-using System.Runtime.CompilerServices;
+using SIGEBI.Application.Interfaces.ext;
 
 
 namespace SIGEBI.Application.UseCase.Prestamos
@@ -14,17 +14,20 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IRepositorioRecurso _recursos;
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IRepositorioPenalizacion _penalizaciones;
+        private readonly INotificador _notificador;
 
         public SolicitarPrestamo(
             IUsuario usuarios,
             IRepositorioRecurso recursos,
             IRepositorioPrestamo prestamos,
-            IRepositorioPenalizacion penalizaciones)
+            IRepositorioPenalizacion penalizaciones,
+            INotificador notificador)
         {
             _usuarios = usuarios;
             _recursos = recursos;
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
+            _notificador = notificador;
         }
 
         public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
@@ -122,6 +125,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             await _prestamos.AgregarAsync(prestamo);
 
+            await _notificador.NotificarSolicitudPrestamoAsync(usuario.Id, prestamo.Id);
             var response = MapearPrestamo(prestamo);
 
             return ResultadoOperacionResponse<PrestamoResponse>.Ok(
