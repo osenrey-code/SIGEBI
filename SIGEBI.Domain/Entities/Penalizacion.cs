@@ -14,8 +14,9 @@ namespace SIGEBI.Domain.Entities
         public DateTime FechaGeneracion { get; private set; }
         public DateTime? FechaResolucion { get; private set; }
         public Guid? UsuarioResolucionId { get; private set; }
-        public PerfilLector PerfilLector { get; private set; }
-        public Prestamo Prestamo { get; private set; }
+
+        public PerfilLector PerfilLector { get; private set; } = null!;
+        public Prestamo Prestamo { get; private set; } = null!;
 
         private Penalizacion() { }
 

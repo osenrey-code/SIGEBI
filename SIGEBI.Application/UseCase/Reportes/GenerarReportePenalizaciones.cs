@@ -32,22 +32,35 @@ namespace SIGEBI.Application.UseCase.Reportes
 
             var lista = penalizaciones.ToList();
 
+            if (request.FechaInicio.HasValue)
+            {
+                lista = lista
+                     .Where(p => p.FechaGeneracion.Date >= request.FechaInicio.Value.Date)
+                     .ToList();
+            }
+
+            if (request.FechaFin.HasValue)
+            {
+                lista = lista
+                    .Where(p => p.FechaGeneracion.Date <= request.FechaFin.Value.Date)
+                    .ToList();
+            }
+
+            //Filtramos por fecha
             var activas = lista.Where(p =>
-                p.Estado == EstadoPenalizacion.Activa
-            ).ToList();
+              p.Estado == EstadoPenalizacion.Activa)
+                .ToList();
 
             var resueltas = lista.Where(p =>
-                p.Estado == EstadoPenalizacion.Resuelta
-            ).ToList();
+                p.Estado == EstadoPenalizacion.Resuelta)
+                .ToList();
 
             var response = new ReportePenalizacionesResponse
             {
                 TotalPenalizaciones = lista.Count,
                 PenalizacionesActivas = activas.Count,
                 PenalizacionesResueltas = resueltas.Count,
-
                 TotalDiasRetraso = lista.Sum(p => p.DiasRetraso),
-
                 MontoTotalMora = lista.Sum(p => p.MontoMora),
                 MontoMoraActiva = activas.Sum(p => p.MontoMora),
                 MontoMoraResuelta = resueltas.Sum(p => p.MontoMora)
