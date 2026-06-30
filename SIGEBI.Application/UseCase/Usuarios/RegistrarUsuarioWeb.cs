@@ -3,16 +3,19 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Application.Interfaces.ext;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
     public class RegistrarUsuarioWeb
     {
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
 
-        public RegistrarUsuarioWeb(IUsuario usuarios)
+        public RegistrarUsuarioWeb(IUsuario usuarios, IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<UsuarioResponse>> EjecutarAsync(
@@ -74,6 +77,21 @@ namespace SIGEBI.Application.UseCase.Usuarios
             
 
             await _usuarios.AgregarAsync(usuario);
+
+            await _auditoria.RegistrarAsync(
+            usuario.Id,
+            "Registrar usuario web",
+            "Usuario",
+            usuario.Id,
+            "Exitoso",
+            $"El usuario '{usuario.NombreCompleto}' se registró desde la web con tipo '{usuario.Tipo}'.",
+            valoresNuevos:
+            $"Identificación: {usuario.Identificacion}; " +
+            $"Correo: {usuario.Correo}; " +
+            $"Tipo: {usuario.Tipo}; " +
+            $"Estado: {usuario.Estado}"
+            );
+
             var response = MapearUsuario(usuario);
             return ResultadoOperacionResponse<UsuarioResponse>.Ok("" +
                 "Usuario registrado correctamente", response);
