@@ -3,16 +3,19 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Application.Interfaces.ext;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
     public class RegistrarUsuario
     {
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
 
-        public RegistrarUsuario(IUsuario usuarios)
+        public RegistrarUsuario(IUsuario usuarios, IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<UsuarioResponse>> EjecutarAsync(
@@ -36,6 +39,15 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 );
             }
 
+            // Validamos que el administrador esté activo.
+            // Un usuario inactivo no debería ejecutar acciones administrativas.
+            if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
+            {
+                return ResultadoOperacionResponse<UsuarioResponse>.Error(
+                    "El usuario ejecutor no está activo."
+                );
+            }
+
             if (usuarioEjecutor.Tipo != TipoUsuario.Administrador)
             {
                 return ResultadoOperacionResponse<UsuarioResponse>.Error(
@@ -52,7 +64,11 @@ namespace SIGEBI.Application.UseCase.Usuarios
             );
 
             if (errorValidacion is not null)
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(errorValidacion);
+            {
+                return ResultadoOperacionResponse<UsuarioResponse>.Error(
+                    errorValidacion
+                );
+            }
 
             if (!Enum.TryParse<TipoUsuario>(request.TipoUsuario, true, out var tipoUsuario))
             {
@@ -97,6 +113,22 @@ namespace SIGEBI.Application.UseCase.Usuarios
             }
 
             await _usuarios.AgregarAsync(usuario);
+
+            // Registramos la creación del usuario en auditoría.
+            // No guardamos la contraseña en auditoría por seguridad.
+            await _auditoria.RegistrarAsync(
+                request.UsuarioEjecutorId,
+                "Registrar usuario",
+                "Usuario",
+                usuario.Id,
+                "Exitoso",
+                $"Se registró el usuario '{usuario.NombreCompleto}' con tipo '{usuario.Tipo}'.",
+                valoresNuevos:
+                    $"Identificación: {usuario.Identificacion}; " +
+                    $"Correo: {usuario.Correo}; " +
+                    $"Tipo: {usuario.Tipo}; " +
+                    $"Estado: {usuario.Estado}"
+            );
 
             var response = MapearUsuario(usuario);
 
