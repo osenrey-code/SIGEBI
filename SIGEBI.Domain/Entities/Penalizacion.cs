@@ -26,6 +26,7 @@ namespace SIGEBI.Domain.Entities
             this.PrestamoId = PrestamoId;
             this.DiasRetraso = DiasRetraso;
             this.MontoMora = DiasRetraso * MontoMora;
+            FechaGeneracion = DateTime.Now;
             Estado = EstadoPenalizacion.Activa;
         }
 
@@ -44,6 +45,7 @@ namespace SIGEBI.Domain.Entities
             Estado = EstadoPenalizacion.Resuelta;
             FechaResolucion = DateTime.Now;
             UsuarioResolucionId = usuarioResolucionId;
+           
         }
     }
 }

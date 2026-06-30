@@ -44,7 +44,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                     );
                 }
 
-                prestamos = await _prestamos.ObtenerActivosPorUsuarioAsync(
+                prestamos = await _prestamos.ObtenerActivosPorPerfilLectorAsync(
                     usuario.PerfilLector.Id
                 );
             }

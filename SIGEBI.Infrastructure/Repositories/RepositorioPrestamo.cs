@@ -17,11 +17,11 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(Guid usuarioId)
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorPerfilLectorAsync(Guid perfilLectorId)
         {
             return await _dbSet
                 .Where(p =>
-                    p.PerfilLectorId == usuarioId &&
+                    p.PerfilLectorId == perfilLectorId &&
                     p.Estado == EstadoPrestamo.Activo)
                 .ToListAsync();
         }
@@ -34,10 +34,10 @@ namespace SIGEBI.Infrastructure.Repositories
                     p.Estado == EstadoPrestamo.Activo);
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(Guid usuarioId)
+        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorPerfilLectorAsync(Guid perfilLectorId)
         {
             return await _dbSet
-                .Where(p => p.PerfilLectorId == usuarioId)
+                .Where(p => p.PerfilLectorId == perfilLectorId)
                 .OrderByDescending(p => p.FechaSolicitud)
                 .ToListAsync();
         }

@@ -8,10 +8,8 @@ namespace SIGEBI.Application.Interfaces.Repositories
     public interface IRepositorioPrestamo : IBaseRepository<Prestamo>
     {
        
-        Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(Guid usuarioId);
-        Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(Guid usuarioId);
-        Task<IEnumerable<Prestamo>> ObtenerPrestamosProximosAVencerAsync(
-    DateTime fechaDesde,
-    DateTime fechaHasta);
+        Task<IEnumerable<Prestamo>> ObtenerActivosPorPerfilLectorAsync(Guid perfilLectorId);
+        Task<IEnumerable<Prestamo>> ObtenerHistorialPorPerfilLectorAsync(Guid perfilLectorId);
+        Task<IEnumerable<Prestamo>> ObtenerPrestamosProximosAVencerAsync(DateTime fechaDesde, DateTime fechaHasta);
     }
 }
