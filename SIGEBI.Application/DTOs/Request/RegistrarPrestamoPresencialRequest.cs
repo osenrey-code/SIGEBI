@@ -6,6 +6,6 @@ namespace SIGEBI.Application.DTOs.Request
     {
         public Guid UsuarioId { get; set; }
         public Guid RecursoId { get; set; }
-        public Guid BibliotecarioId { get; set; }
+        public Guid EjecutorId { get; set; }
     }
 }
