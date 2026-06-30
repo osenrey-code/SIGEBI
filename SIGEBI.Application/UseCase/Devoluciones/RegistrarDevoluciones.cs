@@ -4,6 +4,7 @@ using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
+using SIGEBI.Application.Interfaces.ext;
 
 namespace SIGEBI.Application.UseCase.Devoluciones
 {
@@ -16,22 +17,27 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IRepositorioRecurso _recursos;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IUsuario _usuarios;
+        private readonly IRepositorioPerfilLector _perfilLector;
+        private readonly INotificador _notificador;
 
-        public RegistrarDevoluciones(
-            IRepositorioPrestamo prestamos,
-            IRepositorioRecurso recursos,
+        public RegistrarDevoluciones(IRepositorioPrestamo prestamos, IRepositorioRecurso recursos,
             IRepositorioPenalizacion penalizaciones,
-            IUsuario usuarios)
+            IUsuario usuarios,
+            IRepositorioPerfilLector perfilLector,
+            INotificador notificador)
         {
             _prestamos = prestamos;
             _recursos = recursos;
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
+            _perfilLector = perfilLector;
+            _notificador = notificador;
         }
 
         public async Task<ResultadoOperacionResponse<DevolucionResponse>> EjecutarAsync(
             RegistrarDevolucionRequest request)
         {
+            // Validamos que venga el Id del préstamo que se está devolviendo.
             if (request.PrestamoId == Guid.Empty)
             {
                 return ResultadoOperacionResponse<DevolucionResponse>.Error(
@@ -39,6 +45,8 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
+            // Validamos que venga el usuario responsable que registra la devolución.
+            // Aunque se llame BibliotecarioId, también puede ser un Administrador.
             if (request.BibliotecarioId == Guid.Empty)
             {
                 return ResultadoOperacionResponse<DevolucionResponse>.Error(
@@ -46,8 +54,12 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
-            var bibliotecario = await _usuarios.ObtenerPorIdAsync(request.BibliotecarioId);
+            // Buscamos al bibliotecario o administrador que registra la devolución.
+            var bibliotecario = await _usuarios.ObtenerPorIdAsync(
+                request.BibliotecarioId
+            );
 
+            // Si no existe, no se puede registrar la devolución.
             if (bibliotecario is null)
             {
                 return ResultadoOperacionResponse<DevolucionResponse>.Error(
@@ -55,6 +67,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
+            // El responsable debe estar activo en el sistema.
             if (bibliotecario.Estado != EstadoUsuario.Activo)
             {
                 return ResultadoOperacionResponse<DevolucionResponse>.Error(
@@ -62,6 +75,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
+            // Solo Bibliotecario o Administrador pueden registrar devoluciones.
             if (bibliotecario.Tipo != TipoUsuario.Bibliotecario &&
                 bibliotecario.Tipo != TipoUsuario.Administrador)
             {
@@ -70,8 +84,12 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
-            var prestamo = await _prestamos.ObtenerporIdAsync(request.PrestamoId);
+            // Buscamos el préstamo que se quiere devolver.
+            var prestamo = await _prestamos.ObtenerporIdAsync(
+                request.PrestamoId
+            );
 
+            // Si el préstamo no existe, no se puede continuar.
             if (prestamo is null)
             {
                 return ResultadoOperacionResponse<DevolucionResponse>.Error(
@@ -79,8 +97,26 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
-            var recurso = await _recursos.ObtenerporIdAsync(prestamo.RecursoId);
+            // Necesitamos el PerfilLector para obtener el UsuarioId del estudiante/docente
+            // y poder notificarle si se genera una penalización.
+            var perfilLector = await _perfilLector.ObtenerPorIdAsync(
+                prestamo.PerfilLectorId
+            );
 
+            // Si no existe el perfil lector, el préstamo tiene una relación inconsistente.
+            if (perfilLector is null)
+            {
+                return ResultadoOperacionResponse<DevolucionResponse>.Error(
+                    "El perfil lector asociado al préstamo no existe."
+                );
+            }
+
+            // Buscamos el recurso bibliográfico asociado al préstamo.
+            var recurso = await _recursos.ObtenerporIdAsync(
+                prestamo.RecursoId
+            );
+
+            // Si el recurso no existe, no se puede registrar correctamente la devolución.
             if (recurso is null)
             {
                 return ResultadoOperacionResponse<DevolucionResponse>.Error(
@@ -88,27 +124,34 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
+            // Tomamos la fecha real de devolución.
             var fechaDevolucion = DateTime.Now;
+
+            // Variables que luego usaremos para crear el response.
             bool fueTardia;
             int diasRetraso;
 
             try
             {
+                
                 fueTardia = prestamo.EsDevolucionTardia(fechaDevolucion);
                 diasRetraso = prestamo.CalcularDiasRetraso(fechaDevolucion);
-
                 prestamo.RegistrarDevolucion(fechaDevolucion);
                 recurso.MarcarComoDisponible();
             }
             catch (BusinessException ex)
             {
+                // Si alguna regla del dominio falla, devolvemos el mensaje.
                 return ResultadoOperacionResponse<DevolucionResponse>.Error(
                     ex.Message
                 );
             }
 
+            // Indica si se generó o no una penalización.
             var penalizacionGenerada = false;
 
+            // Si la devolución fue tardía y hubo días de retraso,
+            // se crea una penalización para el PerfilLector.
             if (fueTardia && diasRetraso > 0)
             {
                 var penalizacion = new Penalizacion(
@@ -118,27 +161,45 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                     MontoMoraPorDia
                 );
 
+                // Guardamos la penalización en el sistema.
                 await _penalizaciones.AgregarAsync(penalizacion);
+
+                // Marcamos que sí se generó penalización para devolverlo en el response.
                 penalizacionGenerada = true;
+
+                // Notificamos al estudiante/docente asociado al PerfilLector.
+                // El Notificador buscará el usuario, su correo, enviará el mensaje
+                // y registrará la notificación como Enviada o Fallida.
+                await _notificador.NotificarPenalizacionGeneradaAsync(
+                    perfilLector.UsuarioId,
+                    penalizacion.Id
+                );
             }
 
+            // Guardamos los cambios del préstamo.
             await _prestamos.ActualizarAsync(prestamo);
+
+            // Guardamos los cambios del recurso.
             await _recursos.ActualizarAsync(recurso);
 
+            // Creamos el DTO de respuesta.
             var response = new DevolucionResponse
             {
                 PrestamoId = prestamo.Id,
                 PerfilLectorId = prestamo.PerfilLectorId,
                 RecursoId = prestamo.RecursoId,
+
                 FechaInicio = prestamo.FechaInicio,
                 FechaLimite = prestamo.FechaLimite,
                 FechaDevolucion = fechaDevolucion,
+
                 EstadoPrestamo = prestamo.Estado.ToString(),
                 FueTardia = fueTardia,
                 DiasRetraso = diasRetraso,
                 PenalizacionGenerada = penalizacionGenerada
             };
 
+            // Devolvemos respuesta estándar de operación exitosa.
             return ResultadoOperacionResponse<DevolucionResponse>.Ok(
                 "Devolución registrada correctamente.",
                 response
