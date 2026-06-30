@@ -1,7 +1,8 @@
 ﻿using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Usuarios;
-
+using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Application.Services;
 namespace SIGEBI.Api.Extensions
 {
     public static class InyeccionDependenciasExtensions
@@ -9,6 +10,7 @@ namespace SIGEBI.Api.Extensions
         public static IServiceCollection AddApplicationUseCases(
             this IServiceCollection services)
         {
+            services.AddScoped<INotificador, Notificador>();
             // Usuarios
             services.AddScoped<RegistrarUsuario>();
             services.AddScoped<RegistrarUsuarioWeb>();
