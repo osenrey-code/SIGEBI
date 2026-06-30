@@ -1,5 +1,6 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
@@ -14,18 +15,20 @@ namespace SIGEBI.Application.UseCase.Prestamos
     {
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
 
-        public RechazarPrestamo(
-            IRepositorioPrestamo prestamos,
-            IUsuario usuarios)
+        public RechazarPrestamo(IRepositorioPrestamo prestamos,
+            IUsuario usuarios, IAuditoriaService auditoria )
         {
             _prestamos = prestamos;
             _usuarios = usuarios;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
             RechazarPrestamoRequest request)
         {
+            // Validamos que venga el préstamo que se quiere rechazar.
             if (request.PrestamoId == Guid.Empty)
             {
                 return ResultadoOperacionResponse<PrestamoResponse>.Error(
@@ -33,6 +36,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 );
             }
 
+            // Validamos que venga el usuario responsable de rechazar el préstamo.
+            // Aunque se llame BibliotecarioId, también puede ser un Administrador.
             if (request.BibliotecarioId == Guid.Empty)
             {
                 return ResultadoOperacionResponse<PrestamoResponse>.Error(
@@ -40,6 +45,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 );
             }
 
+            // Todo rechazo debe tener un motivo.
             if (string.IsNullOrWhiteSpace(request.Motivo))
             {
                 return ResultadoOperacionResponse<PrestamoResponse>.Error(
@@ -47,6 +53,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 );
             }
 
+            // Buscamos al bibliotecario o administrador que ejecuta la acción.
             var bibliotecario = await _usuarios.ObtenerPorIdAsync(
                 request.BibliotecarioId
             );
@@ -58,6 +65,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 );
             }
 
+            // El responsable debe estar activo.
             if (bibliotecario.Estado != EstadoUsuario.Activo)
             {
                 return ResultadoOperacionResponse<PrestamoResponse>.Error(
@@ -65,6 +73,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 );
             }
 
+            // Solo Bibliotecario o Administrador pueden rechazar solicitudes de préstamo.
             if (bibliotecario.Tipo != TipoUsuario.Bibliotecario &&
                 bibliotecario.Tipo != TipoUsuario.Administrador)
             {
@@ -73,6 +82,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 );
             }
 
+            // Buscamos el préstamo solicitado.
             var prestamo = await _prestamos.ObtenerporIdAsync(
                 request.PrestamoId
             );
@@ -95,7 +105,19 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 );
             }
 
+            // Guardamos el cambio del préstamo.
             await _prestamos.ActualizarAsync(prestamo);
+
+            // Registramos auditoría después de guardar.
+            // El responsable de esta acción es el bibliotecario/administrador.
+            await _auditoria.RegistrarAsync(
+                request.BibliotecarioId,
+                "Rechazar préstamo",
+                "Prestamo",
+                prestamo.Id,
+                "Exitoso",
+                $"El préstamo fue rechazado. Motivo: {request.Motivo}"
+            );
 
             return ResultadoOperacionResponse<PrestamoResponse>.Ok(
                 "Préstamo rechazado correctamente.",
