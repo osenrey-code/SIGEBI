@@ -3,7 +3,7 @@ namespace SIGEBI.Application.DTOs.Request
 {
     public class ActualizarUsuarioRequest
     {
-        public Guid EjecutorId { get; set; }
+        public Guid UsuarioEjecutorId { get; set; }
         public Guid UsuarioId { get; set; }
         public string NombreCompleto { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;

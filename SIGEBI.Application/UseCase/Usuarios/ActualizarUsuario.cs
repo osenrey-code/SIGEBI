@@ -23,7 +23,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
         {
             // Validamos quién ejecuta la acción.
             // Para auditoría necesitamos saber qué administrador actualizó el usuario.
-            if (request.EjecutorId == Guid.Empty)
+            if (request.UsuarioEjecutorId == Guid.Empty)
             {
                 return ResultadoOperacionResponse<UsuarioResponse>.Error(
                     "El usuario ejecutor es obligatorio."
@@ -39,7 +39,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             }
 
             var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.EjecutorId
+                request.UsuarioEjecutorId
             );
 
             if (usuarioEjecutor is null)
@@ -140,7 +140,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             // Registramos la actualización en auditoría.
             // El actor es el administrador que hizo la modificación.
             await _auditoria.RegistrarAsync(
-                request.EjecutorId,
+                request.UsuarioEjecutorId,
                 "Actualizar usuario",
                 "Usuario",
                 usuario.Id,
