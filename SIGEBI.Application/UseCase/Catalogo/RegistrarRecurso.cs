@@ -3,6 +3,7 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Application.Interfaces.ext;
 
 namespace SIGEBI.Application.UseCase.Catalogo
 {
@@ -10,13 +11,16 @@ namespace SIGEBI.Application.UseCase.Catalogo
     {
         private readonly IRepositorioRecurso _recursos;
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
 
         public RegistrarRecurso(
             IRepositorioRecurso recursos,
-            IUsuario usuarios)
+            IUsuario usuarios,
+            IAuditoriaService auditoria)
         {
             _recursos = recursos;
             _usuarios = usuarios;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<RecursoResponse>> EjecutarAsync(
@@ -84,6 +88,16 @@ namespace SIGEBI.Application.UseCase.Catalogo
             );
 
             await _recursos.AgregarAsync(recurso);
+
+            // Registramos en auditoría que un bibliotecario/administrador creó un recurso nuevo.
+            await _auditoria.RegistrarAsync(
+                request.UsuarioEjecutorId,
+                "Registrar recurso",
+                "RecursoBibliografico",
+                recurso.Id,
+                "Exitoso",
+                $"Se registró el recurso '{recurso.Titulo}' con identificador '{recurso.Identificador}'."
+            );
 
             var response = MapearRecurso(recurso);
 
