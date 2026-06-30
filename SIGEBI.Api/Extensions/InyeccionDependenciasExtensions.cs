@@ -18,6 +18,7 @@ namespace SIGEBI.Api.Extensions
             this IServiceCollection services)
         {
             services.AddScoped<INotificador, Notificador>();
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
 
             // Usuarios
             services.AddScoped<RegistrarUsuario>();
