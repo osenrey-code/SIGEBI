@@ -19,12 +19,13 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IUsuario _usuarios;
         private readonly IRepositorioPerfilLector _perfilLector;
         private readonly INotificador _notificador;
+        private readonly IAuditoriaService _auditoria;
 
         public RegistrarDevoluciones(IRepositorioPrestamo prestamos, IRepositorioRecurso recursos,
             IRepositorioPenalizacion penalizaciones,
             IUsuario usuarios,
             IRepositorioPerfilLector perfilLector,
-            INotificador notificador)
+            INotificador notificador, IAuditoriaService auditoria)
         {
             _prestamos = prestamos;
             _recursos = recursos;
@@ -32,6 +33,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             _usuarios = usuarios;
             _perfilLector = perfilLector;
             _notificador = notificador;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<DevolucionResponse>> EjecutarAsync(
@@ -178,9 +180,20 @@ namespace SIGEBI.Application.UseCase.Devoluciones
 
             // Guardamos los cambios del préstamo.
             await _prestamos.ActualizarAsync(prestamo);
-
-            // Guardamos los cambios del recurso.
             await _recursos.ActualizarAsync(recurso);
+
+            await _auditoria.RegistrarAsync(
+            request.BibliotecarioId,
+            "Registrar devolución",
+            "Prestamo",
+            prestamo.Id,
+            "Exitoso",
+            $"Se registró la devolución del préstamo {prestamo.Id}. " +
+            $"Recurso {recurso.Id} marcado como Disponible. " +
+            $"Fue tardía: {(fueTardia ? "Sí" : "No")}. " +
+            $"Días de retraso: {diasRetraso}. " +
+            $"Penalización generada: {(penalizacionGenerada ? "Sí" : "No")}."
+            );
 
             // Creamos el DTO de respuesta.
             var response = new DevolucionResponse
