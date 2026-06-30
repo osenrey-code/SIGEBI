@@ -7,6 +7,7 @@ public class RecursoResponse
     public string Identificador { get; set; } = string.Empty;
 
     public string Titulo { get; set; } = string.Empty;
+    public string? ImagenUrl { get; set;  }
 
     public string Autor { get; set; } = string.Empty;
 

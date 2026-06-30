@@ -11,16 +11,13 @@ namespace SIGEBI.Domain.Entities
         public string Titulo { get; private set; } = string.Empty;
         public string Autor { get; private set; } = string.Empty;
         public string Categoria { get; private set; } = string.Empty;
+        public string? ImagenUrl { get; private set; }
         public EstadoRecurso Estado { get; private set; }
 
         private RecursoBibliografico() { }
 
-        public RecursoBibliografico(
-        string identificador,
-        string titulo,
-        string autor,
-        string categoria,
-        int numeroEjemplares)
+        public RecursoBibliografico(string identificador, string titulo, string autor, string categoria,
+        int numeroEjemplares, string imagenUrl)
         {
             if (string.IsNullOrWhiteSpace(identificador))
                 throw new BusinessException("El identificador del recurso es obligatorio.");
@@ -36,6 +33,10 @@ namespace SIGEBI.Domain.Entities
 
             if (numeroEjemplares <= 0)
                 throw new BusinessException("El número de ejemplares debe ser mayor que cero.");
+
+            if (string.IsNullOrWhiteSpace(imagenUrl))
+                throw new BusinessException("El libro debe contener una imagen.");
+
 
             Id = Guid.NewGuid();
             Identificador = identificador.Trim();
@@ -51,12 +52,8 @@ namespace SIGEBI.Domain.Entities
             return Estado == EstadoRecurso.Disponible;
         }
 
-        public void ActualizarInformacion(
-        string identificador,
-        string titulo,
-        string autor,
-        string categoria,
-        int numeroEjemplares)
+        public void ActualizarInformacion(string identificador, string titulo, string autor,string categoria,
+        int numeroEjemplares, string imagenUrl)
         {
             if (string.IsNullOrWhiteSpace(identificador))
                 throw new BusinessException("El identificador del recurso es obligatorio.");
@@ -78,6 +75,17 @@ namespace SIGEBI.Domain.Entities
             Autor = autor.Trim();
             Categoria = categoria.Trim();
             NumeroEjemplares = numeroEjemplares;
+            ImagenUrl = imagenUrl.Trim();
+        }
+
+        public void AsignarImagen(string imagenUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imagenUrl))
+            {
+                return;
+            }
+
+            ImagenUrl = imagenUrl;
         }
 
         public void MarcarComoPrestado()

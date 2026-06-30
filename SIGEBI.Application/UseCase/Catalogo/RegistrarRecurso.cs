@@ -84,7 +84,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 request.Titulo.Trim(),
                 request.Autor.Trim(),
                 request.Categoria.Trim(),
-                request.NumeroEjemplares
+                request.NumeroEjemplares,
+                request.ImagenUrl!.Trim()
             );
 
             await _recursos.AgregarAsync(recurso);
@@ -109,6 +110,9 @@ namespace SIGEBI.Application.UseCase.Catalogo
 
         private static string? ValidarDatosBasicos(RegistrarRecursoRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.ImagenUrl))
+                return "La imagen del recurso es obligatoria.";
+
             if (string.IsNullOrWhiteSpace(request.Identificador))
                 return "El identificador del recurso es obligatorio.";
 
@@ -137,7 +141,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 Autor = recurso.Autor,
                 Categoria = recurso.Categoria,
                 Estado = recurso.Estado.ToString(),
-                NumeroEjemplares = recurso.NumeroEjemplares
+                NumeroEjemplares = recurso.NumeroEjemplares,
+                ImagenUrl = recurso.ImagenUrl
             };
         }
     }

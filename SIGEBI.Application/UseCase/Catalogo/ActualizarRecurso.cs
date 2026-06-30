@@ -13,10 +13,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
 
-        public ActualizarRecurso(
-            IRepositorioRecurso recursos,
-            IUsuario usuarios,
-            IAuditoriaService auditoria)
+        public ActualizarRecurso(IRepositorioRecurso recursos, IUsuario usuarios, IAuditoriaService auditoria)
         {
             _recursos = recursos;
             _usuarios = usuarios;
@@ -112,7 +109,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 request.Titulo.Trim(),
                 request.Autor.Trim(),
                 request.Categoria.Trim(),
-                request.NumeroEjemplares
+                request.NumeroEjemplares,
+                request.ImagenUrl!
             );
 
             // Guardamos los cambios del recurso en la base de datos.
@@ -150,6 +148,9 @@ namespace SIGEBI.Application.UseCase.Catalogo
 
         private static string? ValidarDatosBasicos(ActualizarRecursoRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.ImagenUrl))
+                return "La imagen del recurso es obligatoria.";
+
             if (string.IsNullOrWhiteSpace(request.Identificador))
                 return "El identificador del recurso es obligatorio.";
 
@@ -178,7 +179,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 Autor = recurso.Autor,
                 Categoria = recurso.Categoria,
                 Estado = recurso.Estado.ToString(),
-                NumeroEjemplares = recurso.NumeroEjemplares
+                NumeroEjemplares = recurso.NumeroEjemplares,
+                ImagenUrl = recurso.ImagenUrl,
             };
         }
     }

@@ -33,6 +33,7 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
             services.AddScoped<IServicioToken, ServicioToken>();
             services.AddScoped<IServicioPassword, ServicioPassword>();
+            services.AddScoped<IStorageService, LocalStorageService>();
             return services;
         }
     }

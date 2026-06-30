@@ -11,6 +11,7 @@ public class RegistrarRecursoRequest
     public string Autor { get; set; } = string.Empty;
 
     public string Categoria { get; set; } = string.Empty;
+    public string? ImagenUrl { get; set; }
 
     public int NumeroEjemplares { get; set; } = 1;
 }

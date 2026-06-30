@@ -10,6 +10,7 @@ namespace SIGEBI.Application.Interfaces.Repositories
             string? titulo,
             string? autor,
             string? categoria,
-            bool? soloDisponibles);
+            bool? soloDisponibles
+            );
     }
 }
