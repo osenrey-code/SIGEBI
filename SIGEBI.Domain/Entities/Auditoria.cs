@@ -9,13 +9,13 @@ namespace SIGEBI.Domain.Entities
         public Guid Id { get; private set; }
         public Guid UsuarioId { get; private set; }
 
-        public string EntidadAfectada { get; private set; }
+        public string EntidadAfectada { get; private set; } = string.Empty;
 
         public Guid EntidadId { get; private set; }
 
-        public string Accion { get; private set; }
+        public string Accion { get; private set; } = string.Empty;
 
-        public string Detalle { get; private set; }
+        public string Detalle { get; private set; } = string.Empty;
 
         public DateTime FechaRegistro { get; private set; }
 

@@ -12,7 +12,7 @@ namespace SIGEBI.Infrastructure.Repositories
         protected readonly SIGEBIDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
-        // 3. Constructor 'public' para que se pueda inyectar en la aplicación
+        // Constructor public para que se pueda inyectar en la aplicación
         public RepositorioBase(SIGEBIDbContext context)
         {
             _context = context;
@@ -43,7 +43,7 @@ namespace SIGEBI.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<T> ObtenerporIdAsync(object id)
+        public async Task<T?> ObtenerporIdAsync(object id)
         {
             return await _dbSet.FindAsync(id);
         }

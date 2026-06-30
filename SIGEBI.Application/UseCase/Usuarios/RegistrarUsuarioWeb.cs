@@ -11,11 +11,13 @@ namespace SIGEBI.Application.UseCase.Usuarios
     {
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
+        private readonly IServicioPassword _password;
 
-        public RegistrarUsuarioWeb(IUsuario usuarios, IAuditoriaService auditoria)
+        public RegistrarUsuarioWeb(IUsuario usuarios, IAuditoriaService auditoria, IServicioPassword password)
         {
             _usuarios = usuarios;
             _auditoria = auditoria;
+            _password = password;
         }
 
         public async Task<ResultadoOperacionResponse<UsuarioResponse>> EjecutarAsync(
@@ -71,7 +73,12 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 tipoUsuario
              );
 
-         
+            var passwordHash = _password.GenerarHash(
+             request.PassWord.Trim()
+               );
+
+            usuario.EstablecerPasswordHash(passwordHash);
+
             var perfilLector = CrearPerfilLectorPorTipo(usuario.Id, tipoUsuario);
             usuario.AsignarPerfilLector(perfilLector);
             

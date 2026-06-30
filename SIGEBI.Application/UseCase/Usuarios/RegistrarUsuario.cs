@@ -11,11 +11,13 @@ namespace SIGEBI.Application.UseCase.Usuarios
     {
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
+        private readonly IServicioPassword _password;
 
-        public RegistrarUsuario(IUsuario usuarios, IAuditoriaService auditoria)
+        public RegistrarUsuario(IUsuario usuarios, IAuditoriaService auditoria, IServicioPassword password)
         {
             _usuarios = usuarios;
             _auditoria = auditoria;
+            _password = password;
         }
 
         public async Task<ResultadoOperacionResponse<UsuarioResponse>> EjecutarAsync(
@@ -103,6 +105,14 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 request.Correo.Trim(),
                 tipoUsuario
             );
+
+            // Generamos el hash de la contraseña.
+            // Nunca guardamos request.PassWord directamente.
+            var passwordHash = _password.GenerarHash(
+                request.PassWord.Trim()
+            );
+
+            usuario.EstablecerPasswordHash(passwordHash);
 
             if (tipoUsuario == TipoUsuario.Estudiante ||
                 tipoUsuario == TipoUsuario.Docente)

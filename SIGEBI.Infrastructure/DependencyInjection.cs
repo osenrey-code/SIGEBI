@@ -31,6 +31,8 @@ namespace SIGEBI.Infrastructure
 
             services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
             services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
+            services.AddScoped<IServicioToken, ServicioToken>();
+            services.AddScoped<IServicioPassword, ServicioPassword>();
             return services;
         }
     }

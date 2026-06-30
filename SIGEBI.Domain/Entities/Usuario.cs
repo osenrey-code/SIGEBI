@@ -10,6 +10,7 @@ namespace SIGEBI.Domain.Entities
         public string Correo { get; set; } = string.Empty;
         public TipoUsuario Tipo { get; set; }
         public EstadoUsuario Estado { get; set; }
+        public string PasswordHash { get; private set; } = string.Empty;
 
 
         //Este perfil sera para los Estudiantes o Docentes
@@ -43,6 +44,14 @@ namespace SIGEBI.Domain.Entities
                 throw new Exception("Solo los estudiantes y docentes pueden tener un perfil de lector.");
 
             PerfilLector = perfil;
+        }
+
+        public void EstablecerPasswordHash(string passwordHash)
+        {
+            if (string.IsNullOrWhiteSpace(passwordHash))
+                throw new Exception("El hash de la contraseña es obligatorio.");
+
+            PasswordHash = passwordHash;
         }
     }
 }
