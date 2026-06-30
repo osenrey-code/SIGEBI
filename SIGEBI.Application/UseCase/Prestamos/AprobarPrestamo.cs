@@ -14,17 +14,19 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IUsuario _usuarios;
         private readonly IRepositorioPerfilLector _perfilLector;
         private readonly INotificador _notificador;
+        private readonly IAuditoriaService _auditoria;
 
         public AprobarPrestamo( IRepositorioPrestamo prestamos, IRepositorioRecurso recursos,
             IUsuario usuarios,
             IRepositorioPerfilLector perfilLector,
-            INotificador notificador)
+            INotificador notificador, IAuditoriaService auditoria)
         {
             _prestamos = prestamos;
             _recursos = recursos;
             _usuarios = usuarios;
             _perfilLector = perfilLector;
             _notificador = notificador;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
@@ -144,10 +146,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             // El recurso cambia su estado a Prestado.
             recurso.MarcarComoPrestado();
 
-            // Guardamos los cambios del préstamo.
             await _prestamos.ActualizarAsync(prestamo);
-
-            // Guardamos los cambios del recurso.
             await _recursos.ActualizarAsync(recurso);
 
             // Si el préstamo tiene fecha límite, notificamos al usuario lector.
@@ -160,6 +159,9 @@ namespace SIGEBI.Application.UseCase.Prestamos
                     prestamo.FechaLimite.Value
                 );
             }
+
+            await _auditoria.RegistrarAsync(request.EjecutorId, "Aprobar préstamo", "Prestamo",
+                prestamo.Id, "Exitoso", $"El prestamo fue aprobado y el recurso {recurso.Id} fue marcado como prestado.");
 
             // Convertimos la entidad Prestamo a un DTO de respuesta.
             var response = MapearPrestamo(prestamo);
