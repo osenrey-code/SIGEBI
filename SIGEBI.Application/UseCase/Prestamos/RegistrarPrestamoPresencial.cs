@@ -16,17 +16,19 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly INotificador _notificador;
+        private readonly IAuditoriaService _auditoria;
 
         public RegistrarPrestamoPresencial(IUsuario usuarios, IRepositorioRecurso recursos, 
             IRepositorioPrestamo prestamos,
             IRepositorioPenalizacion penalizaciones,
-            INotificador notificador)
+            INotificador notificador, IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
             _recursos = recursos;
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
             _notificador = notificador;
+            _auditoria = auditoria;
         }
 
         public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
@@ -205,8 +207,6 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             // Guardamos el préstamo en el repositorio.
             await _prestamos.AgregarAsync(prestamo);
-
-            // Actualizamos el estado del recurso en el repositorio.
             await _recursos.ActualizarAsync(recurso);
 
             // Si el préstamo tiene fecha límite, notificamos al estudiante/docente.
@@ -219,6 +219,16 @@ namespace SIGEBI.Application.UseCase.Prestamos
                     prestamo.FechaLimite.Value
                 );
             }
+
+            await _auditoria.RegistrarAsync(
+                 request.EjecutorId,
+                "Registrar préstamo presencial",
+                "Prestamo",
+                prestamo.Id,
+                "Exitoso",
+                $"El préstamo presencial fue registrado para el usuario {usuario.Id}. " +
+                $"El recurso {recurso.Id} fue marcado como Prestado."
+            );
 
             // Convertimos la entidad Prestamo a un DTO de respuesta.
             // Así no exponemos directamente la entidad de dominio.
