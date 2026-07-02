@@ -1,6 +1,6 @@
 ﻿namespace SIGEBI.Domain.Enums
 {
-    public enum EstadoRecurso
+    public enum EstadoEjemplar
     {
         Disponible,
         Prestado,

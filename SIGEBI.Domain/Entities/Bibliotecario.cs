@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SIGEBI.Domain.Entities
 {
-    public class Bibliotecario : Usuarios
+    public class Bibliotecario : Usuario
     {
 
     }

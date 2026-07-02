@@ -4,7 +4,7 @@ using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Domain.Entities
 {
-    public abstract class Usuarios
+    public abstract class Usuario
     {
         public string UsuarioId { get; set; } = string.Empty;
         public string NombreCompleto { get; set; } = string.Empty;

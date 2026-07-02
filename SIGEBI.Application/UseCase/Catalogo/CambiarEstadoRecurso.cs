@@ -80,7 +80,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 );
             }
 
-            if (!Enum.TryParse<EstadoRecurso>(
+            if (!Enum.TryParse<EstadoEjemplar>(
                     request.NuevoEstado,
                     ignoreCase: true,
                     out var nuevoEstado))
@@ -91,7 +91,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
             }
 
             // No permitimos poner un recurso como Prestado manualmente.
-            if (nuevoEstado == EstadoRecurso.Prestado)
+            if (nuevoEstado == EstadoEjemplar.Prestado)
             {
                 return ResultadoOperacionResponse<RecursoResponse>.Error(
                     "No use este caso de uso para prestar un recurso. El estado Prestado debe asignarse desde el módulo de préstamos."
@@ -100,7 +100,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
 
             // Si el recurso ya está prestado, tampoco permitimos cambiarlo manualmente.
             // Primero debe registrarse su devolución desde el módulo de devoluciones.
-            if (recurso.Estado == EstadoRecurso.Prestado)
+            if (recurso.Estado == EstadoEjemplar.Prestado)
             {
                 return ResultadoOperacionResponse<RecursoResponse>.Error(
                     "Un recurso prestado no puede cambiarse manualmente desde catálogo. Primero debe registrarse la devolución."

@@ -9,11 +9,10 @@ namespace SIGEBI.Domain.Entities
     {
         public int PrestamoId{ get; private set; }
 
-
         public DateTime FechaInicio { get; private set; }
         public DateTime FechaDevolucion { get; private set; }
         public string UsuarioId { get; private set; }
-        public Usuarios Usuarios { get;  set; }
+        public Usuario Usuarios { get;  set; }
 
         public EstadoPrestamo Estado { get; private set; }
         public ICollection<RecursoBibliografico> Libros { get; private set; } = new List<RecursoBibliografico>();

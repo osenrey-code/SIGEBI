@@ -92,7 +92,7 @@ namespace SIGEBI.Application.UseCase.Reportes
                 .ToList();
 
             var recursosDisponibles = listaRecursos.Count(r =>
-                r.Estado == EstadoRecurso.Disponible
+                r.Estado == EstadoEjemplar.Disponible
             );
 
             var porcentajeDisponibilidad = listaRecursos.Count == 0

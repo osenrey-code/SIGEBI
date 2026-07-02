@@ -50,7 +50,7 @@ namespace SIGEBI.Infrastructure.Repositories
 
             if (soloDisponibles == true)
             {
-                query = query.Where(r => r.Estado == EstadoRecurso.Disponible);
+                query = query.Where(r => r.Estado == EstadoEjemplar.Disponible);
             }
 
             return await query.ToListAsync();

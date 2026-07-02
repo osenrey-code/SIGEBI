@@ -15,7 +15,7 @@ namespace SIGEBI.Domain.Entities
         public DateTime FechaGeneracion { get; private set; }
         public DateTime? FechaResolucion { get; private set; } //Nullable ya que se registra luego que sea pagada
         public string Motivo { get; set; } = string.Empty;
-        public Usuarios Usuario { get; set; }
+        public Usuario Usuario { get; set; }
 
   
         public Prestamo Prestamo { get; private set; } = null!;
