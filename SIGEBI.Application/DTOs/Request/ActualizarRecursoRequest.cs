@@ -1,6 +1,6 @@
 ﻿namespace SIGEBI.Application.DTOs.Request;
 
-public class ActualizarRecursoRequest
+public record ActualizarRecursoRequest
 {
     public Guid UsuarioEjecutorId { get; set; }
 

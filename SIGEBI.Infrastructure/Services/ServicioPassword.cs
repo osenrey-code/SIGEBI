@@ -26,9 +26,7 @@ namespace SIGEBI.Infrastructure.Services
             return $"{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
         }
 
-        public bool VerificarPassword(
-            string password,
-            string passwordHash)
+        public bool VerificarPassword(string password, string passwordHash)
         {
             if (string.IsNullOrWhiteSpace(password) ||
                 string.IsNullOrWhiteSpace(passwordHash))

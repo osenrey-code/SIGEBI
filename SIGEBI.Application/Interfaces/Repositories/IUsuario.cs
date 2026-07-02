@@ -7,11 +7,12 @@ using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IUsuario : IBaseRepository<Usuario>
+    public interface IUsuario : IRepositoryInmutable<Usuario>
     {
-        Task RegistrarUsuarioAsync(RegistrarUsuarioRequest request);
         Task DesactivarUsuarioAsync(string IdUsuario);
-        Task<UsuarioResponse?> ObtenerUsuarioPorIdentificacion(string identificacion);
-        Task<IEnumerable<UsuarioResponse>> ListarTodosAsync(); 
+        Task<Usuario?> ObtenerUsuarioPorIdentificacionAsync(string Identificacion);
+        Task<bool> ExisteCorreoAsync(string correo);
+        Task<Usuario?> ObtenerUsuarioConDetallesAsync(string Identifiacion);
+        Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado);
     }
 }

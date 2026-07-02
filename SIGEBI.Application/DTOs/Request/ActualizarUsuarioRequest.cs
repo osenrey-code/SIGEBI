@@ -1,12 +1,18 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
+
 namespace SIGEBI.Application.DTOs.Request
 {
-    public class ActualizarUsuarioRequest
+    public record ActualizarUsuarioRequest
     {
-        public Guid UsuarioEjecutorId { get; set; }
-        public Guid UsuarioId { get; set; }
+
+        [Required(ErrorMessage = "La identificación del usuario es obligaoria.")]
+        public int UsuarioId { get; set; }
+        [Required(ErrorMessage = "El ID del usuario Matricula/CodiEmpleado es obligatorio.")]
+        public string Identificacion { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El nombre del usuario es obligatorio.")]
         public string NombreCompleto { get; set; } = string.Empty;
-        public string Correo { get; set; } = string.Empty;
-        public string TipoUsuario { get; set; } = string.Empty;
+    
     }
 }

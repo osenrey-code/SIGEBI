@@ -5,7 +5,7 @@ namespace SIGEBI.Application.Interfaces.ext
     public interface IServicioToken
     {
         string GenerarToken(
-            Guid usuarioId,
+            int  usuarioId,
             string nombreCompleto,
             string correo,
             string tipoUsuario);

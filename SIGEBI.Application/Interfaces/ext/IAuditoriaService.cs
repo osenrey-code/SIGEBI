@@ -5,7 +5,7 @@ namespace SIGEBI.Application.Interfaces.ext
 {
     public interface IAuditoriaService
     {
-        Task RegistrarAsync(string UsuarioId, string Accion, string EntidadAfectada, string detalles = "");
+        Task RegistrarAsync(int UsuarioId, string Accion, string EntidadAfectada, string detalles = "");
         Task<IEnumerable<LogAuditoriaResponse>> ListarHistorialAsync(string? UsuarioId = null, string? EntidadAfectada = null);
     }
 }

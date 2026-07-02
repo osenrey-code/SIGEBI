@@ -9,7 +9,7 @@ using System.Net.Http.Headers;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
-    public class RegistrarUsuario
+    public class RegistrarUsuario 
     {
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
@@ -22,40 +22,38 @@ namespace SIGEBI.Application.UseCase.Usuarios
             _password = password;
         }
 
-        public async Task RegistrarUsuarioAsync(RegistrarUsuarioRequest request)
+        public async Task RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int actorId)
         {
-            var existe = await _usuarios.ObtenerUsuarioPorIdentificacion(request.Identifiacion);
+            var existe = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
 
             if (existe != null)
                 throw new BusinessException("El usuario ya esta registrado.");
 
-            var existeCorreo = await _usuarios.ListarTodosAsync();
+            bool CorreoOcupado = await _usuarios.ExisteCorreoAsync(request.Correo);
 
-            if (existeCorreo != null)
-                throw new BusinessException("Ya existe un usuario registrado con este correo electrónico.");
+            if (CorreoOcupado) throw new BusinessException("Ya existe un usuario registrado con este correo.");
+
 
             Usuario usuario = request.Tipo.ToLower() switch
             {
-                "estudiante" => new Estudiante { Matricula = request.Matricula },
-                "docente" => new Docente { CodigoEmpleado = request.CodigoEmpleado },
-                "administrador" => new Administrador { CodigoEmpleado = request.CodigoEmpleado },
-                "bibliotecario" => new Bibliotecario { CodigoEmpleado = request.CodigoEmpleado },
-                "auditor" => new Auditor { CodigoEmpleado = request.CodigoEmpleado },
+                "estudiante" => new Estudiante { Matricula = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
+                "docente" => new Docente { CodigoEmpleado = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
+                "administrador" => new Administrador { CodigoEmpleado = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
+                "bibliotecario" => new Bibliotecario { CodigoEmpleado = request.Identificacion , PassWord = _password.GenerarHash(request.Identificacion) },
+                "auditor" => new Auditor { CodigoEmpleado = request.Identificacion , PassWord = _password.GenerarHash(request.Identificacion) },
                 _ => throw new BusinessException("Usuario Inválido.")
             };
 
-            usuario.UsuarioId = request.Identifiacion;
             usuario.NombreCompleto = request.NombreCompleto;
             usuario.Correo = request.Correo;
             usuario.Estado = EstadoUsuario.Activo;
-            usuario.PassWord = request.Identifiacion;
 
             await _usuarios.AgregarAsync(usuario);
             await _auditoria.RegistrarAsync(
-               UsuarioId: request.Identificacion,
-               Accion: "Registar Usuario",
+               UsuarioId: actorId,
+               Accion: "Registrar Usuario",
                EntidadAfectada: "Usuarios",
-               detalles: $"Se agrego el usuario {usuario}"
+               detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {request.Identificacion}"
              );
         }
     }

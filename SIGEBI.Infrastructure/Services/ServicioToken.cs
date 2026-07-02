@@ -16,11 +16,7 @@ namespace SIGEBI.Infrastructure.Services
             _configuration = configuration;
         }
 
-        public string GenerarToken(
-            Guid usuarioId,
-            string nombreCompleto,
-            string correo,
-            string tipoUsuario)
+        public string GenerarToken(int usuarioId, string nombreCompleto, string correo, string tipoUsuario)
         {
             var clave = _configuration["Jwt:Key"]
                 ?? "SIGEBI_CLAVE_TEMPORAL_DESARROLLO_CAMBIAR_EN_PRODUCCION_2026";

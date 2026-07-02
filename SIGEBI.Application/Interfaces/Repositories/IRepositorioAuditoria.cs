@@ -2,13 +2,9 @@
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioAuditoria : ReadOnly<RegistroAuditoria>, Writer<RegistroAuditoria>
+    public interface IRepositorioAuditoria : IRepositoryInmutable<Auditoria>
     {
-        Task<IEnumerable<RegistroAuditoria>> ConsultarAsync(
-            Guid? usuarioId,
-            string? accion,
-            string? entidadAfectada,
-            DateTime? fechaInicio,
-            DateTime? fechaFin);
+        Task<IEnumerable<Auditoria>> ObtenerPorEjecutorAsync(int UsuarioId);
+        Task<IEnumerable<Auditoria>> ObtenerPorEntidadAsync(string entidad);
     }
 }

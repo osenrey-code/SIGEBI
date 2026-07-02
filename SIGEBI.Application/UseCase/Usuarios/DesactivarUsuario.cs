@@ -1,8 +1,9 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Enums;
-using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
@@ -16,117 +17,33 @@ namespace SIGEBI.Application.UseCase.Usuarios
             _auditoria = auditoria;
         }
 
-        public async Task<ResultadoOperacionResponse> EjecutarAsync(
-            DesactivarUsuarioRequest request)
+       
+        public async Task DesactivarUsuarioAsync(DesactivarUsuarioRequest request, int actorId)
         {
-            var errorPermiso = await ValidarAdministradorAsync(
-        request.UsuarioEjecutorId
-    );
+            var usuario = await _usuarios.ObtenerUsuarioConDetallesAsync(request.Identificacion);
 
-            if (errorPermiso is not null)
-            {
-                return ResultadoOperacionResponse.Error(errorPermiso);
-            }
-
-            if (request.UsuarioId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse.Error(
-                    "El usuario a desactivar es obligatorio."
-                );
-            }
-
-            if (request.UsuarioId == request.UsuarioEjecutorId)
-            {
-                return ResultadoOperacionResponse.Error(
-                    "Un administrador no puede desactivarse a sí mismo."
-                );
-            }
-
-            var usuario = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioId
-            );
-
-            if (usuario is null)
-            {
-                return ResultadoOperacionResponse.Error(
-                    "El usuario no existe."
-                );
-            }
+            if (usuario == null)
+                throw new BusinessException("No existe un usuario registrado con esta identificación.");
 
             if (usuario.Estado == EstadoUsuario.Inactivo)
-            {
-                return ResultadoOperacionResponse.Error(
-                    "El usuario ya está inactivo."
-                );
-            }
+                throw new BusinessException("El usuario ya se encuentra inactivo.");
 
-            // Guardamos cómo estaba el usuario antes de desactivarlo.
-            // Esto permite que la auditoría muestre el cambio realizado.
-            var valoresAnteriores =
-                $"Nombre: {usuario.NombreCompleto}; " +
-                $"Correo: {usuario.Correo}; " +
-                $"Tipo: {usuario.Tipo}; " +
-                $"Estado: {usuario.Estado}";
+            // Validar que no tenga préstamos activos
+            bool tienePrestamosActivos = usuario.Prestamos.Any(p => p.Estado == EstadoPrestamo.Activo);
 
-            // Aplicamos la regla de dominio.
-            usuario.Desactivar();
+            if (tienePrestamosActivos)
+                throw new BusinessException("No se puede desactivar al usuario porque tiene préstamos activos pendientes de devolución.");
 
-            // Guardamos el cambio en persistencia.
+            usuario.Estado = EstadoUsuario.Inactivo;
             await _usuarios.ActualizarAsync(usuario);
 
-            // Guardamos cómo quedó el usuario después de desactivarlo.
-            var valoresNuevos =
-                $"Nombre: {usuario.NombreCompleto}; " +
-                $"Correo: {usuario.Correo}; " +
-                $"Tipo: {usuario.Tipo}; " +
-                $"Estado: {usuario.Estado}";
-
-            // Registramos la acción en auditoría.
-            // El actor es el administrador que ejecutó la desactivación.
+            // Registrar la auditoría INCLUYENDO EL MOTIVO
             await _auditoria.RegistrarAsync(
-                request.UsuarioEjecutorId,
-                "Desactivar usuario",
-                "Usuario",
-                usuario.Id,
-                "Exitoso",
-                $"Se desactivó el usuario '{usuario.NombreCompleto}'. Motivo: {request.Motivo}",
-                valoresAnteriores,
-                valoresNuevos
+                UsuarioId: actorId,
+                Accion: "Desactivar Usuario",
+                EntidadAfectada: "Usuarios",
+                detalles: $"Se desactivó el usuario con identificación {request.Identificacion}. Motivo: '{request.Motivo}'"
             );
-
-            return ResultadoOperacionResponse.Ok(
-                "Usuario desactivado correctamente."
-            );
-        }
-
-        private async Task<string?> ValidarAdministradorAsync(Guid usuarioEjecutorId)
-        {
-            if (usuarioEjecutorId == Guid.Empty)
-            {
-                return "El usuario ejecutor es obligatorio.";
-            }
-
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                usuarioEjecutorId
-            );
-
-            if (usuarioEjecutor is null)
-            {
-                return "El usuario ejecutor no existe.";
-            }
-
-            // Un administrador inactivo no debe poder ejecutar acciones administrativas.
-            if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
-            {
-                return "El usuario ejecutor no está activo.";
-            }
-
-            if (usuarioEjecutor.Tipo != TipoUsuario.Administrador)
-            {
-                return "Solo un administrador puede desactivar usuarios.";
-            }
-
-            return null;
         }
     }
 }

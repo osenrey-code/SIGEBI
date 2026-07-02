@@ -4,6 +4,7 @@ using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
@@ -23,116 +24,71 @@ namespace SIGEBI.Application.UseCase.Usuarios
             _auditoria = auditoria;
         }
 
-        public async Task<ResultadoOperacionResponse<LoginResponse>> EjecutarAsync(
-            LoginRequest request)
+        public async Task<LoginResponse> AutenticarUsuarioAsync(LoginRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.UsuarioOCorreo))
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error(
-                    "El usuario o correo electrónico es obligatorio."
-                );
-            }
+            // 1. Validaciones de entrada
+            if (string.IsNullOrWhiteSpace(request.Identificacion))
+                throw new BusinessException("La identificación es obligatoria.");
 
-            if (string.IsNullOrWhiteSpace(request.PassWord))
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error(
-                    "La contraseña es obligatoria."
-                );
-            }
+            if (string.IsNullOrWhiteSpace(request.Password))
+                throw new BusinessException("La contraseña es obligatoria.");
 
-            var usuarioOCorreo = request.UsuarioOCorreo.Trim();
+            // 2. Búsqueda por Identificación (Matrícula o Código de Empleado)
+            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
 
-            Usuario? usuario;
-
-            if (usuarioOCorreo.Contains("@"))
-            {
-                var usuarios = await _usuarios.ObtenerTodosAsync();
-
-                usuario = usuarios.FirstOrDefault(u =>
-                    u.Correo.Equals(
-                        usuarioOCorreo,
-                        StringComparison.OrdinalIgnoreCase
-                    )
-                );
-            }
-            else
-            {
-                usuario = await _usuarios.ObtenerPorIdentificacionAsync(
-                    usuarioOCorreo
-                );
-            }
-
+            // 3. Validaciones de negocio y seguridad
             if (usuario is null)
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error(
-                    "Credenciales inválidas."
-                );
-            }
+                throw new BusinessException("Credenciales inválidas.");
 
             if (usuario.Estado != EstadoUsuario.Activo)
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error(
-                    "El usuario no está activo."
-                );
-            }
+                throw new BusinessException("La cuenta de usuario no está activa.");
 
-            if (string.IsNullOrWhiteSpace(usuario.PasswordHash))
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error(
-                    "El usuario no tiene credenciales configuradas."
-                );
-            }
+            if (string.IsNullOrWhiteSpace(usuario.PassWord))
+                throw new BusinessException("El usuario no tiene credenciales configuradas.");
 
-            var passwordValido = _servicioPassword.VerificarPassword(
-                request.PassWord,
-                usuario.PasswordHash
-            );
+            // 4. Verificación de contraseña y auditoría de fallos
+            var passwordValido = _servicioPassword.VerificarPassword(request.Password, usuario.PassWord);
 
             if (!passwordValido)
             {
                 await _auditoria.RegistrarAsync(
-                    usuario.Id,
-                    "Inicio de sesión fallido",
-                    "Usuario",
-                    usuario.Id,
-                    "Fallido",
-                    "Intento de inicio de sesión con contraseña incorrecta."
+                    UsuarioId: usuario.UsuarioId,
+                    Accion: "Inicio de sesión fallido",
+                    EntidadAfectada: "Usuarios",
+                    detalles: $"Intento fallido con identificación: {request.Identificacion}"
                 );
 
-                return ResultadoOperacionResponse<LoginResponse>.Error(
-                    "Credenciales inválidas."
-                );
+                throw new BusinessException("Credenciales inválidas.");
             }
 
+            // 5. Generación de Token
+            var tipoUsuarioReal = usuario.GetType().Name;
+
             var token = _servicioToken.GenerarToken(
-                usuario.Id,
+                usuario.UsuarioId,
                 usuario.NombreCompleto,
                 usuario.Correo,
-                usuario.Tipo.ToString()
+                tipoUsuarioReal
             );
 
+            // 6. Auditoría de éxito
             await _auditoria.RegistrarAsync(
-                usuario.Id,
-                "Inicio de sesión",
-                "Usuario",
-                usuario.Id,
-                "Exitoso",
-                $"El usuario '{usuario.NombreCompleto}' inició sesión correctamente."
+                UsuarioId: usuario.UsuarioId,
+                Accion: "Inicio de sesión",
+                EntidadAfectada: "Usuarios",
+                detalles: $"El usuario '{usuario.NombreCompleto}' inició sesión correctamente."
             );
 
-            var response = new LoginResponse
+            // 7. Retorno del DTO de respuesta
+            return new LoginResponse
             {
-                UsuarioId = usuario.Id,
+                UsuarioId = usuario.UsuarioId,
                 NombreCompleto = usuario.NombreCompleto,
                 Correo = usuario.Correo,
-                TipoUsuario = usuario.Tipo.ToString(),
+                TipoUsuario = tipoUsuarioReal,
                 Token = token
             };
-
-            return ResultadoOperacionResponse<LoginResponse>.Ok(
-                "Usuario autenticado correctamente.",
-                response
-            );
         }
+
     }
 }
