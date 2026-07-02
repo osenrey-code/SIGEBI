@@ -27,7 +27,45 @@ namespace SIGEBI.Domain.Entities
         public int CopiasDisponibles => _ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
         protected RecursoBibliografico() { }
 
-        
+        public RecursoBibliografico(string isbn, string titulo, string autor, int categoriaId,
+        int anioPublicado, string? imagenUrl)
+        {
+            //Validaciones de campos
+            Guard.NotNullOrWhiteSpace(isbn, "El ISBN ");
+            Guard.NotNullOrWhiteSpace(titulo, "El titulo del libro");
+            Guard.NotNullOrWhiteSpace(imagenUrl, "La imagen del libro");
+            Guard.NotNullOrWhiteSpace(autor, "El autor del libro.");
+
+            ISBN = isbn.Trim();
+            Titulo = titulo.Trim();
+            Autor = autor.Trim();
+            CategoriaId = categoriaId;
+            ImagenUrl = imagenUrl?.Trim();
+        }
+
+        // Comportamientos 
+        public bool TieneCopiasDisponible()
+        {
+            return CopiasDisponibles > 0;
+        }
+
+        public void AsignarImagen(string imagenUrl)
+        {
+            Guard.NotNullOrWhiteSpace(imagenUrl, "La ruta de la imagen");
+
+            ImagenUrl = imagenUrl;
+        }
+
+        public void RegistrarNuevoEjemplar(string Identificador)
+        {
+            if (_ejemplares.Any(e => e.Identificador == Identificador))
+            {
+                throw new BusinessException($"Ya existe un ejemplar con el código {Identificador} en este recurso.");
+            }
+
+            var nuevoEjemplar = new Ejemplar(this.RecursoBibliograficoId, Identificador);
+
+        }
 
     }
 }
