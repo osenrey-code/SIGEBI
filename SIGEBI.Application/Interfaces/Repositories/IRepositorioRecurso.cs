@@ -4,7 +4,8 @@ namespace SIGEBI.Application.Interfaces.Repositories
 {
     public interface IRepositorioRecurso : IBaseRepository<RecursoBibliografico>
     {
-        Task<RecursoBibliografico?> ObtenerPorIdentificadorAsync(string identificador);
+        Task<RecursoBibliografico?> BuscarPorIsbnAsync(string isbn);
+        Task<RecursoBibliografico?> BuscarConCategoria(string isbn);
 
         Task<IEnumerable<RecursoBibliografico>> ConsultarCatalogoAsync(
             string? titulo,

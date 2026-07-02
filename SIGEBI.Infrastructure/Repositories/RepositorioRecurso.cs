@@ -12,10 +12,17 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<RecursoBibliografico?> ObtenerPorIdentificadorAsync(string identificador)
+        public async Task<RecursoBibliografico?> BuscarPorIsbnAsync(string isbn)
         {
             return await _dbSet.FirstOrDefaultAsync(r =>
-                r.Identificador.ToLower() == identificador.Trim().ToLower());
+                r.ISBN.ToLower() == isbn.Trim().ToLower());
+        }
+
+        public async Task<RecursoBibliografico?> BuscarConCategoria(string isbn)
+        {
+            return await _dbSet
+                .Include(r => r.Categoria)
+                .FirstOrDefaultAsync(r => r.ISBN == isbn);
         }
 
         public async Task<IEnumerable<RecursoBibliografico>> ConsultarCatalogoAsync(

@@ -1,17 +1,24 @@
-﻿namespace SIGEBI.Application.DTOs.Request;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SIGEBI.Application.DTOs.Request;
 
 public class RegistrarRecursoRequest
 {
-    public Guid UsuarioEjecutorId { get; set; }
+    [Required(ErrorMessage = "El ISBN es obligatorio.")]
+    public string ISBN { get; set; } = string.Empty;
 
-    public string Identificador { get; set; } = string.Empty;
-
+    [Required(ErrorMessage = "El titulo del libro es obligatorio.")]
     public string Titulo { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "El Autor del libro es obligatorio.")]
     public string Autor { get; set; } = string.Empty;
 
-    public string Categoria { get; set; } = string.Empty;
-    public string? ImagenUrl { get; set; }
+    [Required(ErrorMessage = "La catogoria del libro es obligatoria.")]
+    public int CategoriaId { get; set; } 
 
-    public int NumeroEjemplares { get; set; } = 1;
+    [Required(ErrorMessage = "El año de publicación es obligatoria.")]
+    public int AnioPublicacion { get; set; }
+
+    [Required(ErrorMessage = "La imagen del libro es obligatoria.")]
+    public string? ImagenUrl { get; set; }
 }

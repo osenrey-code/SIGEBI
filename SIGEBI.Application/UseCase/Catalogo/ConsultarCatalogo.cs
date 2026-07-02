@@ -14,40 +14,19 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _recursos = recursos;
         }
 
-        public async Task<ResultadoOperacionResponse<IEnumerable<RecursoResponse>>> EjecutarAsync(
-            ConsultarCatalogoRequest request)
+        public async Task<IEnumerable<RecursoResponse>> ConsultarTodosAsync()
         {
-            request ??= new ConsultarCatalogoRequest();
-
-            var recursos = await _recursos.ConsultarCatalogoAsync(
-                request.Titulo,
-                request.Autor,
-                request.Categoria,
-                request.SoloDisponibles
-            );
-
-            var response = recursos
-                .Select(MapearRecurso)
-                .ToList();
-
-            return ResultadoOperacionResponse<IEnumerable<RecursoResponse>>.Ok(
-                "Consulta del catálogo realizada correctamente.",
-                response
-            );
-        }
-
-        private static RecursoResponse MapearRecurso(RecursoBibliografico recurso)
-        {
-            return new RecursoResponse
+            var libros = await _recursos.ObtenerTodosAsync();
+            return libros.Select(l => new RecursoResponse
             {
-                Id = recurso.Id,
-                Identificador = recurso.Identificador,
-                Titulo = recurso.Titulo,
-                Autor = recurso.Autor,
-                Categoria = recurso.Categoria,
-                Estado = recurso.Estado.ToString(),
-                NumeroEjemplares = recurso.NumeroEjemplares
-            };
+                ISBN = l.ISBN,
+                Titulo = l.Titulo,
+                Autor = l.Autor,
+                NumeroEjemplares = l.NumeroEjemplares,
+                Categoria = "N/A"
+            });
         }
+
+
     }
 }

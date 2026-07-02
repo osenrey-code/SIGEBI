@@ -1,52 +1,48 @@
 ﻿using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Domain.Entities
 {
     public class Penalizacion
     {
-        public Guid Id { get; private set; }
-        public Guid PerfilLectorId { get; private set; }
-        public Guid PrestamoId { get; private set; }
+        public int IdPenalizacion { get; set; }
+        public string UsuarioId { get; set; } = string.Empty;
+        public int PrestamoId { get; set; }
         public int DiasRetraso { get; private set; }
         public decimal MontoMora { get; private set; }
         public EstadoPenalizacion Estado { get; private set; }
         public DateTime FechaGeneracion { get; private set; }
-        public DateTime? FechaResolucion { get; private set; }
-        public Guid? UsuarioResolucionId { get; private set; }
+        public DateTime? FechaResolucion { get; private set; } //Nullable ya que se registra luego que sea pagada
+        public string Motivo { get; set; } = string.Empty;
+        public Usuarios Usuario { get; set; }
 
-        public PerfilLector PerfilLector { get; private set; } = null!;
+  
         public Prestamo Prestamo { get; private set; } = null!;
 
         private Penalizacion() { }
 
-        public Penalizacion(Guid PerfilLectorId, Guid PrestamoId, int DiasRetraso, decimal MontoMora)
+        public Penalizacion(string UsuarioId, int PrestamoId, decimal MontoMora, string motivo)
         {
-            Id = Guid.NewGuid();
-            this.PerfilLectorId = PerfilLectorId;
+            Guard.NotNullOrWhiteSpace(UsuarioId, "El usuario ");
+            Guard.GreaterThanD(MontoMora, 0, "El monto ");
+            Guard.NotNullOrWhiteSpace(motivo, "El motivo ");
+
+            this.UsuarioId = UsuarioId;
             this.PrestamoId = PrestamoId;
-            this.DiasRetraso = DiasRetraso;
-            this.MontoMora = DiasRetraso * MontoMora;
             FechaGeneracion = DateTime.Now;
             Estado = EstadoPenalizacion.Activa;
         }
 
-        public void Resolver(Guid usuarioResolucionId)
+        public void Resolver()
         {
             if (Estado != EstadoPenalizacion.Activa)
             {
-                throw new BusinessException("Solo se pueden resolver penalizaciones activas.");
+                throw new BusinessException("Solo se pueden pagar penalizaciones activas.");
             }
 
-            if (usuarioResolucionId == Guid.Empty)
-            {
-                throw new BusinessException("El usuario responsable de la resolución es obligatorio.");
-            }
-
-            Estado = EstadoPenalizacion.Resuelta;
+            Estado = EstadoPenalizacion.Pagada;
             FechaResolucion = DateTime.Now;
-            UsuarioResolucionId = usuarioResolucionId;
-           
         }
     }
 }

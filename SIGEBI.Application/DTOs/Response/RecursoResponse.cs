@@ -1,10 +1,10 @@
-﻿namespace SIGEBI.Application.DTOs.Response;
+﻿using SIGEBI.Domain.Enums;
+
+namespace SIGEBI.Application.DTOs.Response;
 
 public class RecursoResponse
 {
-    public Guid Id { get; set; }
-
-    public string Identificador { get; set; } = string.Empty;
+    public string ISBN { get; set; } = string.Empty;
 
     public string Titulo { get; set; } = string.Empty;
     public string? ImagenUrl { get; set;  }
@@ -16,4 +16,5 @@ public class RecursoResponse
     public string Estado { get; set; } = string.Empty;
 
     public int NumeroEjemplares { get; set; }
+    public int AnioPublicado { get; set; } 
 }

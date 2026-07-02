@@ -3,6 +3,6 @@
     public enum EstadoPenalizacion
     {
         Activa,
-        Resuelta
+        Pagada
     }
 }

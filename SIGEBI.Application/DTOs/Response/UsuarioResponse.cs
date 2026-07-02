@@ -6,7 +6,7 @@ namespace SIGEBI.Application.DTOs.Response
 {
     public class UsuarioResponse
     {
-        public Guid UsuarioId { get; set; }
+        public int UsuarioId { get; set; }
         public string NombreCompleto { get; set; } = string.Empty;
         public string DocumentoIdentidad { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;

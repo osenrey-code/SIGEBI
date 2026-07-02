@@ -1,4 +1,5 @@
-﻿using SIGEBI.Domain.Enums;
+﻿using SIGEBI.Domain.Common;
+using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Domain.Entities
@@ -6,30 +7,39 @@ namespace SIGEBI.Domain.Entities
 {
     public class Prestamo
     {
-        public Guid Id { get; private set; }
-        public Guid PerfilLectorId { get; private set; }
-        public Guid RecursoId { get; private set; }
+        public int PrestamoId{ get; private set; }
 
-        public DateTime FechaSolicitud { get; private set; }
-        public DateTime? FechaInicio { get; private set; }
-        public DateTime? FechaLimite { get; private set; }
-        public DateTime? FechaDevolucion { get; private set; }
+
+        public DateTime FechaInicio { get; private set; }
+        public DateTime FechaDevolucion { get; private set; }
+        public string UsuarioId { get; private set; }
+        public Usuarios Usuarios { get;  set; }
 
         public EstadoPrestamo Estado { get; private set; }
-        public string? MotivoRechazo { get; private set; }
+        public ICollection<RecursoBibliografico> Libros { get; private set; } = new List<RecursoBibliografico>();
 
-        public PerfilLector? PerfilLector { get; private set; }
         public RecursoBibliografico? Recurso { get; private set; }
 
-        private Prestamo() { }
+        protected Prestamo() { }
 
-        public Prestamo(Guid perfilLectorId, Guid recursoId)
+        public Prestamo(string usuarioId,DateTime FechaVencimiento, List<RecursoBibliografico> libros)
         {
-            Id = Guid.NewGuid();
-            PerfilLectorId = perfilLectorId;
-            RecursoId = recursoId;
-            FechaSolicitud = DateTime.Now;
+            Guard.NotNullOrWhiteSpace(usuarioId, "El Usuario ");
+
+            if (!libros.Any())
+            {
+                throw new BusinessException("El préstamo debe contener al menos un recurso.");
+            }
+
+            if (FechaDevolucion <= FechaInicio)
+            {
+                throw new BusinessException("La fecha de vencimiento debe ser mayor a la fecha de inicio del prestamo.");
+            }
+
+            UsuarioId = usuarioId;
+            FechaInicio = DateTime.Now;
             Estado = EstadoPrestamo.Solicitado;
+            Libros = libros;
         }
 
         public void AprobarYEntregar(int diasPermitidos)

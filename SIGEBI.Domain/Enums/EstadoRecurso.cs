@@ -4,7 +4,6 @@
     {
         Disponible,
         Prestado,
-        Reservado, 
         FueraDeServicio
     }
 }

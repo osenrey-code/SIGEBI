@@ -1,49 +1,37 @@
-﻿using SIGEBI.Domain.Enums;
+﻿using SIGEBI.Domain.Common;
+using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Domain.Entities
 {
     public class RecursoBibliografico
     {
-        public Guid Id { get; private set; }
-        public string Identificador { get; private set; } = string.Empty;
-        public int NumeroEjemplares { get; private set; }
-        public string Titulo { get; private set; } = string.Empty;
-        public string Autor { get; private set; } = string.Empty;
-        public string Categoria { get; private set; } = string.Empty;
-        public string? ImagenUrl { get; private set; }
-        public EstadoRecurso Estado { get; private set; }
+        public string ISBN { get; set; } = string.Empty;
+        public string Titulo { get; set; } = string.Empty;
+        public string Autor { get;  set; } = string.Empty;
+        public int NumeroEjemplares { get;  set; }
+        public int Copias { get; set; }
+        public int AnioPublicado { get; set; }
+        public string? ImagenUrl { get;  set; }
+        public EstadoRecurso Estado { get;  set; }
+        public int CategoriaId { get; set; }
+        public virtual Categoria? Categoria { get; set; }
 
-        private RecursoBibliografico() { }
+        protected RecursoBibliografico() { }
 
-        public RecursoBibliografico(string identificador, string titulo, string autor, string categoria,
+        public RecursoBibliografico(string isbn, string titulo, string autor, int categoria,
         int numeroEjemplares, string imagenUrl)
         {
-            if (string.IsNullOrWhiteSpace(identificador))
-                throw new BusinessException("El identificador del recurso es obligatorio.");
+            //Validaciones de campos
+            Guard.NotNullOrWhiteSpace(isbn, "El ISBN ");
+            Guard.NotNullOrWhiteSpace(titulo, "El titulo del libro");
+            Guard.NotNullOrWhiteSpace(imagenUrl, "La imagen del libro");
+            Guard.NotNullOrWhiteSpace(autor, "El autor del libro.");
 
-            if (string.IsNullOrWhiteSpace(titulo))
-                throw new BusinessException("El título es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(autor))
-                throw new BusinessException("El autor es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(categoria))
-                throw new BusinessException("La categoría es obligatoria.");
-
-            if (numeroEjemplares <= 0)
-                throw new BusinessException("El número de ejemplares debe ser mayor que cero.");
-
-            if (string.IsNullOrWhiteSpace(imagenUrl))
-                throw new BusinessException("El libro debe contener una imagen.");
-
-
-            Id = Guid.NewGuid();
-            Identificador = identificador.Trim();
+            ISBN = isbn.Trim();
             Titulo = titulo.Trim();
             Autor = autor.Trim();
-            Categoria = categoria.Trim();
-            NumeroEjemplares = numeroEjemplares;
+            CategoriaId = categoria;
             Estado = EstadoRecurso.Disponible;
         }
 
@@ -52,49 +40,11 @@ namespace SIGEBI.Domain.Entities
             return Estado == EstadoRecurso.Disponible;
         }
 
-        public void ActualizarInformacion(string identificador, string titulo, string autor,string categoria,
-        int numeroEjemplares, string imagenUrl)
-        {
-            if (string.IsNullOrWhiteSpace(identificador))
-                throw new BusinessException("El identificador del recurso es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(titulo))
-                throw new BusinessException("El título es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(autor))
-                throw new BusinessException("El autor es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(categoria))
-                throw new BusinessException("La categoría es obligatoria.");
-
-            if (numeroEjemplares <= 0)
-                throw new BusinessException("El número de ejemplares debe ser mayor que cero.");
-
-            Identificador = identificador.Trim();
-            Titulo = titulo.Trim();
-            Autor = autor.Trim();
-            Categoria = categoria.Trim();
-            NumeroEjemplares = numeroEjemplares;
-            ImagenUrl = imagenUrl.Trim();
-        }
-
         public void AsignarImagen(string imagenUrl)
         {
-            if (string.IsNullOrWhiteSpace(imagenUrl))
-            {
-                return;
-            }
+            Guard.NotNullOrWhiteSpace(imagenUrl, "La ruta de la imagen");
 
             ImagenUrl = imagenUrl;
-        }
-
-        public void MarcarComoPrestado()
-        {
-            if (Estado != EstadoRecurso.Disponible)
-            {
-                throw new BusinessException("El recurso no está disponible para préstamo.");
-            }
-            Estado = EstadoRecurso.Prestado;
         }
 
         public void MarcarComoDisponible()
@@ -112,16 +62,6 @@ namespace SIGEBI.Domain.Entities
             Estado = nuevoEstado;
         }
 
-        public void MarcarComoReservado()
-        {
-            if (Estado != EstadoRecurso.Disponible)
-            {
-                throw new BusinessException("Solo se puede reservar un recurso disponible.");
-            }
-
-            Estado = EstadoRecurso.Reservado;
-        }
-
         public void MarcarFueraDeServicio()
         {
             if (Estado == EstadoRecurso.Prestado)
@@ -130,8 +70,23 @@ namespace SIGEBI.Domain.Entities
             }
 
             Estado = EstadoRecurso.FueraDeServicio;
+        } 
+
+        public void Incrementar()
+        {
+            Copias++;
+            NumeroEjemplares++;
         }
 
+        public void Devolver()
+        {
+            if (Copias >= NumeroEjemplares)
+            {
+                throw new BusinessException("No se pueden devolver más copias de las totales registradas.");
+            }
+            Copias++;
+            
+        }
 
     }
 }
