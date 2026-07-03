@@ -2,6 +2,7 @@
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Catalogo
 {
@@ -14,44 +15,33 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _recursos = recursos;
         }
 
-        public async Task<ResultadoOperacionResponse<RecursoResponse>> EjecutarAsync(
-            ConsultarDetalleRecursoRequest request)
+        public async Task<RecursoResponse> EjecutarAsync(ConsultarDetalleRecursoRequest request)
         {
-            if (request.RecursoId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El recurso es obligatorio."
-                );
-            }
+            if (request.RecursoBibliograficoId <= 0)
+                throw new BusinessException("El recurso es obligatorio.");
 
-            var recurso = await _recursos.ObtenerporIdAsync(request.RecursoId);
+            var recurso = await _recursos.BuscarConCategoriaAsync(request.RecursoBibliograficoId);
 
             if (recurso is null)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El recurso no existe."
-                );
-            }
+                throw new BusinessException("El recurso no existe.");
 
-            var response = MapearRecurso(recurso);
-
-            return ResultadoOperacionResponse<RecursoResponse>.Ok(
-                "Detalle del recurso consultado correctamente.",
-                response
-            );
+            return MapearRecurso(recurso);
         }
 
         private static RecursoResponse MapearRecurso(RecursoBibliografico recurso)
         {
             return new RecursoResponse
             {
-                Id = recurso.Id,
-                Identificador = recurso.Identificador,
+                RecursoBibliograficoId = recurso.RecursoBibliograficoId,
+                ISBN = recurso.ISBN,
                 Titulo = recurso.Titulo,
                 Autor = recurso.Autor,
-                Categoria = recurso.Categoria,
-                Estado = recurso.Estado.ToString(),
-                NumeroEjemplares = recurso.NumeroEjemplares
+                CategoriaId = recurso.CategoriaId,
+                Categoria = recurso.Categoria?.Nombre ?? "N/A",
+                AnioPublicado = recurso.AnioPublicado,
+                ImagenUrl = recurso.ImagenUrl,
+                TotalEjemplares = recurso.TotalEjemplares,
+                CopiasDisponibles = recurso.CopiasDisponibles
             };
         }
     }

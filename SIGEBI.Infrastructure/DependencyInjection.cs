@@ -22,9 +22,9 @@ namespace SIGEBI.Infrastructure
             );
 
             services.AddScoped<IUsuario, RepositorioUsuario>();
-            services.AddScoped<IRepositorioPerfilLector, RepositorioPerfilLector>();
 
             services.AddScoped<IRepositorioRecurso, RepositorioRecurso>();
+            services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
             services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
             services.AddScoped<IRepositorioPenalizacion, RepositorioPenalizacion>();
             services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();

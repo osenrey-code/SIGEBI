@@ -1,19 +1,18 @@
 ﻿namespace SIGEBI.Application.DTOs.Request;
 
-public record ActualizarRecursoRequest
+public class ActualizarRecursoRequest
 {
-    public Guid UsuarioEjecutorId { get; set; }
+    public int UsuarioEjecutorId { get; set; }
 
-    public Guid RecursoId { get; set; }
-
-    public string Identificador { get; set; } = string.Empty;
+    public int RecursoBibliograficoId { get; set; }
 
     public string Titulo { get; set; } = string.Empty;
 
     public string Autor { get; set; } = string.Empty;
 
-    public string Categoria { get; set; } = string.Empty;
-    public string?  ImagenUrl { get; set; }
+    public int CategoriaId { get; set; }
 
-    public int NumeroEjemplares { get; set; }
+    public int AnioPublicado { get; set; }
+
+    public string? ImagenUrl { get; set; }
 }
