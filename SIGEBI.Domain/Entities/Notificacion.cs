@@ -1,37 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Domain.Entities
 {
     public class Notificacion
     {
-        public Guid Id { get; private set; }
-        public string CorreoDestinatario { get; private set; }
-        public string TipoEvento { get; private set; }
-        public string Mensaje { get; private set; }
+        public int NotificacionId { get; private set; }
+
+        public string UsuarioId { get; private set; }
+
+        public TipoNotificacion  Tipo { get; private set; } 
+
+        public string Mensaje { get; private set; } = string.Empty;
+
         public DateTime FechaRegistro { get; private set; }
+        public virtual Usuario? Usuario { get; set; }
 
-        private Notificacion() { }
 
-        public Notificacion(string CorreoDestinatario, string TipoEvento, string Mensaje)
-        {
-            if (string.IsNullOrWhiteSpace(CorreoDestinatario))
-            {
-                throw new BusinessException("El correo del destinatario es obligatorio.");
-            }
+        protected Notificacion() { }
 
-            if (string.IsNullOrWhiteSpace(Mensaje))
-            {
-                throw new BusinessException("El cuerpo de la notificación no puede estar vacío.");
-            }
-
-            Id = Guid.NewGuid();
-            this.CorreoDestinatario = CorreoDestinatario;
-            this.TipoEvento = string.IsNullOrWhiteSpace(TipoEvento) ? "General" : TipoEvento;
-            this.Mensaje = Mensaje;
-            FechaRegistro = DateTime.Now;
-        }
     }
 }

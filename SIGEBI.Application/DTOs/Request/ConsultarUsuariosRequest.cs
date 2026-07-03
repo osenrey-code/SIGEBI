@@ -4,10 +4,10 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs.Request
 {
-    public class ConsultarUsuariosRequest
+    public record ConsultarUsuariosRequest
     {
-        public string? Nombre { get; set; }
-        public string? TipoUsuario { get; set; }
-        public string? Estado { get; set; }
+        public string? nombre { get; init; } // Para filtrar por nombre o identificación
+        public string? TipoUsuario { get; init; } // Ej: "estudiante", "docente"
+        public string? Estado { get; init; } // Ej: "activo", "inactivo"
     }
 }

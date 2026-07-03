@@ -17,11 +17,11 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(Guid usuarioId)
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorPerfilLectorAsync(Guid perfilLectorId)
         {
             return await _dbSet
                 .Where(p =>
-                    p.PerfilLectorId == usuarioId &&
+                    p.PerfilLectorId == perfilLectorId &&
                     p.Estado == EstadoPrestamo.Activo)
                 .ToListAsync();
         }
@@ -34,11 +34,26 @@ namespace SIGEBI.Infrastructure.Repositories
                     p.Estado == EstadoPrestamo.Activo);
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(Guid usuarioId)
+        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorPerfilLectorAsync(Guid perfilLectorId)
         {
             return await _dbSet
-                .Where(p => p.PerfilLectorId == usuarioId)
+                .Where(p => p.PerfilLectorId == perfilLectorId)
                 .OrderByDescending(p => p.FechaSolicitud)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Prestamo>> ObtenerPrestamosProximosAVencerAsync(
+        DateTime fechaDesde,
+        DateTime fechaHasta)
+        {
+            return await _dbSet
+                .Include(p => p.PerfilLector)
+                .Include(p => p.Recurso)
+                .Where(p =>
+                    p.Estado == EstadoPrestamo.Activo &&
+                    p.FechaLimite.HasValue &&
+                    p.FechaLimite.Value.Date >= fechaDesde.Date &&
+                    p.FechaLimite.Value.Date <= fechaHasta.Date)
                 .ToListAsync();
         }
     }

@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Enums;
 using SIGEBI.Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
@@ -12,33 +10,58 @@ namespace SIGEBI.Infrastructure.Repositories
     {
         public RepositorioRecurso(SIGEBIDbContext context) : base(context)
         {
-            // El constructor simplemente le pasa el DbContext a la clase padre
         }
 
-        public async Task<IEnumerable<RecursoBibliografico>> ConsultarCatalogoAsync(string titulo, string autor, string categoria)
+        public async Task<RecursoBibliografico?> BuscarPorIsbnAsync(string isbn)
         {
-            // Iniciamos la consulta sin ir a la base de datos todavía
-            var query = _dbSet.AsQueryable();
+            return await _dbSet
+                .Include(r => r.Categoria)
+                .Include(r => r.Ejemplares)
+                .FirstOrDefaultAsync(r => r.ISBN.ToLower() == isbn.Trim().ToLower());
+        }
 
-            // Vamos agregando los filtros dinámicamente solo si el usuario los proporcionó
+        public async Task<RecursoBibliografico?> BuscarConCategoriaAsync(int recursoBibliograficoId)
+        {
+            return await _dbSet
+                .Include(r => r.Categoria)
+                .Include(r => r.Ejemplares)
+                .FirstOrDefaultAsync(r => r.RecursoBibliograficoId == recursoBibliograficoId);
+        }
+
+        public async Task<IEnumerable<RecursoBibliografico>> ConsultarCatalogoAsync(
+            string? titulo,
+            string? autor,
+            string? categoria,
+            bool? soloDisponibles)
+        {
+            var query = _dbSet
+                .Include(r => r.Categoria)
+                .Include(r => r.Ejemplares)
+                .AsQueryable();
+
             if (!string.IsNullOrWhiteSpace(titulo))
             {
-                // Usamos Contains para que funcione como un "LIKE %titulo%" en SQL
-                query = query.Where(r => r.Titulo.Contains(titulo));
+                query = query.Where(r => r.Titulo.Contains(titulo.Trim()));
             }
 
             if (!string.IsNullOrWhiteSpace(autor))
             {
-                query = query.Where(r => r.Autor.Contains(autor));
+                query = query.Where(r => r.Autor.Contains(autor.Trim()));
             }
 
             if (!string.IsNullOrWhiteSpace(categoria))
             {
-                // Aquí buscamos coincidencia exacta, pero puedes usar Contains si lo prefieres
-                query = query.Where(r => r.Categoria == categoria);
+                query = query.Where(r =>
+                    r.Categoria != null &&
+                    r.Categoria.Nombre.Contains(categoria.Trim()));
             }
 
-            // Finalmente, ejecutamos el viaje a la base de datos
+            if (soloDisponibles == true)
+            {
+                query = query.Where(r =>
+                    r.Ejemplares.Any(e => e.Estado == EstadoEjemplar.Disponible));
+            }
+
             return await query.ToListAsync();
         }
     }

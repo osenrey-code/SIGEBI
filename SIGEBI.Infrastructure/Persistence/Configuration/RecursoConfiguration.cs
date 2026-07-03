@@ -1,12 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Infrastructure.Persistence.Configuration
 {
-    internal class RecursoConfiguration
+    internal class RecursoConfiguration : IEntityTypeConfiguration<RecursoBibliografico>
     {
+        public void Configure(EntityTypeBuilder<RecursoBibliografico> builder)
+        {
+            builder.ToTable("RecursosBibliograficos");
+
+            builder.HasKey(r => r.RecursoBibliograficoId);
+
+            builder.Property(r => r.ISBN)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            builder.HasIndex(r => r.ISBN)
+                .IsUnique();
+
+            builder.Property(r => r.Titulo)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            builder.Property(r => r.Autor)
+                .IsRequired()
+                .HasMaxLength(150);
+
+            builder.Property(r => r.AnioPublicado)
+                .IsRequired();
+
+            builder.Property(r => r.ImagenUrl)
+                .HasMaxLength(500);
+
+            builder.Property(r => r.CategoriaId)
+                .IsRequired();
+
+            builder.HasOne(r => r.Categoria)
+                .WithMany(c => c.Libros)
+                .HasForeignKey(r => r.CategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(r => r.Ejemplares)
+                .WithOne(e => e.RecursoBibliografico)
+                .HasForeignKey(e => e.RecursoBibliograficoId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

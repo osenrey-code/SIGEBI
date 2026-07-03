@@ -4,13 +4,13 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs.Response
 {
-    public class UsuarioResponse
+    public record UsuarioResponse
     {
-        public Guid UsuarioId { get; set; }
-        public string NombreCompleto { get; set; } = string.Empty;
-        public string DocumentoIdentidad { get; set; } = string.Empty;
-        public string Correo { get; set; } = string.Empty;
-        public string TipoUsuario { get; set; } = string.Empty;
-        public string Estado { get; set; } = string.Empty; 
+        public int UsuarioId { get; init; }
+        public string Identificacion { get; init; } = string.Empty;
+        public string NombreCompleto { get; init; } = string.Empty;
+        public string Correo { get; init; } = string.Empty;
+        public string TipoUsuario { get; init; } = string.Empty;
+        public string Estado { get; init; } = string.Empty;
     }
 }

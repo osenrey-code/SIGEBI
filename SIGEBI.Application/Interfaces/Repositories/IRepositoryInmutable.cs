@@ -4,9 +4,11 @@ using System.Text;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface ReadOnly<T> where T : class
+    public interface IRepositoryInmutable<T> where T : class
     {
-        Task<T?> ObtenerPorIdAsync(object id);
+        Task<T?> ObtenerporIdAsync(object id);
         Task<IEnumerable<T>> ObtenerTodosAsync();
+        Task AgregarAsync(T entidad);
+        Task ActualizarAsync(T entidad);
     }
 }

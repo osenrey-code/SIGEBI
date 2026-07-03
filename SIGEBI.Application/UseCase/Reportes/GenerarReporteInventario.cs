@@ -25,19 +25,19 @@ namespace SIGEBI.Application.UseCase.Reportes
                 TotalRecursos = lista.Count,
 
                 RecursosDisponibles = lista.Count(r =>
-                    r.Estado == EstadoRecurso.Disponible
+                    r.Estado == EstadoEjemplar.Disponible
                 ),
 
                 RecursosPrestados = lista.Count(r =>
-                    r.Estado == EstadoRecurso.Prestado
+                    r.Estado == EstadoEjemplar.Prestado
                 ),
 
                 RecursosReservados = lista.Count(r =>
-                    r.Estado == EstadoRecurso.Reservado
+                    r.Estado == EstadoEjemplar.Reservado
                 ),
 
                 RecursosFueraDeServicio = lista.Count(r =>
-                    r.Estado == EstadoRecurso.FueraDeServicio
+                    r.Estado == EstadoEjemplar.FueraDeServicio
                 )
             };
 

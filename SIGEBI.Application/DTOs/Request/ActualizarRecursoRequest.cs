@@ -1,10 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace SIGEBI.Application.DTOs.Request;
 
-namespace SIGEBI.Application.DTOs.Request
+public class ActualizarRecursoRequest
 {
-    public class ActualizarRecursoRequest
-    {
-    }
+    public int UsuarioEjecutorId { get; set; }
+
+    public int RecursoBibliograficoId { get; set; }
+
+    public string Titulo { get; set; } = string.Empty;
+
+    public string Autor { get; set; } = string.Empty;
+
+    public int CategoriaId { get; set; }
+
+    public int AnioPublicado { get; set; }
+
+    public string? ImagenUrl { get; set; }
 }

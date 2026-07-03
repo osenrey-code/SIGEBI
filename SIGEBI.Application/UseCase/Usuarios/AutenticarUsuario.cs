@@ -1,69 +1,88 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
     public class AutenticarUsuario
     {
         private readonly IUsuario _usuarios;
+        private readonly IServicioPassword _servicioPassword;
+        private readonly IServicioToken _servicioToken;
+        private readonly IAuditoriaService _auditoria;
 
-        public AutenticarUsuario(IUsuario usuarios)
+        public AutenticarUsuario(IUsuario usuarios, IServicioPassword servicioPassword,
+             IServicioToken servicioToken, IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
+            _servicioPassword = servicioPassword;
+            _servicioToken = servicioToken;
+            _auditoria = auditoria;
         }
 
-        public async Task<ResultadoOperacionResponse<LoginResponse>> EjecutarAsync(
-            LoginRequest request)
+        public async Task<LoginResponse> AutenticarUsuarioAsync(LoginRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.UsuarioOCorreo))
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error("El usuario o correo electronico es obligatorio.");
-            }
+            // 1. Validaciones de entrada
+            Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación");
+            Guard.NotNullOrWhiteSpace(request.Password, "La contraseña");
 
-            if (string.IsNullOrWhiteSpace(request.PassWord))
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error("La contraseña es obligatoria.");
-            }
+            // 2. Búsqueda por Identificación (Matrícula o Código de Empleado)
+            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
 
-            var usuarioOCorreo = request.UsuarioOCorreo.Trim();
-
-            Usuario? usuario;
-
-            if (usuarioOCorreo.Contains("@"))
-            {
-                var usuarios = await _usuarios.ObtenerTodosAsync();
-
-                usuario = usuarios.FirstOrDefault(u => u.Correo.Equals(usuarioOCorreo, StringComparison.OrdinalIgnoreCase));
-            } else
-            {
-                usuario = await _usuarios.ObtenerPorIdentificacionAsync(usuarioOCorreo);
-            }
-
+            // 3. Validaciones de negocio y seguridad
             if (usuario is null)
-            {
-                return ResultadoOperacionResponse<LoginResponse>.Error(
-                    "Credenciales inválidas.");
-            }
+                throw new BusinessException("Credenciales inválidas.");
 
             if (usuario.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("La cuenta de usuario no está activa.");
+
+            // 4. Verificación de contraseña y auditoría de fallos
+            var passwordValido = _servicioPassword.VerificarPassword(request.Password, usuario.PassWord);
+
+            if (!passwordValido)
             {
-                return ResultadoOperacionResponse<LoginResponse>.Error("El usuario no está activo.");
+                await _auditoria.RegistrarAsync(
+                    UsuarioId: usuario.UsuarioId,
+                    Accion: "Inicio de sesión fallido",
+                    EntidadAfectada: "Usuarios",
+                    detalles: $"Intento fallido con identificación: {request.Identificacion}"
+                );
+
+                throw new BusinessException("Credenciales inválidas.");
             }
 
-            var response = new LoginResponse
+            // 5. Generación de Token
+            var tipoUsuarioReal = usuario.GetType().Name;
+
+            var token = _servicioToken.GenerarToken(
+                usuario.UsuarioId,
+                usuario.NombreCompleto,
+                usuario.Correo,
+                tipoUsuarioReal
+            );
+
+            // 6. Auditoría de éxito
+            await _auditoria.RegistrarAsync(
+                UsuarioId: usuario.UsuarioId,
+                Accion: "Inicio de sesión",
+                EntidadAfectada: "Usuarios",
+                detalles: $"El usuario '{usuario.NombreCompleto}' inició sesión correctamente."
+            );
+
+            // 7. Retorno del DTO de respuesta
+            return new LoginResponse
             {
-                UsuarioId = usuario.Id,
+                UsuarioId = usuario.UsuarioId,
                 NombreCompleto = usuario.NombreCompleto,
                 Correo = usuario.Correo,
-                TipoUsuario = usuario.Tipo.ToString(),
-                Token = ""
+                TipoUsuario = tipoUsuarioReal,
+                Token = token
             };
-
-            return ResultadoOperacionResponse<LoginResponse>.Ok(
-                "Usuario autenticado correctamente.", response);
         }
+
     }
 }

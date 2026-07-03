@@ -1,48 +1,37 @@
-﻿using SIGEBI.Domain.Enums;
+﻿
+
+using SIGEBI.Domain.Common;
+using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Domain.Entities
 {
-    public class Usuario
+    public abstract class Usuario
     {
-        public Guid Id { get; set; }
-        public string Identificacion { get; set; } = string.Empty;
+        public int UsuarioId { get; set; } 
         public string NombreCompleto { get; set; } = string.Empty;
+
         public string Correo { get; set; } = string.Empty;
-        public TipoUsuario Tipo { get; set; }
         public EstadoUsuario Estado { get; set; }
+        public string PassWord { get; set; } = string.Empty;
 
+        public virtual ICollection<Prestamo> Prestamos { get; set; } = new List<Prestamo>();
+        public virtual ICollection<Penalizacion> penalizciones { get; set; } = new List<Penalizacion>();
+        public virtual ICollection<Notificacion> notificaciones { get; set; } = new List<Notificacion>();
 
-        //Este perfil sera para los Estudiantes o Docentes
-        public PerfilLector? PerfilLector { get; private set; }
-
-        private Usuario() { }
-
-        public Usuario(string Identificacion, string NombreCompleto, string Correo, TipoUsuario Tipo)
+        public void Actualizar(string nombre)
         {
-            Id = Guid.NewGuid();
-            this.Identificacion = Identificacion;
-            this.NombreCompleto = NombreCompleto;
-            this.Correo = Correo;
-            this.Tipo = Tipo;
-            Estado = EstadoUsuario.Activo;
+            Guard.NotNullOrWhiteSpace(nombre, "El nombre ");
+            NombreCompleto = nombre;
         }
 
-        public void Desactivar()
+        public void CambiarPassword(string password)
         {
-            Estado = EstadoUsuario.Inactivo;
+            Guard.NotNullOrWhiteSpace(password, "La contraseña ");
+            PassWord = password;
         }
 
-        public void Activar()
-        {
-            Estado = EstadoUsuario.Activo;
-        }
 
-        public void AsignarPerfilLector(PerfilLector perfil)
-        {
-            if (Tipo != TipoUsuario.Estudiante && Tipo != TipoUsuario.Docente)
-                throw new Exception("Solo los estudiantes y docentes pueden tener un perfil de lector.");
 
-            PerfilLector = perfil;
-        }
+
     }
 }

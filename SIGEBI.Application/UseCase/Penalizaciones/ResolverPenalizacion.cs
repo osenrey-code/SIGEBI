@@ -1,8 +1,10 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Penalizaciones
 {
@@ -10,106 +12,78 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
     {
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
 
         public ResolverPenalizacion(
             IRepositorioPenalizacion penalizaciones,
-            IUsuario usuarios)
+            IUsuario usuarios,
+            IAuditoriaService auditoria)
         {
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
+            _auditoria = auditoria;
         }
 
-        public async Task<ResultadoOperacionResponse<PenalizacionResponse>> EjecutarAsync(
-            ResolverPenalizacionRequest request)
+        public async Task<PenalizacionResponse> EjecutarAsync(ResolverPenalizacionRequest request)
         {
-            if (request.UsuarioEjecutorId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
-                    "El usuario ejecutor es obligatorio."
-                );
-            }
+            if (request.IdPenalizacion <= 0)
+                throw new BusinessException("La penalización es obligatoria.");
 
-            if (request.PenalizacionId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
-                    "La penalización es obligatoria."
-                );
-            }
+            if (request.UsuarioResolucionId <= 0)
+                throw new BusinessException("El usuario responsable de la resolución es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioEjecutorId
-            );
+            if (string.IsNullOrWhiteSpace(request.MotivoResolucion))
+                throw new BusinessException("El motivo de resolución es obligatorio.");
 
-            if (usuarioEjecutor is null)
-            {
-                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
-                    "El usuario ejecutor no existe."
-                );
-            }
+            var usuarioResponsable = await _usuarios.ObtenerporIdAsync(request.UsuarioResolucionId);
 
-            if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
-            {
-                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
-                    "El usuario ejecutor no está activo."
-                );
-            }
+            if (usuarioResponsable is null)
+                throw new BusinessException("El usuario responsable no existe.");
 
-            if (usuarioEjecutor.Tipo != TipoUsuario.Bibliotecario &&
-                usuarioEjecutor.Tipo != TipoUsuario.Administrador)
-            {
-                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
-                    "Solo un bibliotecario o administrador puede resolver penalizaciones."
-                );
-            }
+            if (usuarioResponsable.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("El usuario responsable no está activo.");
 
-            var penalizacion = await _penalizaciones.ObtenerPorIdAsync(
-                request.PenalizacionId
-            );
+            if (usuarioResponsable is not Bibliotecario && usuarioResponsable is not Administrador)
+                throw new BusinessException("Solo un bibliotecario o administrador puede resolver penalizaciones.");
+
+            var penalizacion = await _penalizaciones.ObtenerporIdAsync(request.IdPenalizacion);
 
             if (penalizacion is null)
-            {
-                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
-                    "La penalización no existe."
-                );
-            }
+                throw new BusinessException("La penalización no existe.");
 
-            if (penalizacion.Estado != EstadoPenalizacion.Activa)
-            {
-                return ResultadoOperacionResponse<PenalizacionResponse>.Error(
-                    "Solo se pueden resolver penalizaciones activas."
-                );
-            }
-
-            penalizacion.Resolver(request.UsuarioEjecutorId);
+            penalizacion.Resolver(
+                request.UsuarioResolucionId,
+                request.MotivoResolucion
+            );
 
             await _penalizaciones.ActualizarAsync(penalizacion);
 
-            var response = MapearPenalizacion(penalizacion);
-
-            return ResultadoOperacionResponse<PenalizacionResponse>.Ok(
-                "Penalización resuelta correctamente.",
-                response
+            await _auditoria.RegistrarAsync(
+                request.UsuarioResolucionId,
+                "Resolver penalización",
+                "Penalizacion",
+                $"Se resolvió la penalización ID {penalizacion.IdPenalizacion} del usuario ID {penalizacion.UsuarioId}."
             );
+
+            return MapearPenalizacion(penalizacion);
         }
 
         private static PenalizacionResponse MapearPenalizacion(Penalizacion penalizacion)
         {
             return new PenalizacionResponse
             {
-                Id = penalizacion.Id,
-                PerfilLectorId = penalizacion.PerfilLectorId,
-                UsuarioId = penalizacion.PerfilLector?.UsuarioId,
-                Motivo = CrearMotivo(penalizacion),
+                IdPenalizacion = penalizacion.IdPenalizacion,
+                UsuarioId = penalizacion.UsuarioId,
+                PrestamoId = penalizacion.PrestamoId,
+                DiasRetraso = penalizacion.DiasRetraso,
+                MontoMora = penalizacion.MontoMora,
+                Motivo = penalizacion.Motivo,
                 Estado = penalizacion.Estado.ToString(),
                 FechaGeneracion = penalizacion.FechaGeneracion,
                 FechaResolucion = penalizacion.FechaResolucion,
-                UsuarioResolucionId = penalizacion.UsuarioResolucionId
+                UsuarioResolucionId = penalizacion.UsuarioResolucionId,
+                MotivoResolucion = penalizacion.MotivoResolucion
             };
-        }
-
-        private static string CrearMotivo(Penalizacion penalizacion)
-        {
-            return $"Devolución tardía de {penalizacion.DiasRetraso} día(s). Monto de mora: {penalizacion.MontoMora}.";
         }
     }
 }

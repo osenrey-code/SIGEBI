@@ -4,12 +4,12 @@ using System.Text;
 
 namespace SIGEBI.Application.DTOs.Response
 {
-    public class LoginResponse
+    public record LoginResponse
     {
-        public Guid UsuarioId { get; set;  }
-        public string NombreCompleto { get; set; } = string.Empty;
-        public string Correo { get; set; } = string.Empty;
-        public string TipoUsuario { get; set;  } = string.Empty;
-        public string Token { get; set; } = string.Empty;
+        public int UsuarioId { get; init; }
+        public string NombreCompleto { get; init; } = string.Empty;
+        public string Correo { get; init; } = string.Empty;
+        public string TipoUsuario { get; init; } = string.Empty;
+        public string Token { get; init; } = string.Empty;
     }
 }

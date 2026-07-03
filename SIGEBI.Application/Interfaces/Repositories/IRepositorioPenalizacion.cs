@@ -1,21 +1,19 @@
 ﻿using SIGEBI.Domain.Entities;
-using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioPenalizacion : ReadOnly<Penalizacion>, Writer<Penalizacion>
+    public interface IRepositorioPenalizacion : IBaseRepository<Penalizacion>
     {
-        Task<IEnumerable<Penalizacion>> ObtenerPorPerfilLectorAsync(Guid perfilLectorId);
+        Task<IEnumerable<Penalizacion>> ObtenerPorUsuarioAsync(int usuarioId);
 
-        Task<Penalizacion?> ObtenerActivaPorPerfilLectorAsync(Guid perfilLectorId);
+        Task<IEnumerable<Penalizacion>> ObtenerActivasPorUsuarioAsync(int usuarioId);
 
-        Task<bool> ExisteActivaPorPerfilLectorAsync(Guid perfilLectorId);
+        Task<bool> ExisteActivaPorUsuarioAsync(int usuarioId);
 
         Task<IEnumerable<Penalizacion>> ConsultarAsync(
-            Guid? usuarioId,
-            Guid? perfilLectorId,
-            EstadoPenalizacion? estado,
-            DateTime? fechaInicio,
-            DateTime? fechaFin);
+            int? usuarioId,
+            int? prestamoId,
+            string? estado
+        );
     }
 }

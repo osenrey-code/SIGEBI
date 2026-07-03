@@ -1,15 +1,24 @@
 ﻿
+using System.ComponentModel.DataAnnotations;
+
 namespace SIGEBI.Application.DTOs.Request
 {
-    public class RegistrarUsuarioRequest
+    public record RegistrarUsuarioRequest
     {
-        //Administrador 
-        public Guid UsuarioEjecutorId { get; set; }
 
-        public string NombreCompleto { get; set; } = string.Empty;
-        public string DocumentoIdentidad { get; set; } = string.Empty;
-        public string Correo { get; set; } = string.Empty;
-        public string PassWord { get; set; } = string.Empty;
-        public string TipoUsuario { get; set; } = string.Empty;
+        [Required(ErrorMessage = "La identificación (Matrícula/Código) es obligatoria.")]
+        public string Identificacion { get; init; } = string.Empty;
+
+        [Required(ErrorMessage = "El nombre completo es obligatorio.")]
+        [StringLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres.")]
+        public string NombreCompleto { get; init; } = string.Empty;
+
+        [Required(ErrorMessage = "El correo electrónico es obligatorio.")]
+        [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]
+        public string Correo { get; init; } = string.Empty;
+
+        [Required(ErrorMessage = "El tipo de usuario es obligatorio.")]
+        public string Tipo { get; init; } = string.Empty;
+
     }
 }

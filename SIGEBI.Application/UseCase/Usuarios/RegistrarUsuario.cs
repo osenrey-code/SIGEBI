@@ -3,177 +3,58 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Domain.Exceptions;
+using System.Net.Http.Headers;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
-    public class RegistrarUsuario
+    public class RegistrarUsuario 
     {
         private readonly IUsuario _usuarios;
+        private readonly IAuditoriaService _auditoria;
+        private readonly IServicioPassword _password;
 
-        public RegistrarUsuario(IUsuario usuarios)
+        public RegistrarUsuario(IUsuario usuarios, IAuditoriaService auditoria, IServicioPassword password)
         {
             _usuarios = usuarios;
+            _auditoria = auditoria;
+            _password = password;
         }
 
-        public async Task<ResultadoOperacionResponse<UsuarioResponse>> EjecutarAsync(
-            RegistrarUsuarioRequest request)
+        public async Task RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int actorId)
         {
-            if (request.UsuarioEjecutorId == Guid.Empty)
+            var existe = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
+
+            if (existe != null)
+                throw new BusinessException("El usuario ya esta registrado.");
+
+            bool CorreoOcupado = await _usuarios.ExisteCorreoAsync(request.Correo);
+
+            if (CorreoOcupado) throw new BusinessException("Ya existe un usuario registrado con este correo.");
+
+
+            Usuario usuario = request.Tipo.ToLower() switch
             {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "El usuario ejecutor es obligatorio."
-                );
-            }
+                "estudiante" => new Estudiante { Matricula = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
+                "docente" => new Docente { CodigoEmpleado = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
+                "administrador" => new Administrador { CodigoEmpleado = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
+                "bibliotecario" => new Bibliotecario { CodigoEmpleado = request.Identificacion , PassWord = _password.GenerarHash(request.Identificacion) },
+                "auditor" => new Auditor { CodigoEmpleado = request.Identificacion , PassWord = _password.GenerarHash(request.Identificacion) },
+                _ => throw new BusinessException("Usuario Inválido.")
+            };
 
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioEjecutorId
-            );
-
-            if (usuarioEjecutor is null)
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "El usuario ejecutor no existe."
-                );
-            }
-
-            if (usuarioEjecutor.Tipo != TipoUsuario.Administrador)
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "Solo un administrador puede registrar usuarios desde administración."
-                );
-            }
-
-            var errorValidacion = ValidarDatosBasicos(
-                request.NombreCompleto,
-                request.DocumentoIdentidad,
-                request.Correo,
-                request.PassWord,
-                request.TipoUsuario
-            );
-
-            if (errorValidacion is not null)
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(errorValidacion);
-
-            if (!Enum.TryParse<TipoUsuario>(request.TipoUsuario, true, out var tipoUsuario))
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "El tipo de usuario no es válido."
-                );
-            }
-
-            var usuarioExistente = await _usuarios.ObtenerPorIdentificacionAsync(
-                request.DocumentoIdentidad.Trim()
-            );
-
-            if (usuarioExistente is not null)
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "Ya existe un usuario con esa identificación."
-                );
-            }
-
-            var correoExiste = await ExisteCorreoAsync(request.Correo.Trim());
-
-            if (correoExiste)
-            {
-                return ResultadoOperacionResponse<UsuarioResponse>.Error(
-                    "Ya existe un usuario con ese correo."
-                );
-            }
-
-            var usuario = new Usuario(
-                request.DocumentoIdentidad.Trim(),
-                request.NombreCompleto.Trim(),
-                request.Correo.Trim(),
-                tipoUsuario
-            );
-
-            if (tipoUsuario == TipoUsuario.Estudiante ||
-                tipoUsuario == TipoUsuario.Docente)
-            {
-                var perfilLector = CrearPerfilLectorPorTipo(usuario.Id, tipoUsuario);
-
-                usuario.AsignarPerfilLector(perfilLector);
-            }
+            usuario.NombreCompleto = request.NombreCompleto;
+            usuario.Correo = request.Correo;
+            usuario.Estado = EstadoUsuario.Activo;
 
             await _usuarios.AgregarAsync(usuario);
-
-            var response = MapearUsuario(usuario);
-
-            return ResultadoOperacionResponse<UsuarioResponse>.Ok(
-                "Usuario registrado correctamente desde administración.",
-                response
-            );
-        }
-
-        private async Task<bool> ExisteCorreoAsync(string correo)
-        {
-            var usuarios = await _usuarios.ObtenerTodosAsync();
-
-            return usuarios.Any(u =>
-                u.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static PerfilLector CrearPerfilLectorPorTipo(
-            Guid usuarioId,
-            TipoUsuario tipoUsuario)
-        {
-            return tipoUsuario switch
-            {
-                TipoUsuario.Estudiante => new PerfilLector(
-                    usuarioId,
-                    3,
-                    7
-                ),
-
-                TipoUsuario.Docente => new PerfilLector(
-                    usuarioId,
-                    5,
-                    15
-                ),
-
-                _ => throw new Exception(
-                    "Solo estudiantes y docentes pueden tener perfil lector."
-                )
-            };
-        }
-
-        private static UsuarioResponse MapearUsuario(Usuario usuario)
-        {
-            return new UsuarioResponse
-            {
-                UsuarioId = usuario.Id,
-                NombreCompleto = usuario.NombreCompleto,
-                DocumentoIdentidad = usuario.Identificacion,
-                Correo = usuario.Correo,
-                TipoUsuario = usuario.Tipo.ToString(),
-                Estado = usuario.Estado.ToString()
-            };
-        }
-
-        private static string? ValidarDatosBasicos(
-            string nombreCompleto,
-            string documentoIdentidad,
-            string correo,
-            string password,
-            string tipoUsuario)
-        {
-            if (string.IsNullOrWhiteSpace(nombreCompleto))
-                return "El nombre completo es obligatorio.";
-
-            if (string.IsNullOrWhiteSpace(documentoIdentidad))
-                return "El documento de identidad es obligatorio.";
-
-            if (string.IsNullOrWhiteSpace(correo))
-                return "El correo es obligatorio.";
-
-            if (string.IsNullOrWhiteSpace(password))
-                return "La contraseña es obligatoria.";
-
-            if (string.IsNullOrWhiteSpace(tipoUsuario))
-                return "El tipo de usuario es obligatorio.";
-
-            return null;
+            await _auditoria.RegistrarAsync(
+               UsuarioId: actorId,
+               Accion: "Registrar Usuario",
+               EntidadAfectada: "Usuarios",
+               detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {request.Identificacion}"
+             );
         }
     }
 } 

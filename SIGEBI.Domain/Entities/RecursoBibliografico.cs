@@ -1,47 +1,113 @@
-﻿using SIGEBI.Domain.Enums;
+﻿using SIGEBI.Domain.Common;
+using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Domain.Entities
 {
     public class RecursoBibliografico
     {
-        public Guid Id { get; private set; }
+        public int RecursoBibliograficoId { get; private set; }
+
+        public string ISBN { get; private set; } = string.Empty;
+
         public string Titulo { get; private set; } = string.Empty;
+
         public string Autor { get; private set; } = string.Empty;
-        public string Categoria { get; private set; } = string.Empty;
-        public EstadoRecurso Estado { get; private set; }
 
-        private RecursoBibliografico() { }
+        public int AnioPublicado { get; private set; }
 
-        public RecursoBibliografico(string Titulo, string Autor, string Categoria)
+        public string? ImagenUrl { get; private set; }
+
+        public int CategoriaId { get; private set; }
+
+        public virtual Categoria? Categoria { get; private set; }
+
+        private readonly List<Ejemplar> _ejemplares = new();
+
+        public IReadOnlyCollection<Ejemplar> Ejemplares => _ejemplares.AsReadOnly();
+
+        public int TotalEjemplares => _ejemplares.Count;
+
+        public int CopiasDisponibles =>
+            _ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
+
+        protected RecursoBibliografico() { }
+
+        public RecursoBibliografico(
+            string isbn,
+            string titulo,
+            string autor,
+            int categoriaId,
+            int anioPublicado,
+            string? imagenUrl)
         {
-            if (string.IsNullOrWhiteSpace(Titulo)) throw new BusinessException("El título es obligatorio.");
-            Id = Guid.NewGuid();
-            this.Titulo = Titulo;
-            this.Autor = Autor;
-            this.Categoria = Categoria;
-            Estado = EstadoRecurso.Disponible;
+            Guard.NotNullOrWhiteSpace(isbn, "El ISBN");
+            Guard.NotNullOrWhiteSpace(titulo, "El título del libro");
+            Guard.NotNullOrWhiteSpace(autor, "El autor del libro");
+
+            if (categoriaId <= 0)
+                throw new BusinessException("La categoría del recurso es inválida.");
+
+            if (anioPublicado <= 0)
+                throw new BusinessException("El año de publicación es inválido.");
+
+            ISBN = isbn.Trim();
+            Titulo = titulo.Trim();
+            Autor = autor.Trim();
+            CategoriaId = categoriaId;
+            AnioPublicado = anioPublicado;
+            ImagenUrl = imagenUrl?.Trim();
         }
 
-        public bool EstaDisponible()
+        public bool TieneCopiasDisponibles()
         {
-            return Estado == EstadoRecurso.Disponible;
+            return CopiasDisponibles > 0;
         }
 
-        public void MarcarComoPrestado()
+        public void ActualizarInformacion(
+            string titulo,
+            string autor,
+            int categoriaId,
+            int anioPublicado,
+            string? imagenUrl)
         {
-            if (Estado != EstadoRecurso.Disponible)
+            Guard.NotNullOrWhiteSpace(titulo, "El título del libro");
+            Guard.NotNullOrWhiteSpace(autor, "El autor del libro");
+
+            if (categoriaId <= 0)
+                throw new BusinessException("La categoría del recurso es inválida.");
+
+            if (anioPublicado <= 0)
+                throw new BusinessException("El año de publicación es inválido.");
+
+            Titulo = titulo.Trim();
+            Autor = autor.Trim();
+            CategoriaId = categoriaId;
+            AnioPublicado = anioPublicado;
+            ImagenUrl = imagenUrl?.Trim();
+        }
+
+        public void AsignarImagen(string imagenUrl)
+        {
+            Guard.NotNullOrWhiteSpace(imagenUrl, "La ruta de la imagen");
+
+            ImagenUrl = imagenUrl.Trim();
+        }
+
+        public void RegistrarNuevoEjemplar(string identificador)
+        {
+            Guard.NotNullOrWhiteSpace(identificador, "El identificador del ejemplar");
+
+            if (_ejemplares.Any(e => e.Identificador == identificador.Trim()))
             {
-                throw new BusinessException("El recurso no está disponible para préstamo.");
+                throw new BusinessException(
+                    $"Ya existe un ejemplar con el código {identificador} en este recurso."
+                );
             }
-            Estado = EstadoRecurso.Prestado;
-        }
 
-        public void MarcarComoDisponible()
-        {
-            Estado = EstadoRecurso.Disponible;
-        }
+            var nuevoEjemplar = new Ejemplar(RecursoBibliograficoId, identificador.Trim());
 
-       
+            _ejemplares.Add(nuevoEjemplar);
+        }
     }
 }

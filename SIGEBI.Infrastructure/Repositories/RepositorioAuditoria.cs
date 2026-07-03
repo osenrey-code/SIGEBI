@@ -2,13 +2,10 @@
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
-    public class RepositorioAuditoria : IRepositorioAuditoria 
+    public class RepositorioAuditoria : IRepositorioAuditoria
     {
         private readonly SIGEBIDbContext _context;
         private readonly DbSet<Auditoria> _dbSet;
@@ -19,14 +16,21 @@ namespace SIGEBI.Infrastructure.Repositories
             _dbSet = context.Set<Auditoria>();
         }
 
-        // --- Implementación de ReadOnly<Auditoria> ---
-        public async Task<Auditoria?> ObtenerPorIdAsync(object id)
-            => await _dbSet.FindAsync(id);
+        public async Task<Auditoria?> ObtenerporIdAsync(object id)
+        {
+            var auditoriaId = Convert.ToInt32(id);
 
-        public async Task<IEnumerable<Auditoria>> ObtenerTodosAsync()
-            => await _dbSet.ToListAsync();
+            return await _dbSet
+                .FirstOrDefaultAsync(a => a.IdAuditoria == auditoriaId);
+        }
 
-        // --- Implementación de Writer<Auditoria> ---
+        public async Task<IReadOnlyList<Auditoria>> ObtenerTodosAsync()
+        {
+            return await _dbSet
+                .OrderByDescending(a => a.FechaRegistro)
+                .ToListAsync();
+        }
+
         public async Task AgregarAsync(Auditoria entidad)
         {
             await _dbSet.AddAsync(entidad);
@@ -34,14 +38,11 @@ namespace SIGEBI.Infrastructure.Repositories
         }
 
         public Task ActualizarAsync(Auditoria entidad)
-            => throw new NotSupportedException("Los registros de auditoría son inmutables.");
+        {
+            throw new NotSupportedException("Los registros de auditoría no pueden ser modificados.");
+        }
 
-        public Task EliminarAsync(Auditoria entidad)
-            => throw new NotSupportedException("Los registros de auditoría no pueden ser eliminados.");
-
-        // --- Implementación de IRepositorioAuditoria ---
-
-        public async Task<IEnumerable<Auditoria>> ObtenerPorUsuarioAsync(Guid usuarioId)
+        public async Task<IEnumerable<Auditoria>> ObtenerPorEjecutorAsync(int usuarioId)
         {
             return await _dbSet
                 .Where(a => a.UsuarioId == usuarioId)
@@ -49,58 +50,41 @@ namespace SIGEBI.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Auditoria>> ObtenerPorRangoFechaAsync(DateTime fechaInicio, DateTime fechaFin)
+        public async Task<IEnumerable<Auditoria>> ObtenerPorEntidadAsync(string entidad)
         {
             return await _dbSet
-                .Where(a => a.FechaRegistro >= fechaInicio && a.FechaRegistro <= fechaFin)
+                .Where(a => a.EntidadAfectada.Contains(entidad.Trim()))
                 .OrderByDescending(a => a.FechaRegistro)
                 .ToListAsync();
         }
 
-        public async Task RegistrarAccionAsync(string usuarioId, string tipoAccion, string modulo, string detalle)
-        {
-            // Convertimos el string a Guid. Si falla, asigna Guid.Empty
-            Guid usuarioGuid = Guid.TryParse(usuarioId, out var guid) ? guid : Guid.Empty;
-
-            // Instanciamos usando tu constructor exacto
-            var auditoria = new Auditoria(usuarioGuid, modulo, Guid.Empty, tipoAccion, detalle);
-
-            await AgregarAsync(auditoria);
-        }
-
-        public async Task<IEnumerable<Auditoria>> ConsultarLogAsync(
-            Guid? usuarioId,
-            string? tipoAccion,
+        public async Task<IEnumerable<Auditoria>> ConsultarAsync(
+            int? usuarioId,
+            string? accion,
+            string? entidadAfectada,
             DateTime? fechaInicio,
             DateTime? fechaFin)
         {
-            IQueryable<Auditoria> query = _dbSet.AsQueryable();
+            var query = _dbSet.AsQueryable();
 
-            if (usuarioId.HasValue && usuarioId != Guid.Empty)
-            {
+            if (usuarioId.HasValue)
                 query = query.Where(a => a.UsuarioId == usuarioId.Value);
-            }
 
-            // Usamos !string.IsNullOrWhiteSpace para validar cadenas vacías de forma segura
-            if (!string.IsNullOrWhiteSpace(tipoAccion))
-            {
-                query = query.Where(a => a.Accion == tipoAccion);
-            }
+            if (!string.IsNullOrWhiteSpace(accion))
+                query = query.Where(a => a.Accion.Contains(accion.Trim()));
+
+            if (!string.IsNullOrWhiteSpace(entidadAfectada))
+                query = query.Where(a => a.EntidadAfectada.Contains(entidadAfectada.Trim()));
 
             if (fechaInicio.HasValue)
-            {
                 query = query.Where(a => a.FechaRegistro >= fechaInicio.Value);
-            }
 
             if (fechaFin.HasValue)
-            {
                 query = query.Where(a => a.FechaRegistro <= fechaFin.Value);
-            }
 
             return await query
                 .OrderByDescending(a => a.FechaRegistro)
                 .ToListAsync();
         }
     }
-    
 }

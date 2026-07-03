@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace SIGEBI.Application.DTOs.Request
 {
-    public class DesactivarUsuarioRequest
+    public record DesactivarUsuarioRequest
     {
-        public Guid UsuarioEjecutorId { get; set; }
-        public Guid UsuarioId { get; set; }
-        public string Motivo { get; set; } = string.Empty;
+        [Required(ErrorMessage = "La identificación (Matrícula/Código) es obligatoria.")]
+        public string Identificacion { get; init; } = string.Empty;
+
+        [Required(ErrorMessage = "El motivo de la desactivación es obligatorio.")]
+        [StringLength(255, ErrorMessage = "El motivo no puede exceder los 255 caracteres.")]
+        public string Motivo { get; init; } = string.Empty;
     }
 }

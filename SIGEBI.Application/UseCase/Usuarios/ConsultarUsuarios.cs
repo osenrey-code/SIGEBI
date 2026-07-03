@@ -15,53 +15,37 @@ namespace SIGEBI.Application.UseCase.Usuarios
             _usuarios = usuario;
         }
 
-        public async Task<ResultadoOperacionResponse<List<UsuarioResponse>>> EjecutarAsync(
-            ConsultarUsuariosRequest request)
+
+        public async Task<IEnumerable<UsuarioResponse>> ConsultarUsuariosAsync(ConsultarUsuariosRequest filtros)
         {
-            var usuarios = await _usuarios.ObtenerTodosAsync();
+            var listaUsuarios = await _usuarios.ConsultarPorFiltrosAsync(
+                filtros.nombre,
+                filtros.TipoUsuario,
+                filtros.Estado
+            );
 
-            //Buscar por nombre
-            if (!string.IsNullOrWhiteSpace(request.Nombre))
+            return listaUsuarios.Select(u => new UsuarioResponse
             {
-                usuarios = usuarios.Where(u => u.NombreCompleto.Contains(
-                    request.Nombre, StringComparison.OrdinalIgnoreCase));
-            }
-
-            //Buscar por tipo de usuario
-            if (!string.IsNullOrWhiteSpace(request.TipoUsuario))
-            {
-                if (!Enum.TryParse<TipoUsuario>(request.TipoUsuario, true, out var tipoUsuario))
-                {
-                    return ResultadoOperacionResponse<List<UsuarioResponse>>.Error("El tipo de usuario no es válido.");
-                }
-
-                usuarios = usuarios.Where(u => u.Tipo == tipoUsuario);
-            }
-
-            //Buscar por estado
-            if (!string.IsNullOrWhiteSpace(request.Estado))
-            {
-                if (!Enum.TryParse<EstadoUsuario>(request.Estado, true, out var estadoUsuario))
-                {
-                    return ResultadoOperacionResponse<List<UsuarioResponse>>.Error("El estado de usuario no es válido.");
-                }
-                usuarios = usuarios.Where(u => u.Estado == estadoUsuario);
-            }
-
-            var response = usuarios.Select(MapearUsuario).ToList();
-            return ResultadoOperacionResponse<List<UsuarioResponse>>.Ok("Usuarios encontrados", response);
+                UsuarioId = u.UsuarioId,
+                Identificacion = ObtenerIdentificacion(u), 
+                NombreCompleto = u.NombreCompleto,
+                Correo = u.Correo,
+                TipoUsuario = u.GetType().Name,
+                Estado = u.Estado.ToString()
+            });
         }
 
-        private static UsuarioResponse MapearUsuario(Usuario usuario)
+        // Método privado para saber si debemos leer la Matrícula o el Código de Empleado
+        private string ObtenerIdentificacion(Usuario usuario)
         {
-            return new UsuarioResponse
+            return usuario switch
             {
-                UsuarioId = usuario.Id,
-                NombreCompleto = usuario.NombreCompleto,
-                DocumentoIdentidad = usuario.Identificacion,
-                Correo = usuario.Correo,
-                TipoUsuario = usuario.Tipo.ToString(),
-                Estado = usuario.Estado.ToString()
+                Estudiante e => e.Matricula,
+                Docente d => d.CodigoEmpleado,
+                Administrador a => a.CodigoEmpleado,
+                Bibliotecario b => b.CodigoEmpleado,
+                Auditor au => au.CodigoEmpleado,
+                _ => string.Empty //por si ocurre un error de casteo
             };
         }
     }

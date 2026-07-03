@@ -1,11 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SIGEBI.Application.Interfaces.ext
+﻿namespace SIGEBI.Application.Interfaces.ext
 {
     public interface INotificador
     {
-        Task EnviarAsync(string destino, string mensaje);
+        Task NotificarSolicitudPrestamoAsync(Guid usuarioId, Guid prestamoId);
+
+        Task NotificarPrestamoAprobadoAsync(
+            Guid usuarioId,
+            Guid prestamoId,
+            DateTime fechaLimite);
+
+        Task NotificarPenalizacionGeneradaAsync(
+            Guid usuarioId,
+            Guid penalizacionId);
+
+        Task NotificarPenalizacionResueltaAsync(
+            Guid usuarioId,
+            Guid penalizacionId);
     }
 }
