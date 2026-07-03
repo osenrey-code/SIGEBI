@@ -1,5 +1,4 @@
-﻿
-using SIGEBI.Domain.Entities;
+﻿using SIGEBI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace SIGEBI.Infrastructure.Persistence
@@ -10,13 +9,12 @@ namespace SIGEBI.Infrastructure.Persistence
         public SIGEBIDbContext(DbContextOptions<SIGEBIDbContext> options) : base(options) { }
 
         public DbSet<Usuario> Usuarios { get; set; }
-        public DbSet<PerfilLector> PerfilesLectores { get; set; }
         public DbSet<Prestamo> Prestamos { get; set; }
 
         public DbSet<RecursoBibliografico> RecursosBibliograficos { get; set; }
         public DbSet<Penalizacion> Penalizaciones { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
-        public DbSet<RegistroAuditoria> RegistroAuditorias { get; set; }
+        public DbSet<Auditoria> Auditorias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
