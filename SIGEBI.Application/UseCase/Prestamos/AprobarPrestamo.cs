@@ -12,19 +12,16 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IRepositorioRecurso _recursos;
         private readonly IUsuario _usuarios;
-        private readonly IRepositorioPerfilLector _perfilLector;
         private readonly INotificador _notificador;
         private readonly IAuditoriaService _auditoria;
 
         public AprobarPrestamo( IRepositorioPrestamo prestamos, IRepositorioRecurso recursos,
             IUsuario usuarios,
-            IRepositorioPerfilLector perfilLector,
             INotificador notificador, IAuditoriaService auditoria)
         {
             _prestamos = prestamos;
             _recursos = recursos;
             _usuarios = usuarios;
-            _perfilLector = perfilLector;
             _notificador = notificador;
             _auditoria = auditoria;
         }
@@ -106,9 +103,6 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             // El préstamo guarda PerfilLectorId, no UsuarioId directamente.
             // Por eso buscamos el PerfilLector para obtener el UsuarioId del estudiante/docente.
-            var perfilLector = await _perfilLector.ObtenerPorIdAsync(
-                prestamo.PerfilLectorId
-            );
 
             // Si no existe el perfil lector, el préstamo está inconsistente.
             if (perfilLector is null)

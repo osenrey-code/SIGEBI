@@ -82,21 +82,16 @@ namespace SIGEBI.Application.UseCase.Auditoria
             );
         }
 
-        private static LogAuditoriaResponse MapearRegistro(RegistroAuditoria registro)
+        private static LogAuditoriaResponse MapearRegistro(Auditoria registro)
         {
             return new LogAuditoriaResponse
             {
-                Id = registro.Id,
+                IdAuditoria = registro.IdAuditoria,
                 UsuarioId = registro.UsuarioId,
-                Usuario = registro.Usuario,
                 Accion = registro.Accion,
                 EntidadAfectada = registro.EntidadAfectada,
-                EntidadId = registro.EntidadId,
-                Resultado = registro.Resultado,
                 Detalle = registro.Detalle,
-                FechaRegistro = registro.FechaRegistro,
-                ValoresAnteriores = registro.ValoresAnteriores,
-                ValoresNuevos = registro.ValoresNuevos
+                FechaRegistro = registro.FechaRegistro
             };
         }
     }

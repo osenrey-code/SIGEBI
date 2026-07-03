@@ -17,21 +17,18 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IRepositorioRecurso _recursos;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IUsuario _usuarios;
-        private readonly IRepositorioPerfilLector _perfilLector;
         private readonly INotificador _notificador;
         private readonly IAuditoriaService _auditoria;
 
         public RegistrarDevoluciones(IRepositorioPrestamo prestamos, IRepositorioRecurso recursos,
             IRepositorioPenalizacion penalizaciones,
             IUsuario usuarios,
-            IRepositorioPerfilLector perfilLector,
             INotificador notificador, IAuditoriaService auditoria)
         {
             _prestamos = prestamos;
             _recursos = recursos;
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
-            _perfilLector = perfilLector;
             _notificador = notificador;
             _auditoria = auditoria;
         }
@@ -57,9 +54,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             }
 
             // Buscamos al bibliotecario o administrador que registra la devolución.
-            var bibliotecario = await _usuarios.ObtenerPorIdAsync(
-                request.BibliotecarioId
-            );
+            request.BibliotecarioId
 
             // Si no existe, no se puede registrar la devolución.
             if (bibliotecario is null)
@@ -101,9 +96,6 @@ namespace SIGEBI.Application.UseCase.Devoluciones
 
             // Necesitamos el PerfilLector para obtener el UsuarioId del estudiante/docente
             // y poder notificarle si se genera una penalización.
-            var perfilLector = await _perfilLector.ObtenerPorIdAsync(
-                prestamo.PerfilLectorId
-            );
 
             // Si no existe el perfil lector, el préstamo tiene una relación inconsistente.
             if (perfilLector is null)

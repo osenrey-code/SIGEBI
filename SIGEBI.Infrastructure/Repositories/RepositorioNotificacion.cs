@@ -1,78 +1,54 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Enums;
 using SIGEBI.Infrastructure.Persistence;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
-    public class RepositorioNotificacion : IRepositorioNotificacion
+    public class RepositorioNotificacion : RepositorioBase<Notificacion>, IRepositorioNotificacion
     {
-        private readonly SIGEBIDbContext _context;
-        private readonly DbSet<Notificacion> _dbSet;
-
-        public RepositorioNotificacion(SIGEBIDbContext context)
+        public RepositorioNotificacion(SIGEBIDbContext context) : base(context)
         {
-            _context = context;
-            _dbSet = context.Set<Notificacion>();
         }
 
-        public async Task<Notificacion?> ObtenerPorIdAsync(object id)
+        public async Task<IEnumerable<Notificacion>> ObtenerPorUsuarioAsync(int usuarioId)
         {
-            return await _dbSet.FirstOrDefaultAsync(n => n.Id == (Guid)id);
-        }
-
-        public async Task<IEnumerable<Notificacion>> ObtenerTodosAsync()
-        {
-            return await _dbSet.ToListAsync();
-        }
-
-        public async Task AgregarAsync(Notificacion entidad)
-        {
-            await _dbSet.AddAsync(entidad);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task ActualizarAsync(Notificacion entidad)
-        {
-            _dbSet.Update(entidad);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task EliminarAsync(Notificacion entidad)
-        {
-            _dbSet.Remove(entidad);
-            await _context.SaveChangesAsync();
+            return await _dbSet
+                .Where(n => n.UsuarioId == usuarioId)
+                .OrderByDescending(n => n.FechaRegistro)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Notificacion>> ConsultarAsync(
-            Guid? usuarioDestinatarioId,
-            string? tipoEvento,
-            DateTime? fechaInicio,
-            DateTime? fechaFin)
+            int? usuarioId,
+            string? tipo)
         {
             var query = _dbSet.AsQueryable();
 
-            if (usuarioDestinatarioId.HasValue)
+            if (usuarioId.HasValue)
+                query = query.Where(n => n.UsuarioId == usuarioId.Value);
+
+            if (!string.IsNullOrWhiteSpace(tipo) &&
+                Enum.TryParse<TipoNotificacion>(tipo, true, out var tipoNotificacion))
             {
-                query = query.Where(n => n.UsuarioDestinatarioId == usuarioDestinatarioId.Value);
+                query = query.Where(n => n.Tipo == tipoNotificacion);
             }
 
-            if (!string.IsNullOrWhiteSpace(tipoEvento))
-            {
-                query = query.Where(n => n.TipoEvento.Contains(tipoEvento.Trim()));
-            }
+            return await query
+                .OrderByDescending(n => n.FechaRegistro)
+                .ToListAsync();
+        }
 
-            if (fechaInicio.HasValue)
-            {
-                query = query.Where(n => n.FechaRegistro >= fechaInicio.Value);
-            }
-
-            if (fechaFin.HasValue)
-            {
-                query = query.Where(n => n.FechaRegistro <= fechaFin.Value);
-            }
-
-            return await query.ToListAsync();
+        public async Task<bool> ExisteAsync(
+            int usuarioId,
+            TipoNotificacion tipo,
+            string mensaje)
+        {
+            return await _dbSet.AnyAsync(n =>
+                n.UsuarioId == usuarioId &&
+                n.Tipo == tipo &&
+                n.Mensaje == mensaje);
         }
     }
 }

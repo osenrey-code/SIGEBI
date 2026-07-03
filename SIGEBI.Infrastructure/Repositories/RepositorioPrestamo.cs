@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using SIGEBI.Domain.Entities;
-using SIGEBI.Infrastructure.Persistence;
-using SIGEBI.Domain.Enums;
+﻿using Microsoft.EntityFrameworkCore;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Enums;
+using SIGEBI.Infrastructure.Persistence;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
@@ -17,44 +12,33 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorPerfilLectorAsync(Guid perfilLectorId)
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(int usuarioId)
         {
             return await _dbSet
+                .Include(p => p.Usuario)
+                .Include(p => p.Libros)
                 .Where(p =>
-                    p.PerfilLectorId == perfilLectorId &&
+                    p.UsuarioId == usuarioId &&
                     p.Estado == EstadoPrestamo.Activo)
                 .ToListAsync();
         }
 
-        public async Task<int> ContarActivosPorUsuarioAsync(Guid usuarioId)
+        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(int usuarioId)
         {
             return await _dbSet
-                .CountAsync(p =>
-                    p.PerfilLectorId == usuarioId &&
-                    p.Estado == EstadoPrestamo.Activo);
-        }
-
-        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorPerfilLectorAsync(Guid perfilLectorId)
-        {
-            return await _dbSet
-                .Where(p => p.PerfilLectorId == perfilLectorId)
-                .OrderByDescending(p => p.FechaSolicitud)
+                .Include(p => p.Usuario)
+                .Include(p => p.Libros)
+                .Where(p => p.UsuarioId == usuarioId)
+                .OrderByDescending(p => p.FechaInicio)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerPrestamosProximosAVencerAsync(
-        DateTime fechaDesde,
-        DateTime fechaHasta)
+        public async Task<Prestamo?> ObtenerConDetalleAsync(int prestamoId)
         {
             return await _dbSet
-                .Include(p => p.PerfilLector)
-                .Include(p => p.Recurso)
-                .Where(p =>
-                    p.Estado == EstadoPrestamo.Activo &&
-                    p.FechaLimite.HasValue &&
-                    p.FechaLimite.Value.Date >= fechaDesde.Date &&
-                    p.FechaLimite.Value.Date <= fechaHasta.Date)
-                .ToListAsync();
+                .Include(p => p.Usuario)
+                .Include(p => p.Libros)
+                .FirstOrDefaultAsync(p => p.PrestamoId == prestamoId);
         }
     }
 }
