@@ -1,7 +1,7 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
-using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Catalogo
 {
@@ -10,73 +10,42 @@ namespace SIGEBI.Application.UseCase.Catalogo
         private readonly IRepositorioRecurso _recursos;
         private readonly IRepositorioAuditoria _auditoria;
 
-        public ConsultarHistorialRecurso(IRepositorioRecurso recursos, IRepositorioAuditoria auditoria)
+        public ConsultarHistorialRecurso(
+            IRepositorioRecurso recursos,
+            IRepositorioAuditoria auditoria)
         {
             _recursos = recursos;
             _auditoria = auditoria;
         }
 
-        public async Task<ResultadoOperacionResponse<IEnumerable<HistorialRecursoResponse>>> EjecutarAsync(
+        public async Task<IEnumerable<HistorialRecursoResponse>> EjecutarAsync(
             ConsultarHistorialRecursoRequest request)
         {
-            // Validamos que venga el recurso que se quiere consultar.
-            if (request.RecursoId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<IEnumerable<HistorialRecursoResponse>>.Error(
-                    "El recurso es obligatorio."
-                );
-            }
+            if (request.RecursoBibliograficoId <= 0)
+                throw new BusinessException("El recurso es obligatorio.");
 
-            // Verificamos que el recurso exista antes de consultar su historial.
-            var recurso = await _recursos.ObtenerporIdAsync(request.RecursoId);
+            var recurso = await _recursos.ObtenerporIdAsync(request.RecursoBibliograficoId);
 
             if (recurso is null)
-            {
-                return ResultadoOperacionResponse<IEnumerable<HistorialRecursoResponse>>.Error(
-                    "El recurso no existe."
-                );
-            }
+                throw new BusinessException("El recurso no existe.");
 
-            // Consultamos los registros de auditoría relacionados con recursos bibliográficos.
-            // Aquí no usamos DbContext directamente, solo el contrato IRepositorioAuditoria.
-            var registros = await _auditoria.ConsultarAsync(
-                usuarioId: null,
-                accion: null,
-                entidadAfectada: "RecursoBibliografico",
-                fechaInicio: null,
-                fechaFin: null
-            );
+            var registros = await _auditoria.ObtenerPorEntidadAsync("RecursoBibliografico");
 
-            // Filtramos solamente los registros que pertenecen al recurso solicitado.
             var historial = registros
-                .Where(r => r.EntidadId == request.RecursoId)
+                .Where(r => r.Detalle.Contains($"ID {request.RecursoBibliograficoId}"))
                 .OrderByDescending(r => r.FechaRegistro)
                 .Select(r => new HistorialRecursoResponse
                 {
-                    Id = r.Id,
-                    RecursoId = request.RecursoId,
-
-                    // Ejemplo: Registrar recurso, Actualizar recurso, Cambiar estado de recurso.
+                    AuditoriaId = r.IdAuditoria,
+                    RecursoBibliograficoId = request.RecursoBibliograficoId,
                     TipoCambio = r.Accion,
-
-                    // En actualización/cambio de estado aquí aparece cómo estaba antes.
-                    EstadoAnterior = r.ValoresAnteriores,
-
-                    // Aquí aparece cómo quedó después.
-                    EstadoNuevo = r.ValoresNuevos,
-
+                    Detalle = r.Detalle,
                     FechaRegistro = r.FechaRegistro,
-                    UsuarioResponsableId = r.UsuarioId,
-                    Responsable = r.Usuario,
-                    Detalle = r.Detalle
+                    UsuarioResponsableId = r.UsuarioId
                 })
                 .ToList();
 
-            return ResultadoOperacionResponse<IEnumerable<HistorialRecursoResponse>>.Ok(
-                "Historial del recurso consultado correctamente.",
-                historial
-            );
-        
+            return historial;
         }
     }
 }

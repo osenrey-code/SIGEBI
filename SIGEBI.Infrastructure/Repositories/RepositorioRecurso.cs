@@ -14,15 +14,18 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<RecursoBibliografico?> BuscarPorIsbnAsync(string isbn)
         {
-            return await _dbSet.FirstOrDefaultAsync(r =>
-                r.ISBN.ToLower() == isbn.Trim().ToLower());
+            return await _dbSet
+                .Include(r => r.Categoria)
+                .Include(r => r.Ejemplares)
+                .FirstOrDefaultAsync(r => r.ISBN.ToLower() == isbn.Trim().ToLower());
         }
 
-        public async Task<RecursoBibliografico?> BuscarConCategoria(string isbn)
+        public async Task<RecursoBibliografico?> BuscarConCategoriaAsync(int recursoBibliograficoId)
         {
             return await _dbSet
                 .Include(r => r.Categoria)
-                .FirstOrDefaultAsync(r => r.ISBN == isbn);
+                .Include(r => r.Ejemplares)
+                .FirstOrDefaultAsync(r => r.RecursoBibliograficoId == recursoBibliograficoId);
         }
 
         public async Task<IEnumerable<RecursoBibliografico>> ConsultarCatalogoAsync(
@@ -31,7 +34,10 @@ namespace SIGEBI.Infrastructure.Repositories
             string? categoria,
             bool? soloDisponibles)
         {
-            var query = _dbSet.AsQueryable();
+            var query = _dbSet
+                .Include(r => r.Categoria)
+                .Include(r => r.Ejemplares)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(titulo))
             {
@@ -45,12 +51,15 @@ namespace SIGEBI.Infrastructure.Repositories
 
             if (!string.IsNullOrWhiteSpace(categoria))
             {
-                query = query.Where(r => r.Categoria.Contains(categoria.Trim()));
+                query = query.Where(r =>
+                    r.Categoria != null &&
+                    r.Categoria.Nombre.Contains(categoria.Trim()));
             }
 
             if (soloDisponibles == true)
             {
-                query = query.Where(r => r.Estado == EstadoEjemplar.Disponible);
+                query = query.Where(r =>
+                    r.Ejemplares.Any(e => e.Estado == EstadoEjemplar.Disponible));
             }
 
             return await query.ToListAsync();

@@ -10,13 +10,13 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
         {
             builder.ToTable("RecursosBibliograficos");
 
-            builder.HasKey(r => r.Id);
+            builder.HasKey(r => r.RecursoBibliograficoId);
 
-            builder.Property(r => r.Identificador)
+            builder.Property(r => r.ISBN)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(20);
 
-            builder.HasIndex(r => r.Identificador)
+            builder.HasIndex(r => r.ISBN)
                 .IsUnique();
 
             builder.Property(r => r.Titulo)
@@ -27,17 +27,24 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired()
                 .HasMaxLength(150);
 
-            builder.Property(r => r.Categoria)
-                .IsRequired()
-                .HasMaxLength(100);
-
-            builder.Property(r => r.NumeroEjemplares)
+            builder.Property(r => r.AnioPublicado)
                 .IsRequired();
 
-            builder.Property(r => r.Estado)
-                .IsRequired()
-                .HasConversion<string>()
-                .HasMaxLength(50);
+            builder.Property(r => r.ImagenUrl)
+                .HasMaxLength(500);
+
+            builder.Property(r => r.CategoriaId)
+                .IsRequired();
+
+            builder.HasOne(r => r.Categoria)
+                .WithMany(c => c.Libros)
+                .HasForeignKey(r => r.CategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(r => r.Ejemplares)
+                .WithOne(e => e.RecursoBibliografico)
+                .HasForeignKey(e => e.RecursoBibliograficoId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

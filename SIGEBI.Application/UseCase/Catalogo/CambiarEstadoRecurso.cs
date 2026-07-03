@@ -4,6 +4,7 @@ using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Catalogo
 {
@@ -13,7 +14,9 @@ namespace SIGEBI.Application.UseCase.Catalogo
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
 
-        public CambiarEstadoRecurso(IRepositorioRecurso recursos, IUsuario usuarios,
+        public CambiarEstadoRecurso(
+            IRepositorioRecurso recursos,
+            IUsuario usuarios,
             IAuditoriaService auditoria)
         {
             _recursos = recursos;
@@ -21,141 +24,94 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _auditoria = auditoria;
         }
 
-        public async Task<ResultadoOperacionResponse<RecursoResponse>> EjecutarAsync(
-            CambiarEstadoRecursoRequest request)
+        public async Task<RecursoResponse> EjecutarAsync(CambiarEstadoRecursoRequest request)
         {
-            if (request.UsuarioEjecutorId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El usuario ejecutor es obligatorio."
-                );
-            }
+            if (request.UsuarioEjecutorId <= 0)
+                throw new BusinessException("El usuario ejecutor es obligatorio.");
 
-            if (request.RecursoId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El recurso es obligatorio."
-                );
-            }
+            if (request.RecursoBibliograficoId <= 0)
+                throw new BusinessException("El recurso es obligatorio.");
+
+            if (request.EjemplarId <= 0)
+                throw new BusinessException("El ejemplar es obligatorio.");
 
             if (string.IsNullOrWhiteSpace(request.NuevoEstado))
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El nuevo estado del recurso es obligatorio."
-                );
-            }
+                throw new BusinessException("El nuevo estado del ejemplar es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioEjecutorId
-            );
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
 
             if (usuarioEjecutor is null)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El usuario ejecutor no existe."
-                );
-            }
+                throw new BusinessException("El usuario ejecutor no existe.");
 
             if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El usuario ejecutor no está activo."
-                );
-            }
+                throw new BusinessException("El usuario ejecutor no está activo.");
 
-            if (usuarioEjecutor.Tipo != TipoUsuario.Bibliotecario &&
-                usuarioEjecutor.Tipo != TipoUsuario.Administrador)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "Solo un bibliotecario o administrador puede cambiar el estado de un recurso."
-                );
-            }
+            if (usuarioEjecutor is not Bibliotecario && usuarioEjecutor is not Administrador)
+                throw new BusinessException("Solo un bibliotecario o administrador puede cambiar estados de ejemplares.");
 
-            var recurso = await _recursos.ObtenerporIdAsync(request.RecursoId);
+            var recurso = await _recursos.BuscarConCategoriaAsync(request.RecursoBibliograficoId);
 
             if (recurso is null)
+                throw new BusinessException("El recurso no existe.");
+
+            var ejemplar = recurso.Ejemplares.FirstOrDefault(e => e.EjemplarId == request.EjemplarId);
+
+            if (ejemplar is null)
+                throw new BusinessException("El ejemplar indicado no pertenece al recurso.");
+
+            var estadoAnterior = ejemplar.Estado;
+
+            if (!Enum.TryParse<EstadoEjemplar>(request.NuevoEstado, true, out var nuevoEstado))
+                throw new BusinessException("El estado indicado no es válido.");
+
+            switch (nuevoEstado)
             {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El recurso no existe."
-                );
+                case EstadoEjemplar.Disponible:
+                    ejemplar.MarcarDisponible();
+                    break;
+
+                case EstadoEjemplar.Prestado:
+                    ejemplar.MarcarComoPrestado();
+                    break;
+
+                case EstadoEjemplar.Reservado:
+                    ejemplar.MarcarComoReservado();
+                    break;
+
+                case EstadoEjemplar.FueraDeServicio:
+                    ejemplar.MarcarFueraDeServicio(request.Motivo ?? "No especificado");
+                    break;
+
+                default:
+                    throw new BusinessException("El estado indicado no es válido.");
             }
 
-            if (!Enum.TryParse<EstadoEjemplar>(
-                    request.NuevoEstado,
-                    ignoreCase: true,
-                    out var nuevoEstado))
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El estado indicado no es válido. Estados permitidos: Disponible, Reservado, FueraDeServicio."
-                );
-            }
-
-            // No permitimos poner un recurso como Prestado manualmente.
-            if (nuevoEstado == EstadoEjemplar.Prestado)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "No use este caso de uso para prestar un recurso. El estado Prestado debe asignarse desde el módulo de préstamos."
-                );
-            }
-
-            // Si el recurso ya está prestado, tampoco permitimos cambiarlo manualmente.
-            // Primero debe registrarse su devolución desde el módulo de devoluciones.
-            if (recurso.Estado == EstadoEjemplar.Prestado)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "Un recurso prestado no puede cambiarse manualmente desde catálogo. Primero debe registrarse la devolución."
-                );
-            }
-
-            if (recurso.Estado == nuevoEstado)
-            {
-                return ResultadoOperacionResponse<RecursoResponse>.Error(
-                    "El recurso ya tiene el estado indicado."
-                );
-            }
-
-            // Guardamos el estado anterior para la auditoría.
-            var valoresAnteriores =
-                $"Estado anterior: {recurso.Estado}";
-
-            recurso.CambiarEstado(nuevoEstado);
             await _recursos.ActualizarAsync(recurso);
 
-            // Guardamos el nuevo estado para la auditoría.
-            var valoresNuevos =
-                $"Estado nuevo: {recurso.Estado}";
-
-            // Registramos quién cambió el estado, sobre qué recurso y cuál fue el cambio.
             await _auditoria.RegistrarAsync(
                 request.UsuarioEjecutorId,
-                "Cambiar estado de recurso",
+                "Cambiar estado de ejemplar",
                 "RecursoBibliografico",
-                recurso.Id,
-                "Exitoso",
-                $"Se cambió manualmente el estado del recurso '{recurso.Titulo}'.",
-                valoresAnteriores,
-                valoresNuevos
+                $"Se cambió el ejemplar ID {ejemplar.EjemplarId} del recurso ID {recurso.RecursoBibliograficoId} de {estadoAnterior} a {ejemplar.Estado}."
             );
 
-            var response = MapearRecurso(recurso);
-
-            return ResultadoOperacionResponse<RecursoResponse>.Ok(
-                "Estado del recurso actualizado correctamente.",
-                response
-            );
+            return MapearRecurso(recurso);
         }
 
         private static RecursoResponse MapearRecurso(RecursoBibliografico recurso)
         {
             return new RecursoResponse
             {
-                Id = recurso.Id,
-                Identificador = recurso.Identificador,
+                RecursoBibliograficoId = recurso.RecursoBibliograficoId,
+                ISBN = recurso.ISBN,
                 Titulo = recurso.Titulo,
                 Autor = recurso.Autor,
-                Categoria = recurso.Categoria,
-                Estado = recurso.Estado.ToString(),
-                NumeroEjemplares = recurso.NumeroEjemplares
+                CategoriaId = recurso.CategoriaId,
+                Categoria = recurso.Categoria?.Nombre ?? "N/A",
+                AnioPublicado = recurso.AnioPublicado,
+                ImagenUrl = recurso.ImagenUrl,
+                TotalEjemplares = recurso.TotalEjemplares,
+                CopiasDisponibles = recurso.CopiasDisponibles
             };
         }
     }
