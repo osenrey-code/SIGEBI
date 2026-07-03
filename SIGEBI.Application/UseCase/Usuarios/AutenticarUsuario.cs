@@ -2,9 +2,9 @@
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
@@ -27,11 +27,8 @@ namespace SIGEBI.Application.UseCase.Usuarios
         public async Task<LoginResponse> AutenticarUsuarioAsync(LoginRequest request)
         {
             // 1. Validaciones de entrada
-            if (string.IsNullOrWhiteSpace(request.Identificacion))
-                throw new BusinessException("La identificación es obligatoria.");
-
-            if (string.IsNullOrWhiteSpace(request.Password))
-                throw new BusinessException("La contraseña es obligatoria.");
+            Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación");
+            Guard.NotNullOrWhiteSpace(request.Password, "La contraseña");
 
             // 2. Búsqueda por Identificación (Matrícula o Código de Empleado)
             var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
@@ -42,9 +39,6 @@ namespace SIGEBI.Application.UseCase.Usuarios
 
             if (usuario.Estado != EstadoUsuario.Activo)
                 throw new BusinessException("La cuenta de usuario no está activa.");
-
-            if (string.IsNullOrWhiteSpace(usuario.PassWord))
-                throw new BusinessException("El usuario no tiene credenciales configuradas.");
 
             // 4. Verificación de contraseña y auditoría de fallos
             var passwordValido = _servicioPassword.VerificarPassword(request.Password, usuario.PassWord);
