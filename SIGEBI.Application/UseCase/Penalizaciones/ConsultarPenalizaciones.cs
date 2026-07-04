@@ -3,6 +3,7 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Penalizaciones
 {
@@ -19,106 +20,54 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             _usuarios = usuarios;
         }
 
-        public async Task<ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>> EjecutarAsync(
+        public async Task<IEnumerable<PenalizacionResponse>> EjecutarAsync(
             ConsultarPenalizacionesRequest request)
         {
-            if (request.UsuarioEjecutorId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>.Error(
-                    "El usuario ejecutor es obligatorio."
-                );
-            }
+            if (request.UsuarioEjecutorId <= 0)
+                throw new BusinessException("El usuario ejecutor es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioEjecutorId
-            );
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
 
             if (usuarioEjecutor is null)
-            {
-                return ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>.Error(
-                    "El usuario ejecutor no existe."
-                );
-            }
+                throw new BusinessException("El usuario ejecutor no existe.");
 
             if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("El usuario ejecutor no está activo.");
+
+            if (usuarioEjecutor is not Bibliotecario &&
+                usuarioEjecutor is not Administrador &&
+                usuarioEjecutor is not Auditor)
             {
-                return ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>.Error(
-                    "El usuario ejecutor no está activo."
-                );
-            }
-
-            if (usuarioEjecutor.Tipo != TipoUsuario.Bibliotecario &&
-                usuarioEjecutor.Tipo != TipoUsuario.Administrador &&
-                usuarioEjecutor.Tipo != TipoUsuario.Auditor)
-            {
-                return ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>.Error(
-                    "Solo bibliotecario, administrador o auditor pueden consultar penalizaciones."
-                );
-            }
-
-            EstadoPenalizacion? estado = null;
-
-            if (!string.IsNullOrWhiteSpace(request.Estado))
-            {
-                if (!Enum.TryParse<EstadoPenalizacion>(
-                        request.Estado,
-                        ignoreCase: true,
-                        out var estadoParseado))
-                {
-                    return ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>.Error(
-                        "El estado indicado no es válido. Estados permitidos: Activa, Resuelta."
-                    );
-                }
-
-                estado = estadoParseado;
-            }
-
-            if (request.FechaInicio.HasValue &&
-                request.FechaFin.HasValue &&
-                request.FechaInicio.Value > request.FechaFin.Value)
-            {
-                return ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>.Error(
-                    "La fecha de inicio no puede ser mayor que la fecha final."
-                );
+                throw new BusinessException("Solo personal autorizado puede consultar penalizaciones.");
             }
 
             var penalizaciones = await _penalizaciones.ConsultarAsync(
                 request.UsuarioId,
-                request.PerfilLectorId,
-                estado,
-                request.FechaInicio,
-                request.FechaFin
+                request.PrestamoId,
+                request.Estado
             );
 
-            var response = penalizaciones
+            return penalizaciones
                 .Select(MapearPenalizacion)
                 .ToList();
-
-            return ResultadoOperacionResponse<IEnumerable<PenalizacionResponse>>.Ok(
-                "Consulta de penalizaciones realizada correctamente.",
-                response
-            );
         }
 
         private static PenalizacionResponse MapearPenalizacion(Penalizacion penalizacion)
         {
             return new PenalizacionResponse
             {
-                Id = penalizacion.Id,
-                PerfilLectorId = penalizacion.PerfilLectorId,
-                UsuarioId = penalizacion.PerfilLector?.UsuarioId,
-                Motivo = CrearMotivo(penalizacion),
+                IdPenalizacion = penalizacion.IdPenalizacion,
+                UsuarioId = penalizacion.UsuarioId,
+                PrestamoId = penalizacion.PrestamoId,
+                DiasRetraso = penalizacion.DiasRetraso,
+                MontoMora = penalizacion.MontoMora,
+                Motivo = penalizacion.Motivo,
                 Estado = penalizacion.Estado.ToString(),
                 FechaGeneracion = penalizacion.FechaGeneracion,
                 FechaResolucion = penalizacion.FechaResolucion,
-                UsuarioResolucionId = penalizacion.UsuarioResolucionId
+                UsuarioResolucionId = penalizacion.UsuarioResolucionId,
+                MotivoResolucion = penalizacion.MotivoResolucion
             };
-
-        }
-
-        private static string CrearMotivo(Penalizacion penalizacion)
-        {
-            return $"Devolución tardía de {penalizacion.DiasRetraso} día(s). Monto de mora: {penalizacion.MontoMora}.";
         }
     }
 }

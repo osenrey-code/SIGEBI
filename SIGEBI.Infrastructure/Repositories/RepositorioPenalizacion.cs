@@ -6,97 +6,53 @@ using SIGEBI.Infrastructure.Persistence;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
-    public class RepositorioPenalizacion : IRepositorioPenalizacion
+    public class RepositorioPenalizacion : RepositorioBase<Penalizacion>, IRepositorioPenalizacion
     {
-        private readonly SIGEBIDbContext _context;
-        private readonly DbSet<Penalizacion> _dbSet;
-
-        public RepositorioPenalizacion(SIGEBIDbContext context)
+        public RepositorioPenalizacion(SIGEBIDbContext context) : base(context)
         {
-            _context = context;
-            _dbSet = context.Set<Penalizacion>();
         }
 
-        public async Task<Penalizacion?> ObtenerPorIdAsync(object id)
+        public async Task<IEnumerable<Penalizacion>> ObtenerPorUsuarioAsync(int usuarioId)
         {
-            return await _dbSet
-                .Include(p => p.PerfilLector)
+            return await _context.Penalizaciones
                 .Include(p => p.Prestamo)
-                .FirstOrDefaultAsync(p => p.Id == (Guid)id);
-        }
-
-        public async Task<IEnumerable<Penalizacion>> ObtenerTodosAsync()
-        {
-            return await _dbSet
-                .Include(p => p.PerfilLector)
-                .Include(p => p.Prestamo)
+                .AsNoTracking()
+                .Where(p => p.UsuarioId == usuarioId)
                 .ToListAsync();
         }
 
-        public async Task AgregarAsync(Penalizacion entidad)
+        public async Task<Penalizacion?> ObtenerActivaPorUsuarioAsync(int usuarioId)
         {
-            await _dbSet.AddAsync(entidad);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task ActualizarAsync(Penalizacion entidad)
-        {
-            _dbSet.Update(entidad);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task EliminarAsync(Penalizacion entidad)
-        {
-            _dbSet.Remove(entidad);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<IEnumerable<Penalizacion>> ObtenerPorPerfilLectorAsync(Guid perfilLectorId)
-        {
-            return await _dbSet
-                .Include(p => p.PerfilLector)
-                .Include(p => p.Prestamo)
-                .Where(p => p.PerfilLectorId == perfilLectorId)
-                .ToListAsync();
-        }
-
-        public async Task<Penalizacion?> ObtenerActivaPorPerfilLectorAsync(Guid perfilLectorId)
-        {
-            return await _dbSet
-                .Include(p => p.PerfilLector)
+            return await _context.Penalizaciones
                 .Include(p => p.Prestamo)
                 .FirstOrDefaultAsync(p =>
-                    p.PerfilLectorId == perfilLectorId &&
+                    p.UsuarioId == usuarioId &&
                     p.Estado == EstadoPenalizacion.Activa);
         }
 
-        public async Task<bool> ExisteActivaPorPerfilLectorAsync(Guid perfilLectorId)
+        public async Task<bool> TienePenalizacionActivaAsync(int usuarioId)
         {
-            return await _dbSet.AnyAsync(p =>
-                p.PerfilLectorId == perfilLectorId &&
-                p.Estado == EstadoPenalizacion.Activa);
+            return await _context.Penalizaciones
+                .AnyAsync(p =>
+                    p.UsuarioId == usuarioId &&
+                    p.Estado == EstadoPenalizacion.Activa);
         }
 
         public async Task<IEnumerable<Penalizacion>> ConsultarAsync(
-            Guid? usuarioId,
-            Guid? perfilLectorId,
+            int? usuarioId,
             EstadoPenalizacion? estado,
             DateTime? fechaInicio,
             DateTime? fechaFin)
         {
-            var query = _dbSet
-                .Include(p => p.PerfilLector)
+            var query = _context.Penalizaciones
+                .Include(p => p.Usuario)
                 .Include(p => p.Prestamo)
+                .AsNoTracking() 
                 .AsQueryable();
 
-            if (usuarioId.HasValue)
+            if (usuarioId > 0)
             {
-                query = query.Where(p => p.PerfilLector.UsuarioId == usuarioId.Value);
-            }
-
-            if (perfilLectorId.HasValue)
-            {
-                query = query.Where(p => p.PerfilLectorId == perfilLectorId.Value);
+                query = query.Where(p => p.UsuarioId == usuarioId);
             }
 
             if (estado.HasValue)

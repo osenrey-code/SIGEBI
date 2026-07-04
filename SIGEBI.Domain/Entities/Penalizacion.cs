@@ -6,31 +6,37 @@ namespace SIGEBI.Domain.Entities
 {
     public class Penalizacion
     {
-        public int IdPenalizacion { get; set; }
-        public string UsuarioId { get; set; } = string.Empty;
-        public int PrestamoId { get; set; }
+        public int IdPenalizacion { get; private set; }
+
+        public int UsuarioId { get; private set; }
+        public virtual Usuario? Usuario { get; private set; }
+
+        public int PrestamoId { get; private set; }
+        public virtual Prestamo? Prestamo { get; private set; }
+
         public int DiasRetraso { get; private set; }
         public decimal MontoMora { get; private set; }
+        public string Motivo { get; private set; } = string.Empty;
+
         public EstadoPenalizacion Estado { get; private set; }
         public DateTime FechaGeneracion { get; private set; }
-        public DateTime? FechaResolucion { get; private set; } //Nullable ya que se registra luego que sea pagada
-        public string Motivo { get; set; } = string.Empty;
-        public Usuario Usuario { get; set; }
+        public DateTime? FechaResolucion { get; private set; }
 
-  
-        public Prestamo Prestamo { get; private set; } = null!;
+        protected Penalizacion() { }
 
-        private Penalizacion() { }
-
-        public Penalizacion(string UsuarioId, int PrestamoId, decimal MontoMora, string motivo)
+        public Penalizacion(int usuarioId, int prestamoId, int diasRetraso, decimal montoMora, string motivo)
         {
-            Guard.NotNullOrWhiteSpace(UsuarioId, "El usuario ");
-            Guard.GreaterThanD(MontoMora, 0, "El monto ");
-            Guard.NotNullOrWhiteSpace(motivo, "El motivo ");
+            Guard.GreaterThanD(montoMora, 0, "debe ser mayor a ");
 
-            this.UsuarioId = UsuarioId;
-            this.PrestamoId = PrestamoId;
-            FechaGeneracion = DateTime.Now;
+            Guard.NotNullOrWhiteSpace(motivo, "El motivo ");
+                
+            UsuarioId = usuarioId;
+            PrestamoId = prestamoId;
+            DiasRetraso = diasRetraso;
+            MontoMora = montoMora;
+            Motivo = motivo;
+
+            FechaGeneracion = DateTime.UtcNow;
             Estado = EstadoPenalizacion.Activa;
         }
 
@@ -38,11 +44,11 @@ namespace SIGEBI.Domain.Entities
         {
             if (Estado != EstadoPenalizacion.Activa)
             {
-                throw new BusinessException("Solo se pueden pagar penalizaciones activas.");
+                throw new InvalidOperationException("Solo se pueden pagar o resolver penalizaciones activas.");
             }
 
             Estado = EstadoPenalizacion.Pagada;
-            FechaResolucion = DateTime.Now;
+            FechaResolucion = DateTime.UtcNow;
         }
     }
 }

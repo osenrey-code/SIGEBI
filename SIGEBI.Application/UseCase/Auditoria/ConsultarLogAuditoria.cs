@@ -3,6 +3,7 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Auditoria
 {
@@ -19,49 +20,28 @@ namespace SIGEBI.Application.UseCase.Auditoria
             _usuarios = usuarios;
         }
 
-        public async Task<ResultadoOperacionResponse<IEnumerable<LogAuditoriaResponse>>> EjecutarAsync(
+        public async Task<IEnumerable<LogAuditoriaResponse>> EjecutarAsync(
             ConsultarLogAuditoriaRequest request)
         {
-            if (request.UsuarioEjecutorId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<IEnumerable<LogAuditoriaResponse>>.Error(
-                    "El usuario ejecutor es obligatorio."
-                );
-            }
+            if (request.UsuarioEjecutorId <= 0)
+                throw new BusinessException("El usuario ejecutor es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioEjecutorId
-            );
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
 
             if (usuarioEjecutor is null)
-            {
-                return ResultadoOperacionResponse<IEnumerable<LogAuditoriaResponse>>.Error(
-                    "El usuario ejecutor no existe."
-                );
-            }
+                throw new BusinessException("El usuario ejecutor no existe.");
 
             if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
-            {
-                return ResultadoOperacionResponse<IEnumerable<LogAuditoriaResponse>>.Error(
-                    "El usuario ejecutor no está activo."
-                );
-            }
+                throw new BusinessException("El usuario ejecutor no está activo.");
 
-            if (usuarioEjecutor.Tipo != TipoUsuario.Administrador &&
-                usuarioEjecutor.Tipo != TipoUsuario.Auditor)
-            {
-                return ResultadoOperacionResponse<IEnumerable<LogAuditoriaResponse>>.Error(
-                    "Solo un administrador o auditor puede consultar los registros de auditoría."
-                );
-            }
+            if (usuarioEjecutor is not Administrador && usuarioEjecutor is not Auditor)
+                throw new BusinessException("Solo un administrador o auditor puede consultar los registros de auditoría.");
 
             if (request.FechaInicio.HasValue &&
                 request.FechaFin.HasValue &&
                 request.FechaInicio.Value > request.FechaFin.Value)
             {
-                return ResultadoOperacionResponse<IEnumerable<LogAuditoriaResponse>>.Error(
-                    "La fecha de inicio no puede ser mayor que la fecha final."
-                );
+                throw new BusinessException("La fecha de inicio no puede ser mayor que la fecha final.");
             }
 
             var registros = await _auditoria.ConsultarAsync(
@@ -72,31 +52,19 @@ namespace SIGEBI.Application.UseCase.Auditoria
                 request.FechaFin
             );
 
-            var response = registros
-                .Select(MapearRegistro)
-                .ToList();
-
-            return ResultadoOperacionResponse<IEnumerable<LogAuditoriaResponse>>.Ok(
-                "Consulta de auditoría realizada correctamente.",
-                response
-            );
+            return registros.Select(MapearRegistro).ToList();
         }
 
-        private static LogAuditoriaResponse MapearRegistro(RegistroAuditoria registro)
+        private static LogAuditoriaResponse MapearRegistro(SIGEBI.Domain.Entities.Auditoria registro)
         {
             return new LogAuditoriaResponse
             {
-                Id = registro.Id,
+                IdAuditoria = registro.IdAuditoria,
                 UsuarioId = registro.UsuarioId,
-                Usuario = registro.Usuario,
                 Accion = registro.Accion,
                 EntidadAfectada = registro.EntidadAfectada,
-                EntidadId = registro.EntidadId,
-                Resultado = registro.Resultado,
                 Detalle = registro.Detalle,
-                FechaRegistro = registro.FechaRegistro,
-                ValoresAnteriores = registro.ValoresAnteriores,
-                ValoresNuevos = registro.ValoresNuevos
+                FechaRegistro = registro.FechaRegistro
             };
         }
     }

@@ -10,30 +10,49 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
         {
             builder.ToTable("Penalizaciones");
 
-            builder.HasKey(p => p.Id);
+            builder.HasKey(p => p.IdPenalizacion);
 
-            builder.Property(p => p.PerfilLectorId)
+            builder.Property(p => p.UsuarioId)
+                .IsRequired();
+
+            builder.Property(p => p.PrestamoId)
                 .IsRequired();
 
             builder.Property(p => p.DiasRetraso)
                 .IsRequired();
 
             builder.Property(p => p.MontoMora)
+                .HasColumnType("decimal(10,2)")
                 .IsRequired();
+
+            builder.Property(p => p.Motivo)
+                .IsRequired()
+                .HasMaxLength(300);
 
             builder.Property(p => p.Estado)
                 .IsRequired()
                 .HasConversion<string>()
-                .HasMaxLength(50);
+                .HasMaxLength(30);
 
             builder.Property(p => p.FechaGeneracion)
                 .IsRequired();
 
-            builder.Property(p => p.FechaResolucion)
-                .IsRequired(false);
+            builder.Property(p => p.FechaResolucion);
 
-            builder.Property(p => p.UsuarioResolucionId)
-                .IsRequired(false);
+            builder.Property(p => p.UsuarioResolucionId);
+
+            builder.Property(p => p.MotivoResolucion)
+                .HasMaxLength(300);
+
+            builder.HasOne(p => p.Usuario)
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(p => p.Prestamo)
+                .WithMany()
+                .HasForeignKey(p => p.PrestamoId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
