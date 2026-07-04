@@ -14,62 +14,63 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<IEnumerable<Penalizacion>> ObtenerPorUsuarioAsync(int usuarioId)
         {
-            return await _dbSet
-                .Include(p => p.Usuario)
+            return await _context.Penalizaciones
                 .Include(p => p.Prestamo)
+                .AsNoTracking()
                 .Where(p => p.UsuarioId == usuarioId)
-                .OrderByDescending(p => p.FechaGeneracion)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Penalizacion>> ObtenerActivasPorUsuarioAsync(int usuarioId)
+        public async Task<Penalizacion?> ObtenerActivaPorUsuarioAsync(int usuarioId)
         {
-            return await _dbSet
-                .Include(p => p.Usuario)
+            return await _context.Penalizaciones
                 .Include(p => p.Prestamo)
-                .Where(p =>
+                .FirstOrDefaultAsync(p =>
                     p.UsuarioId == usuarioId &&
-                    p.Estado == EstadoPenalizacion.Activa)
-                .OrderByDescending(p => p.FechaGeneracion)
-                .ToListAsync();
+                    p.Estado == EstadoPenalizacion.Activa);
         }
 
-        public async Task<bool> ExisteActivaPorUsuarioAsync(int usuarioId)
+        public async Task<bool> TienePenalizacionActivaAsync(int usuarioId)
         {
-            return await _dbSet.AnyAsync(p =>
-                p.UsuarioId == usuarioId &&
-                p.Estado == EstadoPenalizacion.Activa);
+            return await _context.Penalizaciones
+                .AnyAsync(p =>
+                    p.UsuarioId == usuarioId &&
+                    p.Estado == EstadoPenalizacion.Activa);
         }
 
         public async Task<IEnumerable<Penalizacion>> ConsultarAsync(
             int? usuarioId,
-            int? prestamoId,
-            string? estado)
+            EstadoPenalizacion? estado,
+            DateTime? fechaInicio,
+            DateTime? fechaFin)
         {
-            var query = _dbSet
+            var query = _context.Penalizaciones
                 .Include(p => p.Usuario)
                 .Include(p => p.Prestamo)
+                .AsNoTracking() 
                 .AsQueryable();
 
-            if (usuarioId.HasValue)
+            if (usuarioId > 0)
             {
-                query = query.Where(p => p.UsuarioId == usuarioId.Value);
+                query = query.Where(p => p.UsuarioId == usuarioId);
             }
 
-            if (prestamoId.HasValue)
+            if (estado.HasValue)
             {
-                query = query.Where(p => p.PrestamoId == prestamoId.Value);
+                query = query.Where(p => p.Estado == estado.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(estado) &&
-                Enum.TryParse<EstadoPenalizacion>(estado, true, out var estadoPenalizacion))
+            if (fechaInicio.HasValue)
             {
-                query = query.Where(p => p.Estado == estadoPenalizacion);
+                query = query.Where(p => p.FechaGeneracion >= fechaInicio.Value);
             }
 
-            return await query
-                .OrderByDescending(p => p.FechaGeneracion)
-                .ToListAsync();
+            if (fechaFin.HasValue)
+            {
+                query = query.Where(p => p.FechaGeneracion <= fechaFin.Value);
+            }
+
+            return await query.ToListAsync();
         }
     }
 }
