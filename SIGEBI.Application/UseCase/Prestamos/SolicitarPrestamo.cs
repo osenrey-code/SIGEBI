@@ -18,6 +18,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly ISolicitudRepository _solicitudes;
         private readonly INotificador _notificador;
         private readonly IAuditoriaService _auditoria;
+        private readonly IEjemplarRepository _ejemplares;
 
         public SolicitarPrestamoUseCase(
             IUsuario usuarios,
