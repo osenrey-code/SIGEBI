@@ -26,7 +26,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         }
 
         public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
-            RechazarPrestamoRequest request)
+            RechazarSolicitudRequest request)
         {
             // Validamos que venga el préstamo que se quiere rechazar.
             if (request.PrestamoId == Guid.Empty)

@@ -8,93 +8,67 @@ namespace SIGEBI.Domain.Entities
     {
         public int PrestamoId { get; private set; }
 
+        public int SolicitudId { get; private set;  }
+        public virtual Solicitud? Solicitud { get; private set; }
+
         public int UsuarioId { get; private set; }
+        public virtual Usuario? Usuario { get; private set;  }
 
-        public Usuario? Usuario { get; private set; }
+        public int EjemplarId { get; private set; }
+        public virtual Ejemplar? Ejemplar { get; private set; }
 
+        public virtual Devolucion? Devolucion { get; private set;  }
         public DateTime FechaInicio { get; private set; }
-
-        public DateTime? FechaLimite { get; private set; }
-
-        public DateTime? FechaDevolucion { get; private set; }
-
-        public string? MotivoRechazo { get; private set; }
+        public DateTime FechaLimite { get; private set; }
 
         public EstadoPrestamo Estado { get; private set; }
 
-        public ICollection<RecursoBibliografico> Libros { get; private set; } =
-            new List<RecursoBibliografico>();
-
         protected Prestamo() { }
 
-        public Prestamo(int usuarioId, DateTime fechaLimite, List<RecursoBibliografico> libros)
+        public Prestamo(int solicitudId, int usuarioId, int ejemplarId, int diasPermitidos)
         {
-            if (usuarioId <= 0)
-                throw new BusinessException("El usuario del préstamo es inválido.");
+            if (solicitudId <= 0) throw new BusinessException("La solicitud de origen es inválida.");
+            if (usuarioId <= 0) throw new BusinessException("El usuario es inválido.");
+            if (ejemplarId <= 0) throw new BusinessException("El ejemplar es inválido.");
+            if (diasPermitidos <= 0) throw new BusinessException("Los días permitidos deben ser mayores que cero.");
 
-            if (libros is null || !libros.Any())
-                throw new BusinessException("El préstamo debe contener al menos un recurso.");
+           SolicitudId = solicitudId;
+           UsuarioId = usuarioId;
+           EjemplarId = ejemplarId;
 
-            FechaInicio = DateTime.Now;
+           FechaInicio = DateTime.UtcNow;
+           FechaLimite = FechaInicio.AddDays(diasPermitidos);
+           Estado = EstadoPrestamo.Activo;
 
-            if (fechaLimite <= FechaInicio)
-                throw new BusinessException("La fecha límite debe ser mayor a la fecha de inicio del préstamo.");
 
-            UsuarioId = usuarioId;
-            FechaLimite = fechaLimite;
-            Estado = EstadoPrestamo.Solicitado;
-            Libros = libros;
         }
 
-        public void AprobarYEntregar(int diasPermitidos)
-        {
-            if (Estado != EstadoPrestamo.Solicitado)
-                throw new BusinessException("Solo se pueden aprobar préstamos en estado Solicitado.");
-
-            if (diasPermitidos <= 0)
-                throw new BusinessException("Los días permitidos deben ser mayores que cero.");
-
-            var fechaActual = DateTime.Now;
-
-            FechaInicio = fechaActual;
-            FechaLimite = fechaActual.AddDays(diasPermitidos);
-            Estado = EstadoPrestamo.Activo;
-        }
-
-        public void Rechazar(string motivo)
-        {
-            if (Estado != EstadoPrestamo.Solicitado)
-                throw new BusinessException("Solo se pueden rechazar préstamos en estado Solicitado.");
-
-            Guard.NotNullOrWhiteSpace(motivo, "El motivo del rechazo");
-
-            MotivoRechazo = motivo.Trim();
-            Estado = EstadoPrestamo.Rechazado;
-        }
-
-        public void RegistrarDevolucion(DateTime fechaActual)
+        public void MarcarComoDevuelto()
         {
             if (Estado != EstadoPrestamo.Activo && Estado != EstadoPrestamo.Vencido)
                 throw new BusinessException("Solo se pueden devolver préstamos activos o vencidos.");
-
-            FechaDevolucion = fechaActual;
             Estado = EstadoPrestamo.Devuelto;
         }
 
-        public bool EsDevolucionTardia(DateTime fechaActual)
+        public bool EsDevolucionTardia(DateTime fechaEvaluacion)
         {
-            if (!FechaLimite.HasValue)
-                throw new BusinessException("El préstamo no tiene fecha límite definida.");
-
-            return fechaActual.Date > FechaLimite.Value.Date;
+            return fechaEvaluacion.Date > FechaLimite.Date;
         }
 
-        public int CalcularDiasRetraso(DateTime fechaActual)
+        public int CalcularDiasRetraso(DateTime fechaEvaluacion)
         {
-            if (!EsDevolucionTardia(fechaActual))
+            if (!EsDevolucionTardia(fechaEvaluacion))
                 return 0;
 
-            return (fechaActual.Date - FechaLimite!.Value.Date).Days;
+            return (fechaEvaluacion.Date - FechaLimite.Date).Days;
+        }
+
+        public void MarcarComoVencido()
+        {
+            if (Estado == EstadoPrestamo.Activo && EsDevolucionTardia(DateTime.UtcNow))
+            {
+                Estado = EstadoPrestamo.Vencido;
+            }
         }
     }
 }

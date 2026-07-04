@@ -1,16 +1,19 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
 namespace SIGEBI.Application.DTOs.Response
 {
-    public class PrestamoResponse
+    public record SolicitudResponse
     {
-        public int PrestamoId { get; init; }
-
         public int SolicitudId { get; init; }
-        public string NombreUsuario { get; init; } = string.Empty;
         public string TituloRecurso { get; init; } = string.Empty;
         public string IdentificadorEjemplar { get; init; } = string.Empty;
-        public DateTime FechaInicio { get; init; }
-        public DateTime FechaLimite { get; init; }
+        public DateTime FechaSolicitud { get; init; }
         public string Estado { get; init; } = string.Empty;
+
+
+        // Propiedad opcional: Solo vendrá con datos si la solicitud fue rechazada
+        public string? MotivoRechazo { get; init; }
     }
 }

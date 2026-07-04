@@ -3,7 +3,7 @@ using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioPenalizacion : ReadOnly<Penalizacion>, Writer<Penalizacion>
+    public interface IRepositorioPenalizacion 
     {
         Task<IEnumerable<Penalizacion>> ObtenerPorPerfilLectorAsync(Guid perfilLectorId);
 

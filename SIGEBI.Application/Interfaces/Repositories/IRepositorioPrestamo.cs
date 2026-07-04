@@ -5,11 +5,15 @@ using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioPrestamo : IBaseRepository<Prestamo>
+    public interface IRepositorioPrestamo 
     {
-       
-        Task<IEnumerable<Prestamo>> ObtenerActivosPorPerfilLectorAsync(Guid perfilLectorId);
-        Task<IEnumerable<Prestamo>> ObtenerHistorialPorPerfilLectorAsync(Guid perfilLectorId);
-        Task<IEnumerable<Prestamo>> ObtenerPrestamosProximosAVencerAsync(DateTime fechaDesde, DateTime fechaHasta);
+        Task AgregarAsync(Prestamo prestamo);
+        Task<int> ContarActivosPorUsuarioAsync(int usuarioId);
+        Task<Prestamo?> ObtenerPorIdAsync(int id);
+        Task ActualizarAsync(Prestamo prestamo);
+        Task<Prestamo?> ObtenerConDetallesAsync(int id);
+        Task<IEnumerable<Prestamo>> ObtenerTodosAsync();
+        Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(int usuarioId);
+        Task<IEnumerable<Prestamo>> ObtenerActivosVencidosAsync(DateTime fechaEvaluacion);
     }
 }

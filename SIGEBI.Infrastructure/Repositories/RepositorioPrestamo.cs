@@ -17,44 +17,39 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorPerfilLectorAsync(Guid perfilLectorId)
+        public async Task<int> ContarActivosPorUsuarioAsync(int usuarioId)
         {
-            return await _dbSet
-                .Where(p =>
-                    p.PerfilLectorId == perfilLectorId &&
-                    p.Estado == EstadoPrestamo.Activo)
+            return await _context.Prestamos
+                .CountAsync(p => p.UsuarioId == usuarioId && p.Estado == EstadoPrestamo.Activo);
+        }
+
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(int usuarioId)
+        {
+            return await _context.Prestamos
+                .AsNoTracking()
+                .Where(p => p.UsuarioId == usuarioId && p.Estado == EstadoPrestamo.Activo)
                 .ToListAsync();
         }
 
-        public async Task<int> ContarActivosPorUsuarioAsync(Guid usuarioId)
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosVencidosAsync(DateTime fechaEvaluacion)
         {
-            return await _dbSet
-                .CountAsync(p =>
-                    p.PerfilLectorId == usuarioId &&
-                    p.Estado == EstadoPrestamo.Activo);
-        }
-
-        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorPerfilLectorAsync(Guid perfilLectorId)
-        {
-            return await _dbSet
-                .Where(p => p.PerfilLectorId == perfilLectorId)
-                .OrderByDescending(p => p.FechaSolicitud)
+            return await _context.Prestamos
+                .Where(p => p.Estado == EstadoPrestamo.Activo && p.FechaLimite < fechaEvaluacion)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerPrestamosProximosAVencerAsync(
-        DateTime fechaDesde,
-        DateTime fechaHasta)
+        public async Task<Prestamo?> ObtenerConDetallesAsync(int id)
         {
-            return await _dbSet
-                .Include(p => p.PerfilLector)
-                .Include(p => p.Recurso)
-                .Where(p =>
-                    p.Estado == EstadoPrestamo.Activo &&
-                    p.FechaLimite.HasValue &&
-                    p.FechaLimite.Value.Date >= fechaDesde.Date &&
-                    p.FechaLimite.Value.Date <= fechaHasta.Date)
-                .ToListAsync();
+            return await _context.Prestamos
+                .Include(p => p.Usuario)
+                .Include(p => p.Ejemplar)
+                   .ThenInclude(e => e.RecursoBibliografico)
+                .FirstAsync(p => p.PrestamoId == id);
+        }
+
+        public async Task<Prestamo?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Prestamos.FindAsync();
         }
     }
 }
