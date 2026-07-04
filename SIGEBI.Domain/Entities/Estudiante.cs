@@ -8,6 +8,6 @@ namespace SIGEBI.Domain.Entities
     {
         public string Matricula { get; set; } = string.Empty;
 
-
+        public int LimitePrestamos { get; } = 3;
     }
 }

@@ -15,6 +15,7 @@ namespace SIGEBI.Infrastructure.Persistence
         public DbSet<RecursoBibliografico> RecursosBibliograficos { get; set; }
         public DbSet<Penalizacion> Penalizaciones { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
+        public DbSet<Solicitud> Solicitudes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

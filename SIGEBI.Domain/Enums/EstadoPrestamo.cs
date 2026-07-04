@@ -2,10 +2,9 @@
 {
     public enum EstadoPrestamo 
     { 
-       Solicitado,
        Activo, 
        Devuelto, 
-       Vencido ,
-       Rechazado
+       Vencido
+     
     }
 }

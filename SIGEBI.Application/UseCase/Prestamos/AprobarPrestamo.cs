@@ -30,7 +30,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         }
 
         public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
-            AprobarPrestamoRequest request)
+            AprobarSolicitudRequest request)
         {
             // Validamos que venga el Id del préstamo.
             if (request.PrestamoId == Guid.Empty)
