@@ -9,6 +9,6 @@ namespace SIGEBI.Application.Interfaces.Repositories
     {
         Task<Ejemplar?> ObtenerPorIdAsync(int id);
 
-        Task ActualizarAsync(Ejemplar ejemplar); **
+        Task ActualizarAsync(Ejemplar ejemplar); 
     }
 }

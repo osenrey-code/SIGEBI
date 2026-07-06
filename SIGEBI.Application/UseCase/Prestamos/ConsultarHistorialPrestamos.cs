@@ -1,7 +1,7 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Exceptions;
 
 
 namespace SIGEBI.Application.UseCase.Prestamos
@@ -19,97 +19,32 @@ namespace SIGEBI.Application.UseCase.Prestamos
             _usuarios = usuarios;
         }
 
-        public async Task<ResultadoOperacionResponse<List<PrestamoResponse>>> EjecutarAsync(
+        public async Task<IEnumerable<PrestamoResponse>> ConsultarHistorialAsync(
             ConsultarHistorialPrestamosRequest request)
         {
-            if (request.FechaInicio.HasValue &&
-                request.FechaFin.HasValue &&
-                request.FechaInicio.Value.Date > request.FechaFin.Value.Date)
+
+            int? usuarioId = null;
+
+            if (!string.IsNullOrWhiteSpace(request.Identificacion))
             {
-                return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
-                    "La fecha de inicio no puede ser mayor que la fecha final."
-                );
+                var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
+
+                if (usuario == null) throw new BusinessException("Usuario no encontrado en el sistema.");
+
+                usuarioId = usuario.UsuarioId;
             }
 
-            IEnumerable<Prestamo> prestamos;
+            var historialPrestamos = await _prestamos.ConsultarHistorialAsync(usuarioId, request.EjemplarId);
 
-            if (request.UsuarioId.HasValue && request.UsuarioId.Value != Guid.Empty)
+            return historialPrestamos.Select(p => new PrestamoResponse
             {
-                var usuario = await _usuarios.ObtenerConPerfilAsync(
-                    request.UsuarioId.Value
-                );
-
-                if (usuario is null)
-                {
-                    return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
-                        "El usuario no existe."
-                    );
-                }
-
-                if (usuario.PerfilLector is null)
-                {
-                    return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
-                        "El usuario no tiene perfil lector asignado."
-                    );
-                }
-
-                prestamos = await _prestamos.ObtenerHistorialPorPerfilLectorAsync(
-                    usuario.PerfilLector.Id
-                );
-            }
-            else
-            {
-                prestamos = await _prestamos.ObtenerTodosAsync();
-            }
-
-            if (request.RecursoId.HasValue && request.RecursoId.Value != Guid.Empty)
-            {
-                prestamos = prestamos.Where(p =>
-                    p.RecursoId == request.RecursoId.Value
-                );
-            }
-
-            if (request.FechaInicio.HasValue)
-            {
-                prestamos = prestamos.Where(p =>
-                    p.FechaSolicitud.Date >= request.FechaInicio.Value.Date
-                );
-            }
-
-            if (request.FechaFin.HasValue)
-            {
-                prestamos = prestamos.Where(p =>
-                    p.FechaSolicitud.Date <= request.FechaFin.Value.Date
-                );
-            }
-
-            var response = prestamos
-                .OrderByDescending(p => p.FechaSolicitud)
-                .Select(MapearPrestamo)
-                .ToList();
-
-            return ResultadoOperacionResponse<List<PrestamoResponse>>.Ok(
-                "Historial de préstamos consultado correctamente.",
-                response
-            );
-        }
-
-        private static PrestamoResponse MapearPrestamo(Prestamo prestamo)
-        {
-            return new PrestamoResponse
-            {
-                PrestamoId = prestamo.Id,
-                PerfilLectorId = prestamo.PerfilLectorId,
-                RecursoId = prestamo.RecursoId,
-
-                FechaSolicitud = prestamo.FechaSolicitud,
-                FechaInicio = prestamo.FechaInicio,
-                FechaLimite = prestamo.FechaLimite,
-                FechaDevolucion = prestamo.FechaDevolucion,
-
-                Estado = prestamo.Estado.ToString(),
-                MotivoRechazo = prestamo.MotivoRechazo
-            };
+                PrestamoId = p.PrestamoId,
+                TituloRecurso = p.Ejemplar?.RecursoBibliografico?.Titulo ?? "Titulo no disponible",
+                IdentificadorEjemplar = p.Ejemplar?.Identificador ?? "N/A",
+                FechaInicio = p.FechaInicio,
+                FechaLimite = p.FechaLimite,
+                Estado = p.Estado.ToString()
+            });
         }
     }
 }

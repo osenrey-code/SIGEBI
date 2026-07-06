@@ -12,7 +12,6 @@ namespace SIGEBI.Application.UseCase.Prestamos
     public class SolicitarPrestamo
     {
         private readonly IUsuario _usuarios;
-        private readonly IRepositorioRecurso _recursos;
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly ISolicitudRepository _solicitudes;
@@ -20,24 +19,28 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IAuditoriaService _auditoria;
         private readonly IEjemplarRepository _ejemplares;
 
-        public SolicitarPrestamoUseCase(
+        public SolicitarPrestamo(
             IUsuario usuarios,
             IEjemplarRepository ejemplares,
             ISolicitudRepository solicitudes,
             IRepositorioPrestamo prestamos,
-            IRepositorioPenalizacion penalizaciones)
+            IRepositorioPenalizacion penalizaciones,
+            INotificador notificador,
+            IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
             _ejemplares = ejemplares;
             _solicitudes = solicitudes;
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
+            _notificador = notificador;
+            _auditoria = auditoria;
         }
 
-        public async Task<SolicitudResponse> EjecutarAsync(RegistrarSolicitudRequest request, int usuarioId)
+        public async Task<SolicitudResponse> SolicitarPrestamoAsync(RegistrarSolicitudRequest request, string Identificacion, int usuarioId )
         {
             // 1. Validar que el usuario exista
-            var usuario = await _usuarios.ObtenerPorIdAsync(usuarioId);
+            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(Identificacion);
             if (usuario == null)
                 throw new BusinessException("Usuario no encontrado."); // Idealmente usarías una custom BusinessException
 
@@ -49,8 +52,15 @@ namespace SIGEBI.Application.UseCase.Prestamos
             // 3. Validar Límite de Préstamos
             int prestamosActivos = await _prestamos.ContarActivosPorUsuarioAsync(usuarioId);
 
-            if (prestamosActivos >= usuario.LimitePrestamos)
-                throw new Exception($"Límite excedido. Su rol permite un máximo de {usuario.LimitePrestamos} préstamos simultáneos.");
+            int LimitesPermitidos = usuario switch
+            {
+                Estudiante estudiante => estudiante.LimitePrestamos,
+                Docente docente => docente.LimitePrestamo,
+                _ => throw new BusinessException("El tipo de usuario no tiene permiso para solicitud ")
+            };
+
+            if (prestamosActivos >= LimitesPermitidos)
+                throw new Exception($"Límite excedido. Su rol permite un máximo de {LimitesPermitidos} préstamos simultáneos.");
 
             // 4. Validar Existencia y Disponibilidad del Ejemplar
             var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
@@ -72,6 +82,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 FechaSolicitud = nuevaSolicitud.FechaSolicitud,
                 Estado = nuevaSolicitud.Estado.ToString()
             };
+
+
         }
     }
 

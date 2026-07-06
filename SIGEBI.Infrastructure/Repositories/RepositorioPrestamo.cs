@@ -17,6 +17,45 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
+        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? ejemplarId)
+        {
+            var query = _context.Prestamos
+                .AsNoTracking()
+                .Include(p => p.Ejemplar)
+                   .ThenInclude(e => e.RecursoBibliografico)
+                .Where(p => p.Estado == EstadoPrestamo.Activo)
+                .AsQueryable();
+
+            if (usuarioId.HasValue)
+                query = query.Where(p => p.UsuarioId == usuarioId.Value);
+
+            if (ejemplarId.HasValue)
+                query = query.Where(p => p.EjemplarId == ejemplarId.Value);
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId)
+        {
+            var query = _context.Prestamos
+                .AsNoTracking()
+                .Include(p => p.Ejemplar)
+                    .ThenInclude(e => e.RecursoBibliografico)
+                .AsQueryable();
+
+            if (usuarioId.HasValue)
+                query = query.Where(p => p.UsuarioId == usuarioId.Value);
+
+            if (ejemplarId.HasValue)
+                query = query.Where(p => p.EjemplarId == ejemplarId.Value);
+
+            query = query.OrderByDescending(p => p.FechaInicio);
+
+            return await query.ToListAsync();
+        }
+
+      
+
         public async Task<int> ContarActivosPorUsuarioAsync(int usuarioId)
         {
             return await _context.Prestamos
