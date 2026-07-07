@@ -6,7 +6,7 @@ namespace SIGEBI.Domain.Entities
 {
     public class Penalizacion
     {
-        public int IdPenalizacion { get; private set; }
+        public int PenalizacionId { get; private set; }
 
         public int UsuarioId { get; private set; }
         public virtual Usuario? Usuario { get; private set; }
@@ -27,7 +27,6 @@ namespace SIGEBI.Domain.Entities
         public Penalizacion(int usuarioId, int prestamoId, int diasRetraso, decimal montoMora, string motivo)
         {
             Guard.GreaterThanD(montoMora, 0, "debe ser mayor a ");
-
             Guard.NotNullOrWhiteSpace(motivo, "El motivo ");
                 
             UsuarioId = usuarioId;
@@ -44,7 +43,7 @@ namespace SIGEBI.Domain.Entities
         {
             if (Estado != EstadoPenalizacion.Activa)
             {
-                throw new InvalidOperationException("Solo se pueden pagar o resolver penalizaciones activas.");
+                throw new BusinessException("Solo se pueden pagar o resolver penalizaciones activas.");
             }
 
             Estado = EstadoPenalizacion.Pagada;

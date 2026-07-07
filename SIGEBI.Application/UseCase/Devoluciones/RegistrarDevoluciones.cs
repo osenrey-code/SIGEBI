@@ -14,209 +14,113 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private const decimal MontoMoraPorDia = 25m;
 
         private readonly IRepositorioPrestamo _prestamos;
-        private readonly IRepositorioRecurso _recursos;
+        private readonly IEjemplarRepository _ejemplares;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IUsuario _usuarios;
-        private readonly IRepositorioPerfilLector _perfilLector;
-        private readonly INotificador _notificador;
+        private readonly IRepositorioDevolucion _devoluciones;
         private readonly IAuditoriaService _auditoria;
 
-        public RegistrarDevoluciones(IRepositorioPrestamo prestamos, IRepositorioRecurso recursos,
-            IRepositorioPenalizacion penalizaciones,
-            IUsuario usuarios,
-            IRepositorioPerfilLector perfilLector,
-            INotificador notificador, IAuditoriaService auditoria)
+        public RegistrarDevoluciones(IRepositorioPrestamo prestamos, IRepositorioPenalizacion penalizaciones,
+            IUsuario usuarios, IRepositorioDevolucion devoluciones, IEjemplarRepository ejemplares, IAuditoriaService auditoria
+  )
         {
             _prestamos = prestamos;
-            _recursos = recursos;
+            _ejemplares = ejemplares;
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
-            _perfilLector = perfilLector;
-            _notificador = notificador;
+            _devoluciones = devoluciones;
             _auditoria = auditoria;
+      
         }
 
-        public async Task<ResultadoOperacionResponse<DevolucionResponse>> EjecutarAsync(
-            RegistrarDevolucionRequest request)
+        public async Task<DevolucionResponse> EjecutarAsync(RegistrarDevolucionRequest request, int bibliotecarioId)
         {
-            // Validamos que venga el Id del préstamo que se está devolviendo.
-            if (request.PrestamoId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "El préstamo es obligatorio."
-                );
-            }
+            var prestamo = await _prestamos.ObtenerConDetallesAsync(request.PrestamoId);
+            if (prestamo == null) throw new BusinessException("El préstamo especificado no existe.");
 
-            // Validamos que venga el usuario responsable que registra la devolución.
-            // Aunque se llame BibliotecarioId, también puede ser un Administrador.
-            if (request.BibliotecarioId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "El bibliotecario es obligatorio."
-                );
-            }
+            if (prestamo.Ejemplar == null) throw new BusinessException("El ejemplar físico no está disponible.");
+            prestamo.MarcarComoDevuelto();
 
-            // Buscamos al bibliotecario o administrador que registra la devolución.
-            var bibliotecario = await _usuarios.ObtenerPorIdAsync(
-                request.BibliotecarioId
+            var nuevaDevolucion = new Devolucion(
+                prestamoId: prestamo.PrestamoId,
+                bibliotecarioId: bibliotecarioId,
+                condicion: request.Condicion,
+                observacion: request.Observacion
             );
 
-            // Si no existe, no se puede registrar la devolución.
-            if (bibliotecario is null)
+            int diasRetraso = prestamo.CalcularDiasRetraso(nuevaDevolucion.FechaDevolucion);
+            bool tieneDanios = nuevaDevolucion.MultaPorDanios();
+            bool generoPenalizacion = diasRetraso > 0 || tieneDanios;
+
+            prestamo.Ejemplar.RegistrarDevolucion(request.Observacion);
+
+            if (tieneDanios)
             {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "El bibliotecario no existe."
-                );
+                prestamo.Ejemplar.MarcarFueraDeServicio($"Retirado por condición: {request.Condicion}. {request.Observacion}");
             }
 
-            // El responsable debe estar activo en el sistema.
-            if (bibliotecario.Estado != EstadoUsuario.Activo)
+            string mensajePenalizacion = string.Empty;
+            decimal montoTotal = 0;
+
+            if (generoPenalizacion)
             {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "El bibliotecario no está activo."
-                );
-            }
+                var motivos = new List<string>();
 
-            // Solo Bibliotecario o Administrador pueden registrar devoluciones.
-            if (bibliotecario.Tipo != TipoUsuario.Bibliotecario &&
-                bibliotecario.Tipo != TipoUsuario.Administrador)
-            {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "Solo un bibliotecario o administrador puede registrar devoluciones."
-                );
-            }
+                if (diasRetraso > 0)
+                {
+                    decimal multaPorRetraso = diasRetraso * 50.0m;
+                    motivos.Add($"Retraso de {diasRetraso} días ({multaPorRetraso})");
+                    montoTotal += multaPorRetraso;
+                }
 
-            // Buscamos el préstamo que se quiere devolver.
-            var prestamo = await _prestamos.ObtenerporIdAsync(
-                request.PrestamoId
-            );
+                if (tieneDanios)
+                {
+                    decimal multaPorDanio = 500.0m;
+                    motivos.Add($"Condición '{request.Condicion}' ({multaPorDanio})");
+                    montoTotal += multaPorDanio;
+                }
 
-            // Si el préstamo no existe, no se puede continuar.
-            if (prestamo is null)
-            {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "El préstamo no existe."
-                );
-            }
+                mensajePenalizacion = string.Join(" y ", motivos);
 
-            // Necesitamos el PerfilLector para obtener el UsuarioId del estudiante/docente
-            // y poder notificarle si se genera una penalización.
-            var perfilLector = await _perfilLector.ObtenerPorIdAsync(
-                prestamo.PerfilLectorId
-            );
-
-            // Si no existe el perfil lector, el préstamo tiene una relación inconsistente.
-            if (perfilLector is null)
-            {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "El perfil lector asociado al préstamo no existe."
-                );
-            }
-
-            // Buscamos el recurso bibliográfico asociado al préstamo.
-            var recurso = await _recursos.ObtenerporIdAsync(
-                prestamo.RecursoId
-            );
-
-            // Si el recurso no existe, no se puede registrar correctamente la devolución.
-            if (recurso is null)
-            {
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    "El recurso bibliográfico asociado al préstamo no existe."
-                );
-            }
-
-            // Tomamos la fecha real de devolución.
-            var fechaDevolucion = DateTime.Now;
-
-            // Variables que luego usaremos para crear el response.
-            bool fueTardia;
-            int diasRetraso;
-
-            try
-            {
-                
-                fueTardia = prestamo.EsDevolucionTardia(fechaDevolucion);
-                diasRetraso = prestamo.CalcularDiasRetraso(fechaDevolucion);
-                prestamo.RegistrarDevolucion(fechaDevolucion);
-                recurso.MarcarComoDisponible();
-            }
-            catch (BusinessException ex)
-            {
-                // Si alguna regla del dominio falla, devolvemos el mensaje.
-                return ResultadoOperacionResponse<DevolucionResponse>.Error(
-                    ex.Message
-                );
-            }
-
-            // Indica si se generó o no una penalización.
-            var penalizacionGenerada = false;
-
-            // Si la devolución fue tardía y hubo días de retraso,
-            // se crea una penalización para el PerfilLector.
-            if (fueTardia && diasRetraso > 0)
-            {
                 var penalizacion = new Penalizacion(
-                    prestamo.PerfilLectorId,
-                    prestamo.Id,
-                    diasRetraso,
-                    MontoMoraPorDia
+                    usuarioId: prestamo.UsuarioId,
+                    prestamoId: prestamo.PrestamoId,
+                    diasRetraso: diasRetraso,
+                    montoMora: montoTotal,
+                    motivo: $"Multa por: {mensajePenalizacion} en el préstamo #{prestamo.PrestamoId}."
                 );
 
-                // Guardamos la penalización en el sistema.
-                await _penalizaciones.AgregarAsync(penalizacion);
-
-                // Marcamos que sí se generó penalización para devolverlo en el response.
-                penalizacionGenerada = true;
-
-                // Notificamos al estudiante/docente asociado al PerfilLector.
-                // El Notificador buscará el usuario, su correo, enviará el mensaje
-                // y registrará la notificación como Enviada o Fallida.
-                await _notificador.NotificarPenalizacionGeneradaAsync(
-                    perfilLector.UsuarioId,
-                    penalizacion.Id
-                );
+                await _penalizaciones.AgregarAsync(penalizacion); 
             }
 
-            // Guardamos los cambios del préstamo.
+            await _devoluciones.AgregarAsync(nuevaDevolucion);
             await _prestamos.ActualizarAsync(prestamo);
-            await _recursos.ActualizarAsync(recurso);
+            await _ejemplares.ActualizarAsync(prestamo.Ejemplar);
 
-            await _auditoria.RegistrarAsync(
-            request.BibliotecarioId,
-            "Registrar devolución",
-            "Prestamo",
-            prestamo.Id,
-            "Exitoso",
-            $"Se registró la devolución del préstamo {prestamo.Id}. " +
-            $"Recurso {recurso.Id} marcado como Disponible. " +
-            $"Fue tardía: {(fueTardia ? "Sí" : "No")}. " +
-            $"Días de retraso: {diasRetraso}. " +
-            $"Penalización generada: {(penalizacionGenerada ? "Sí" : "No")}."
+            //Auditoria y notificaciones
+            string tituloLibro = prestamo.Ejemplar.RecursoBibliografico?.Titulo ?? "Recurso";
+
+            var registroAuditoria = _auditoria.RegistrarAsync(
+                UsuarioId: bibliotecarioId,
+                Accion: "Registrar",
+                EntidadAfectada: "Devolucion",
+                detalles: $"Se registró la devolucion del préstamo #{prestamo.PrestamoId}. Condición: {request.Condicion}. Multa generada: {montoTotal}."
             );
 
-            // Creamos el DTO de respuesta.
-            var response = new DevolucionResponse
+
+            return new DevolucionResponse
             {
-                PrestamoId = prestamo.Id,
-                PerfilLectorId = prestamo.PerfilLectorId,
-                RecursoId = prestamo.RecursoId,
-
-                FechaInicio = prestamo.FechaInicio,
-                FechaLimite = prestamo.FechaLimite,
-                FechaDevolucion = fechaDevolucion,
-
-                EstadoPrestamo = prestamo.Estado.ToString(),
-                FueTardia = fueTardia,
+                PrestamoId = prestamo.PrestamoId,
+                TituloRecurso = tituloLibro,
+                FechaDevolucion = nuevaDevolucion.FechaDevolucion,
                 DiasRetraso = diasRetraso,
-                PenalizacionGenerada = penalizacionGenerada
+                Condicion = nuevaDevolucion.Condicion,
+                PenalizacionGenerada = generoPenalizacion,
+                MontoPenalizacion = montoTotal,
+                Mensaje = generoPenalizacion
+                         ? $":Devolución registrada. Se generó una multa de ${montoTotal}."
+                         : "Devolución registrada exitosamente sin multas."
             };
-
-            // Devolvemos respuesta estándar de operación exitosa.
-            return ResultadoOperacionResponse<DevolucionResponse>.Ok(
-                "Devolución registrada correctamente.",
-                response
-            );
         }
     }
 }

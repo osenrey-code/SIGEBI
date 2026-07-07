@@ -5,7 +5,7 @@ using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
-namespace SIGEBI.Application.UseCase.Auditoria
+namespace SIGEBI.Application.UseCase.Auditory
 {
     public class ConsultarLogAuditoria
     {
