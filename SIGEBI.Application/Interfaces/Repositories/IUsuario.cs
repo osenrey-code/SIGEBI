@@ -9,6 +9,7 @@ namespace SIGEBI.Application.Interfaces.Repositories
 {
     public interface IUsuario : IRepositoryInmutable<Usuario>
     {
+        Task ActualizarAsync(Usuario usuario);
         Task DesactivarUsuarioAsync(string IdUsuario);
         Task<Usuario?> ObtenerUsuarioPorIdentificacionAsync(string Identificacion);
         Task<bool> ExisteCorreoAsync(string correo);
