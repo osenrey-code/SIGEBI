@@ -16,9 +16,10 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task<Solicitud?> ObtenerConDetallesAsync(int id)
         {
             return await _context.Solicitudes
+                .AsNoTracking()
                 .Include(s => s.Usuario)
                 .Include(s => s.Ejemplar)
-                  .ThenInclude(e => e.RecursoBibliografico)
+                    .ThenInclude(e => e!.RecursoBibliografico)
                 .FirstOrDefaultAsync(s => s.SolicitudId == id);
         }
 
@@ -26,19 +27,29 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             return await _context.Solicitudes
                 .AsNoTracking()
+                .Include(s => s.Usuario)
+                .Include(s => s.Ejemplar)
+                    .ThenInclude(e => e!.RecursoBibliografico)
                 .Where(s => s.Estado == EstadoSolicitud.Pendiente)
+                .OrderByDescending(s => s.FechaSolicitud)
                 .ToListAsync();
         }
 
         public async Task<Solicitud?> ObtenerPorIdAsync(int id)
         {
-            return await _context.Solicitudes.FindAsync(id);
+            return await _context.Solicitudes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.SolicitudId == id);
         }
 
         public async Task<IEnumerable<Solicitud>> ObtenerTodasAsync()
         {
             return await _context.Solicitudes
                 .AsNoTracking()
+                .Include(s => s.Usuario)
+                .Include(s => s.Ejemplar)
+                    .ThenInclude(e => e!.RecursoBibliografico)
+                .OrderByDescending(s => s.FechaSolicitud)
                 .ToListAsync();
         }
     }

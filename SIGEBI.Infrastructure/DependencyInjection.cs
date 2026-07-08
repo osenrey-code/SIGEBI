@@ -22,16 +22,23 @@ namespace SIGEBI.Infrastructure
                 )
             );
 
+            //Repositorios 
             services.AddScoped<IUsuario, RepositorioUsuario>();
-            services.AddScoped<IAuditoriaService, AuditoriaService>();
             services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
             services.AddScoped<IRepositorioRecurso, RepositorioRecurso>();
             services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
             services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
             services.AddScoped<IRepositorioPenalizacion, RepositorioPenalizacion>();
-            services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
-            // services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
+            services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
+            services.AddScoped<IEjemplarRepository, RepositorioEjemplar>();
+            services.AddScoped<ISolicitudRepository, RepositorioSolicitud>();
+            services.AddScoped<IRepositorioDevolucion, RepositorioDevolucion>();
 
+            //Servicios de aplicacion
+            services.AddScoped<INotificador, Notificador>();
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
+
+            //Servicios Tecnicos
             services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
             services.AddScoped<IServicioToken, ServicioToken>();
             services.AddScoped<IServicioPassword, ServicioPassword>();

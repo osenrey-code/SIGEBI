@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Domain.Enums;
@@ -23,7 +18,7 @@ namespace SIGEBI.Infrastructure.Repositories
             var query = _context.Prestamos
                 .AsNoTracking()
                 .Include(p => p.Ejemplar)
-                   .ThenInclude(e => e.RecursoBibliografico)
+                   .ThenInclude(e => e!.RecursoBibliografico)
                 .Where(p => p.Estado == EstadoPrestamo.Activo)
                 .AsQueryable();
 
@@ -41,7 +36,7 @@ namespace SIGEBI.Infrastructure.Repositories
             var query = _context.Prestamos
                 .AsNoTracking()
                 .Include(p => p.Ejemplar)
-                    .ThenInclude(e => e.RecursoBibliografico)
+                    .ThenInclude(e => e!.RecursoBibliografico)
                 .AsQueryable();
 
             if (usuarioId.HasValue)
@@ -81,10 +76,10 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task<Prestamo?> ObtenerConDetallesAsync(int id)
         {
             return await _context.Prestamos
-                .Include(p => p.Usuario)
-                .Include(p => p.Ejemplar)
-                   .ThenInclude(e => e.RecursoBibliografico)
-                .FirstAsync(p => p.PrestamoId == id);
+            .Include(p => p.Usuario)
+            .Include(p => p.Ejemplar)
+                .ThenInclude(e => e!.RecursoBibliografico)
+            .FirstOrDefaultAsync(p => p.PrestamoId == id);
         }
 
         public async Task<ReportePrestamoResponse> ObtenerEstadisticaPrestamoAsync(DateTime fechaInicio, DateTime fechaFin)
