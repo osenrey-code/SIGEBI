@@ -1,149 +1,96 @@
 ﻿using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Enums;
+
 namespace SIGEBI.Application.Services
 {
     public class Notificador : INotificador
     {
-        private readonly IUsuario _usuarios;
-        private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IRepositorioNotificacion _notificaciones;
-        private readonly IServicioCorreo _servicioCorreo;
 
-        public Notificador(
-            IUsuario usuarios,
-            IRepositorioPenalizacion penalizaciones,
-            IRepositorioNotificacion notificaciones,
-            IServicioCorreo servicioCorreo)
+        public Notificador(IRepositorioNotificacion notificaciones)
         {
-            _usuarios = usuarios;
-            _penalizaciones = penalizaciones;
             _notificaciones = notificaciones;
-            _servicioCorreo = servicioCorreo;
         }
 
-        public async Task NotificarSolicitudPrestamoAsync(
-            Guid usuarioId,
-            Guid prestamoId)
+        public async Task NotificarAsync(
+            int usuarioId,
+            TipoNotificacion tipo,
+            string mensaje)
         {
-            var asunto = "Solicitud de préstamo recibida";
-
-            var mensaje =
-                $"Tu solicitud de préstamo fue registrada correctamente. " +
-                $"Código del préstamo: {prestamoId}.";
-
-            await EnviarYRegistrarAsync(
+            var existe = await _notificaciones.ExisteAsync(
                 usuarioId,
-                "SolicitudPrestamo",
-                asunto,
+                tipo,
                 mensaje
             );
-        }
 
-        public async Task NotificarPrestamoAprobadoAsync(
-            Guid usuarioId,
-            Guid prestamoId,
-            DateTime fechaLimite)
-        {
-            var asunto = "Préstamo aprobado";
+            if (existe)
+                return;
 
-            var mensaje =
-                $"Tu préstamo fue aprobado correctamente. " +
-                $"Código del préstamo: {prestamoId}. " +
-                $"Fecha límite de devolución: {fechaLimite:dd/MM/yyyy}.";
-
-            await EnviarYRegistrarAsync(
+            var notificacion = new Notificacion(
                 usuarioId,
-                "PrestamoAprobado",
-                asunto,
+                tipo,
                 mensaje
             );
+
+            await _notificaciones.AgregarAsync(notificacion);
         }
 
         public async Task NotificarPenalizacionGeneradaAsync(
-            Guid usuarioId,
-            Guid penalizacionId)
+            int usuarioId,
+            int penalizacionId)
         {
-            var penalizacion = await _penalizaciones.ObtenerPorIdAsync(
-                penalizacionId
-            );
-
-            var asunto = "Penalización generada";
-
-            var mensaje = penalizacion is null
-                ? "Se generó una penalización asociada a tu usuario."
-                : $"Se generó una penalización por devolución tardía. " +
-                  $"Días de retraso: {penalizacion.DiasRetraso}. " +
-                  $"Monto de mora: {penalizacion.MontoMora}.";
-
-            await EnviarYRegistrarAsync(
+            await NotificarAsync(
                 usuarioId,
-                "PenalizacionGenerada",
-                asunto,
-                mensaje
+                TipoNotificacion.PenalizacionGenerada,
+                $"Se ha generado una penalización con ID {penalizacionId}."
             );
         }
 
         public async Task NotificarPenalizacionResueltaAsync(
-            Guid usuarioId,
-            Guid penalizacionId)
+            int usuarioId,
+            int penalizacionId)
         {
-            var asunto = "Penalización resuelta";
-
-            var mensaje =
-                $"La penalización {penalizacionId} fue resuelta correctamente. " +
-                "Tu usuario queda habilitado nuevamente si no tienes otras restricciones activas.";
-
-            await EnviarYRegistrarAsync(
+            await NotificarAsync(
                 usuarioId,
-                "PenalizacionResuelta",
-                asunto,
-                mensaje
+                TipoNotificacion.PenalizacionResuelta,
+                $"La penalización con ID {penalizacionId} ha sido resuelta."
             );
         }
 
-        private async Task EnviarYRegistrarAsync(
-            Guid usuarioId,
-            string tipoEvento,
-            string asunto,
-            string mensaje)
+        public async Task NotificarPrestamoFormalizadoAsync(
+            int usuarioId,
+            int prestamoId)
         {
-            if (usuarioId == Guid.Empty)
-            {
-                return;
-            }
-
-            var usuario = await _usuarios.ObtenerPorIdAsync(usuarioId);
-
-            if (usuario is null ||
-                string.IsNullOrWhiteSpace(usuario.Correo))
-            {
-                return;
-            }
-
-            var notificacion = new Notificacion(
-                usuario.Id,
-                usuario.Correo,
-                tipoEvento,
-                mensaje
+            await NotificarAsync(
+                usuarioId,
+                TipoNotificacion.PrestamoFormalizado,
+                $"El préstamo con ID {prestamoId} ha sido formalizado."
             );
+        }
 
-            try
-            {
-                await _servicioCorreo.EnviarAsync(
-                    usuario.Correo,
-                    asunto,
-                    mensaje
-                );
+        public async Task NotificarSolicitudRecibidaAsync(
+            int usuarioId,
+            int solicitudId)
+        {
+            await NotificarAsync(
+                usuarioId,
+                TipoNotificacion.SolicitudRecibida,
+                $"Se ha recibido la solicitud con ID {solicitudId}."
+            );
+        }
 
-                notificacion.MarcarComoEnviada();
-            }
-            catch
-            {
-                notificacion.MarcarComoFallida();
-            }
-
-            await _notificaciones.AgregarAsync(notificacion);
+        public async Task EnviarRecordatorioVencimientoAsync(
+            int usuarioId,
+            int prestamoId,
+            DateTime fechaLimite)
+        {
+            await NotificarAsync(
+                usuarioId,
+                TipoNotificacion.RecordatorioVencimiento,
+                $"El préstamo con ID {prestamoId} vence el {fechaLimite:dd/MM/yyyy}."
+            );
         }
     }
 }
