@@ -31,7 +31,6 @@ namespace SIGEBI.Api.Extensions
             // Préstamos
             services.AddScoped<SolicitarPrestamo>();
             services.AddScoped<AprobarPrestamo>();
-            services.AddScoped<RechazarPrestamo>();
             services.AddScoped<ConsultarPrestamosActivos>();
             services.AddScoped<ConsultarHistorialPrestamos>();
 

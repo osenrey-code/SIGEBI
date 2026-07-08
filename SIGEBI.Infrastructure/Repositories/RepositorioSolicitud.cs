@@ -16,7 +16,6 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task<Solicitud?> ObtenerConDetallesAsync(int id)
         {
             return await _context.Solicitudes
-                .AsNoTracking()
                 .Include(s => s.Usuario)
                 .Include(s => s.Ejemplar)
                     .ThenInclude(e => e!.RecursoBibliografico)

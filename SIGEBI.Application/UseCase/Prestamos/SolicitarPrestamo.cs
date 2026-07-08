@@ -51,22 +51,61 @@ namespace SIGEBI.Application.UseCase.Prestamos
             if (usuario is null)
                 throw new BusinessException("El usuario solicitante no existe.");
 
-            if (usuario.Estado != EstadoUsuario.Activo)
-                throw new BusinessException("El usuario solicitante no está activo.");
+            var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
 
-            int limitePermitido = usuario switch
+            if (ejemplar is null)
             {
-                Estudiante estudiante => estudiante.LimitePrestamos,
-                Docente docente => docente.LimitePrestamo,
-                _ => throw new BusinessException("Solo estudiantes y docentes pueden solicitar préstamos.")
-            };
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    $"El ejemplar físico ID {request.EjemplarId} no existe."
+                );
+
+                throw new BusinessException("El ejemplar físico solicitado no existe.");
+            }
+
+            if (usuario.Estado != EstadoUsuario.Activo)
+            {
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    "El usuario solicitante no está activo."
+                );
+
+                throw new BusinessException("El usuario solicitante no está activo.");
+            }
+
+            int limitePermitido;
+
+            if (usuario is Estudiante estudiante)
+            {
+                limitePermitido = estudiante.LimitePrestamos;
+            }
+            else if (usuario is Docente docente)
+            {
+                limitePermitido = docente.LimitePrestamo;
+            }
+            else
+            {
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    "Solo estudiantes y docentes pueden solicitar préstamos."
+                );
+
+                throw new BusinessException("Solo estudiantes y docentes pueden solicitar préstamos.");
+            }
 
             bool tienePenalizacion = await _penalizaciones.TienePenalizacionActivaAsync(
                 usuario.UsuarioId
             );
 
             if (tienePenalizacion)
+            {
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    "El usuario tiene una penalización activa."
+                );
+
                 throw new BusinessException("El usuario tiene una penalización activa y no puede solicitar recursos.");
+            }
 
             int prestamosActivos = await _prestamos.ContarActivosPorUsuarioAsync(
                 usuario.UsuarioId
@@ -74,21 +113,28 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             if (prestamosActivos >= limitePermitido)
             {
-                throw new BusinessException(
-                    $"Solicitud rechazada. El usuario tiene {prestamosActivos} préstamos activos y su límite permitido es {limitePermitido}."
+                string motivo =
+                    $"El usuario tiene {prestamosActivos} préstamo(s) activo(s) y su límite permitido es {limitePermitido}.";
+
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    motivo
                 );
+
+                throw new BusinessException($"Solicitud rechazada. {motivo}");
             }
-
-            var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
-
-            if (ejemplar is null)
-                throw new BusinessException("El ejemplar físico solicitado no existe.");
 
             if (ejemplar.Estado != EstadoEjemplar.Disponible)
             {
-                throw new BusinessException(
-                    $"El ejemplar seleccionado no está disponible. Estado actual: {ejemplar.Estado}."
+                string motivo =
+                    $"El ejemplar seleccionado no está disponible. Estado actual: {ejemplar.Estado}.";
+
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    motivo
                 );
+
+                throw new BusinessException(motivo);
             }
 
             var nuevaSolicitud = new Solicitud(
@@ -113,6 +159,18 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 FechaSolicitud = nuevaSolicitud.FechaSolicitud,
                 Estado = nuevaSolicitud.Estado.ToString()
             };
+        }
+
+        private async Task RegistrarAuditoriaSolicitudDenegadaAsync(
+            int usuarioId,
+            string motivo)
+        {
+            await _auditoria.RegistrarAsync(
+                UsuarioId: usuarioId,
+                Accion: "Solicitud de Préstamo Denegada",
+                EntidadAfectada: "Solicitudes",
+                detalles: $"La solicitud de préstamo fue denegada. Motivo: {motivo}"
+            );
         }
     }
 }

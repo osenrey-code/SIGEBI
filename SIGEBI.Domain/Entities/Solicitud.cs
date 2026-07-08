@@ -1,6 +1,7 @@
 ﻿
 
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 using System.Data;
 
 namespace SIGEBI.Domain.Entities
@@ -31,7 +32,7 @@ namespace SIGEBI.Domain.Entities
         public void Aprobar()
         {
             if (Estado != EstadoSolicitud.Pendiente)
-                throw new InvalidOperationException("Solo se pueden aprobar solicitudes en estado Pendiente.");
+                throw new BusinessException("Solo se pueden aprobar solicitudes en estado Pendiente.");
 
             Estado = EstadoSolicitud.Aprobada;
         }
@@ -39,10 +40,10 @@ namespace SIGEBI.Domain.Entities
         public void Rechazar(string motivo)
         {
             if (Estado != EstadoSolicitud.Pendiente)
-                throw new InvalidOperationException("Solo se pueden rechazar solicitudes en estado Pendiente.");
+                throw new BusinessException("Solo se pueden rechazar solicitudes en estado Pendiente.");
 
             if (string.IsNullOrWhiteSpace(motivo))
-                throw new ArgumentException("El motivo del rechazo es obligatorio.");
+                throw new BusinessException("El motivo del rechazo es obligatorio.");
 
             Estado = EstadoSolicitud.Rechazada;
             MotivoRechazo = motivo;

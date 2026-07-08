@@ -13,28 +13,27 @@ namespace SIGEBI.Application.UseCase.Prestamos
     {
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IUsuario _usuarios;
-        private readonly INotificador _notificador;
         private readonly IAuditoriaService _auditoria;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IEjemplarRepository _ejemplares;
         private readonly ISolicitudRepository _solicitudes;
+        private readonly INotificador _notificador;
 
         public AprobarPrestamo(
             IRepositorioPrestamo prestamos,
             IUsuario usuarios,
-            INotificador notificador,
             IAuditoriaService auditoria,
             IEjemplarRepository ejemplares,
             IRepositorioPenalizacion penalizaciones,
-            ISolicitudRepository solicitudes)
+            ISolicitudRepository solicitudes, INotificador notificador)
         {
             _prestamos = prestamos;
             _usuarios = usuarios;
-            _notificador = notificador;
             _auditoria = auditoria;
             _ejemplares = ejemplares;
             _penalizaciones = penalizaciones;
             _solicitudes = solicitudes;
+            _notificador = notificador;
         }
 
         public async Task<PrestamoResponse> AprobarPrestamoAsync(
@@ -71,10 +70,30 @@ namespace SIGEBI.Application.UseCase.Prestamos
             var usuarioSolicitante = await _usuarios.ObtenerporIdAsync(solicitud.UsuarioId);
 
             if (usuarioSolicitante is null)
-                throw new BusinessException("El usuario asociado a esta solicitud no existe.");
+            {
+                string motivo = "El usuario asociado a esta solicitud no existe.";
+
+                await RechazarSolicitudAutomaticamenteAsync(
+                    solicitud,
+                    usuarioEjecutorId,
+                    motivo
+                );
+
+                throw new BusinessException($"Aprobación denegada: {motivo}");
+            }
 
             if (usuarioSolicitante.Estado != EstadoUsuario.Activo)
-                throw new BusinessException("Aprobación denegada: el usuario solicitante se encuentra inactivo.");
+            {
+                string motivo = "El usuario solicitante se encuentra inactivo.";
+
+                await RechazarSolicitudAutomaticamenteAsync(
+                    solicitud,
+                    usuarioEjecutorId,
+                    motivo
+                );
+
+                throw new BusinessException($"Aprobación denegada: {motivo}");
+            }
 
             bool tienePenalizaciones = await _penalizaciones.TienePenalizacionActivaAsync(
                 usuarioSolicitante.UsuarioId
@@ -82,42 +101,87 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             if (tienePenalizaciones)
             {
-                solicitud.Rechazar("El usuario posee una penalización activa.");
-                await _solicitudes.ActualizarAsync(solicitud);
+                string motivo = "El usuario posee una penalización activa.";
 
-                await _auditoria.RegistrarAsync(
-                    UsuarioId: usuarioEjecutorId,
-                    Accion: "Rechazar Solicitud de Préstamo",
-                    EntidadAfectada: "Solicitudes",
-                    detalles: $"La solicitud ID {solicitud.SolicitudId} fue rechazada automáticamente porque el usuario ID {usuarioSolicitante.UsuarioId} posee una penalización activa."
+                await RechazarSolicitudAutomaticamenteAsync(
+                    solicitud,
+                    usuarioEjecutorId,
+                    motivo
                 );
 
-                throw new BusinessException("Aprobación denegada: el usuario tiene una penalización activa. La solicitud ha sido rechazada automáticamente.");
+                throw new BusinessException($"Aprobación denegada: {motivo}");
+            }
+
+            int limiteCantidad;
+            int diasPrestamo;
+
+            if (usuarioSolicitante is Estudiante estudiante)
+            {
+                limiteCantidad = estudiante.LimitePrestamos;
+                diasPrestamo = 7;
+            }
+            else if (usuarioSolicitante is Docente docente)
+            {
+                limiteCantidad = docente.LimitePrestamo;
+                diasPrestamo = 14;
+            }
+            else
+            {
+                string motivo = "Solo estudiantes y docentes pueden recibir préstamos.";
+
+                await RechazarSolicitudAutomaticamenteAsync(
+                    solicitud,
+                    usuarioEjecutorId,
+                    motivo
+                );
+
+                throw new BusinessException($"Aprobación denegada: {motivo}");
             }
 
             int prestamosActivos = await _prestamos.ContarActivosPorUsuarioAsync(
                 usuarioSolicitante.UsuarioId
             );
 
-            var (limiteCantidad, diasPrestamo) = usuarioSolicitante switch
-            {
-                Estudiante estudiante => (estudiante.LimitePrestamos, 7),
-                Docente docente => (docente.LimitePrestamo, 14),
-                _ => throw new BusinessException("Solo estudiantes y docentes pueden recibir préstamos.")
-            };
-
             if (prestamosActivos >= limiteCantidad)
             {
-                throw new BusinessException(
-                    $"Aprobación denegada. El usuario tiene {prestamosActivos} préstamos activos y su límite permitido es {limiteCantidad}."
+                string motivo =
+                    $"El usuario tiene {prestamosActivos} préstamo(s) activo(s) y su límite permitido es {limiteCantidad}.";
+
+                await RechazarSolicitudAutomaticamenteAsync(
+                    solicitud,
+                    usuarioEjecutorId,
+                    motivo
                 );
+
+                throw new BusinessException($"Aprobación denegada: {motivo}");
             }
 
             if (solicitud.Ejemplar is null)
-                throw new BusinessException("El ejemplar físico asociado a la solicitud no existe.");
+            {
+                string motivo = "El ejemplar físico asociado a la solicitud no existe.";
+
+                await RechazarSolicitudAutomaticamenteAsync(
+                    solicitud,
+                    usuarioEjecutorId,
+                    motivo
+                );
+
+                throw new BusinessException($"Aprobación denegada: {motivo}");
+            }
 
             if (solicitud.Ejemplar.Estado != EstadoEjemplar.Disponible)
-                throw new BusinessException($"El ejemplar no está disponible. Estado actual: {solicitud.Ejemplar.Estado}.");
+            {
+                string motivo =
+                    $"El ejemplar no está disponible. Estado actual: {solicitud.Ejemplar.Estado}.";
+
+                await RechazarSolicitudAutomaticamenteAsync(
+                    solicitud,
+                    usuarioEjecutorId,
+                    motivo
+                );
+
+                throw new BusinessException($"Aprobación denegada: {motivo}");
+            }
 
             solicitud.Aprobar();
             solicitud.Ejemplar.MarcarComoPrestado();
@@ -152,6 +216,23 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 FechaLimite = nuevoPrestamo.FechaLimite,
                 Estado = nuevoPrestamo.Estado.ToString()
             };
+        }
+
+        private async Task RechazarSolicitudAutomaticamenteAsync(
+            Solicitud solicitud,
+            int usuarioEjecutorId,
+            string motivo)
+        {
+            solicitud.Rechazar(motivo);
+
+            await _solicitudes.ActualizarAsync(solicitud);
+
+            await _auditoria.RegistrarAsync(
+                UsuarioId: usuarioEjecutorId,
+                Accion: "Rechazo Automático de Solicitud",
+                EntidadAfectada: "Solicitudes",
+                detalles: $"La solicitud ID {solicitud.SolicitudId} fue rechazada automáticamente. Motivo: {motivo}"
+            );
         }
     }
 }
