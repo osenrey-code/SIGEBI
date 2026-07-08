@@ -1,16 +1,16 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
-using SIGEBI.Application.Interfaces.ext;
 
 namespace SIGEBI.Application.UseCase.Devoluciones
 {
     public class RegistrarDevoluciones
     {
-
         private const decimal MontoMoraPorDia = 25m;
 
         private readonly IRepositorioPrestamo _prestamos;
@@ -19,10 +19,16 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IUsuario _usuarios;
         private readonly IRepositorioDevolucion _devoluciones;
         private readonly IAuditoriaService _auditoria;
+        private readonly INotificador _notificador;
 
-        public RegistrarDevoluciones(IRepositorioPrestamo prestamos, IRepositorioPenalizacion penalizaciones,
-            IUsuario usuarios, IRepositorioDevolucion devoluciones, IEjemplarRepository ejemplares, IAuditoriaService auditoria
-  )
+        public RegistrarDevoluciones(
+            IRepositorioPrestamo prestamos,
+            IRepositorioPenalizacion penalizaciones,
+            IUsuario usuarios,
+            IRepositorioDevolucion devoluciones,
+            IEjemplarRepository ejemplares,
+            IAuditoriaService auditoria,
+            INotificador notificador)
         {
             _prestamos = prestamos;
             _ejemplares = ejemplares;
@@ -30,96 +36,130 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             _usuarios = usuarios;
             _devoluciones = devoluciones;
             _auditoria = auditoria;
-      
+            _notificador = notificador;
         }
 
-        public async Task<DevolucionResponse> EjecutarAsync(RegistrarDevolucionRequest request, int bibliotecarioId)
+        public async Task<DevolucionResponse> EjecutarAsync(
+            RegistrarDevolucionRequest request,
+            int bibliotecarioId)
         {
-            var prestamo = await _prestamos.ObtenerConDetallesAsync(request.PrestamoId);
-            if (prestamo == null) throw new BusinessException("El préstamo especificado no existe.");
+            Guard.NotNull(request, "Los datos de la devolución");
 
-            if (prestamo.Ejemplar == null) throw new BusinessException("El ejemplar físico no está disponible.");
-            prestamo.MarcarComoDevuelto();
+            if (bibliotecarioId <= 0)
+                throw new BusinessException("El bibliotecario responsable es obligatorio.");
+
+            if (request.PrestamoId <= 0)
+                throw new BusinessException("El préstamo es obligatorio.");
+
+            Guard.NotNullOrWhiteSpace(request.Condicion, "La condición del recurso");
+
+            string condicion = request.Condicion.Trim();
+            string? observacion = string.IsNullOrWhiteSpace(request.Observacion)
+                ? null
+                : request.Observacion.Trim();
+
+            var bibliotecario = await _usuarios.ObtenerporIdAsync(bibliotecarioId);
+
+            if (bibliotecario is null)
+                throw new BusinessException("El bibliotecario responsable no existe.");
+
+            if (bibliotecario.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("El bibliotecario responsable no está activo.");
+
+            if (bibliotecario is not Bibliotecario && bibliotecario is not Administrador)
+                throw new BusinessException("Solo un bibliotecario o administrador puede registrar devoluciones.");
+
+            var prestamo = await _prestamos.ObtenerConDetallesAsync(request.PrestamoId);
+
+            if (prestamo is null)
+                throw new BusinessException("El préstamo especificado no existe.");
+
+            if (prestamo.Estado != EstadoPrestamo.Activo)
+                throw new BusinessException("Solo se puede registrar devolución de un préstamo activo.");
+
+            if (prestamo.Ejemplar is null)
+                throw new BusinessException("El ejemplar físico asociado al préstamo no existe.");
+
+            var devolucionExistente = await _devoluciones.ObtenerPorPrestamoIdAsync(
+                prestamo.PrestamoId
+            );
+
+            if (devolucionExistente is not null)
+                throw new BusinessException("Ya existe una devolución registrada para este préstamo.");
 
             var nuevaDevolucion = new Devolucion(
                 prestamoId: prestamo.PrestamoId,
                 bibliotecarioId: bibliotecarioId,
-                condicion: request.Condicion,
-                observacion: request.Observacion
+                condicion: condicion,
+                observacion: observacion
             );
 
-            int diasRetraso = prestamo.CalcularDiasRetraso(nuevaDevolucion.FechaDevolucion);
-            bool tieneDanios = nuevaDevolucion.MultaPorDanios();
-            bool generoPenalizacion = diasRetraso > 0 || tieneDanios;
+            int diasRetraso = prestamo.CalcularDiasRetraso(
+                nuevaDevolucion.FechaDevolucion
+            );
 
-            prestamo.Ejemplar.RegistrarDevolucion(request.Observacion);
+            bool tieneRetraso = diasRetraso > 0;
+            bool requiereRetiroDeServicio = nuevaDevolucion.RequiereRetiro();
 
-            if (tieneDanios)
+            decimal montoPenalizacion = 0;
+            bool penalizacionGenerada = false;
+
+            prestamo.MarcarComoDevuelto();
+
+            prestamo.Ejemplar.RegistrarDevolucion(observacion);
+
+            if (requiereRetiroDeServicio)
             {
-                prestamo.Ejemplar.MarcarFueraDeServicio($"Retirado por condición: {request.Condicion}. {request.Observacion}");
+                prestamo.Ejemplar.MarcarFueraDeServicio(
+                    $"Retirado por condición: {condicion}. {observacion ?? "Sin observación adicional"}"
+                );
             }
 
-            string mensajePenalizacion = string.Empty;
-            decimal montoTotal = 0;
-
-            if (generoPenalizacion)
+            if (tieneRetraso)
             {
-                var motivos = new List<string>();
-
-                if (diasRetraso > 0)
-                {
-                    decimal multaPorRetraso = diasRetraso * 50.0m;
-                    motivos.Add($"Retraso de {diasRetraso} días ({multaPorRetraso})");
-                    montoTotal += multaPorRetraso;
-                }
-
-                if (tieneDanios)
-                {
-                    decimal multaPorDanio = 500.0m;
-                    motivos.Add($"Condición '{request.Condicion}' ({multaPorDanio})");
-                    montoTotal += multaPorDanio;
-                }
-
-                mensajePenalizacion = string.Join(" y ", motivos);
+                montoPenalizacion = diasRetraso * MontoMoraPorDia;
 
                 var penalizacion = new Penalizacion(
                     usuarioId: prestamo.UsuarioId,
                     prestamoId: prestamo.PrestamoId,
                     diasRetraso: diasRetraso,
-                    montoMora: montoTotal,
-                    motivo: $"Multa por: {mensajePenalizacion} en el préstamo #{prestamo.PrestamoId}."
+                    montoMora: montoPenalizacion,
+                    motivo: $"Devolución tardía de {diasRetraso} día(s) en el préstamo #{prestamo.PrestamoId}."
                 );
 
-                await _penalizaciones.AgregarAsync(penalizacion); 
+                await _penalizaciones.AgregarAsync(penalizacion);
+
+                penalizacionGenerada = true;
             }
 
             await _devoluciones.AgregarAsync(nuevaDevolucion);
             await _prestamos.ActualizarAsync(prestamo);
             await _ejemplares.ActualizarAsync(prestamo.Ejemplar);
 
-            //Auditoria y notificaciones
-            string tituloLibro = prestamo.Ejemplar.RecursoBibliografico?.Titulo ?? "Recurso";
+            string tituloRecurso = prestamo.Ejemplar.RecursoBibliografico?.Titulo
+                ?? "Recurso";
 
             await _auditoria.RegistrarAsync(
                 UsuarioId: bibliotecarioId,
-                Accion: "Registrar",
-                EntidadAfectada: "Devolucion",
-                detalles: $"Se registró la devolucion del préstamo #{prestamo.PrestamoId}. Condición: {request.Condicion}. Multa generada: {montoTotal}."
+                Accion: "Registrar Devolución",
+                EntidadAfectada: "Devoluciones",
+                detalles: $"Se registró la devolución del préstamo #{prestamo.PrestamoId}. Usuario ID {prestamo.UsuarioId}. Ejemplar ID {prestamo.EjemplarId}. Condición: {condicion}. Días de retraso: {diasRetraso}. Penalización generada: {penalizacionGenerada}. Monto: {montoPenalizacion}."
             );
 
+          
 
             return new DevolucionResponse
             {
                 PrestamoId = prestamo.PrestamoId,
-                TituloRecurso = tituloLibro,
+                TituloRecurso = tituloRecurso,
                 FechaDevolucion = nuevaDevolucion.FechaDevolucion,
                 DiasRetraso = diasRetraso,
                 Condicion = nuevaDevolucion.Condicion,
-                PenalizacionGenerada = generoPenalizacion,
-                MontoPenalizacion = montoTotal,
-                Mensaje = generoPenalizacion
-                         ? $":Devolución registrada. Se generó una multa de ${montoTotal}."
-                         : "Devolución registrada exitosamente sin multas."
+                PenalizacionGenerada = penalizacionGenerada,
+                MontoPenalizacion = montoPenalizacion,
+                Mensaje = penalizacionGenerada
+                    ? $"Devolución registrada. Se generó una penalización de {montoPenalizacion} por {diasRetraso} día(s) de retraso."
+                    : "Devolución registrada exitosamente sin penalización."
             };
         }
     }
