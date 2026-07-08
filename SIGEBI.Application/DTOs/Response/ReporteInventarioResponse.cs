@@ -1,15 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SIGEBI.Application.DTOs.Response
+﻿namespace SIGEBI.Application.DTOs.Response
 {
     public class ReporteInventarioResponse
     {
-        public int TotalRecursos { get; set; }
-        public int RecursosDisponibles { get; set; }
-        public int RecursosPrestados { get; set; }
-        public int RecursosReservados { get; set; }
-        public int RecursosFueraDeServicio { get; set; }
+        public string Categoria { get; set; } = string.Empty;
+
+        public int TotalTitulos { get; set; }
+
+        public int TotalEjemplares { get; set; }
+
+        public int EjemplaresDisponibles { get; set; }
+
+        public int EjemplaresPrestados { get; set; }
+
+        public int EjemplaresReservados { get; set; }
+
+        public int EjemplaresFueraDeServicio { get; set; }
     }
 }
