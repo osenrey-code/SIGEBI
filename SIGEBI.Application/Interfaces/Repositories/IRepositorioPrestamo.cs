@@ -21,6 +21,7 @@ namespace SIGEBI.Application.Interfaces.Repositories
         Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId);
 
         Task<ReportePrestamoResponse> ObtenerEstadisticaPrestamoAsync(DateTime fechaInicio, DateTime fechaFin);
+        Task<bool> ExistePrestamoActivoPorRecursoAsync(int recursoBibliograficoId);
     }
 }
 
