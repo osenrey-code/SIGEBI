@@ -12,7 +12,12 @@ namespace SIGEBI.Infrastructure.Repositories
 
         }
 
-        public async Task<IEnumerable<Devolucion>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId, DateTime? fechaInicio, DateTime? fechaFin)
+        public async Task<IEnumerable<Devolucion>> ConsultarHistorialAsync(
+            int? usuarioId,
+            int? recursoBibliograficoId,
+            int? ejemplarId,
+            DateTime? fechaInicio,
+            DateTime? fechaFin)
         {
             var query = _dbSet
                 .AsNoTracking()
@@ -28,6 +33,14 @@ namespace SIGEBI.Infrastructure.Repositories
                 query = query.Where(d =>
                     d.Prestamo != null &&
                     d.Prestamo.UsuarioId == usuarioId.Value);
+            }
+
+            if (recursoBibliograficoId.HasValue)
+            {
+                query = query.Where(d =>
+                    d.Prestamo != null &&
+                    d.Prestamo.Ejemplar != null &&
+                    d.Prestamo.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId.Value);
             }
 
             if (ejemplarId.HasValue)
@@ -53,11 +66,10 @@ namespace SIGEBI.Infrastructure.Repositories
                 .OrderByDescending(d => d.FechaDevolucion)
                 .ToListAsync();
         }
-        
 
         public async Task<Devolucion?> ObtenerPorIdAsync(int devolucionId)
         {
-            return await _context.Devolucion
+            return await _context.Devoluciones
                .AsNoTracking()
                .Include(d => d.Prestamo)
                    .ThenInclude(p => p!.Usuario)
@@ -70,7 +82,7 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<Devolucion?> ObtenerPorPrestamoIdAsync(int prestamoId)
         {
-            return await _context.Devolucion
+            return await _context.Devoluciones
                 .AsNoTracking()
                 .Include(d => d.Prestamo)
                     .ThenInclude(p => p!.Usuario)
