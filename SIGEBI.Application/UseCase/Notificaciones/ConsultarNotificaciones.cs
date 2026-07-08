@@ -3,6 +3,7 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Notificaciones
 {
@@ -19,79 +20,49 @@ namespace SIGEBI.Application.UseCase.Notificaciones
             _usuarios = usuarios;
         }
 
-        public async Task<ResultadoOperacionResponse<IEnumerable<NotificacionResponse>>> EjecutarAsync(
+        public async Task<IEnumerable<NotificacionResponse>> EjecutarAsync(
             ConsultarNotificacionesRequest request)
         {
-            if (request.UsuarioEjecutorId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<IEnumerable<NotificacionResponse>>.Error(
-                    "El usuario ejecutor es obligatorio."
-                );
-            }
+            if (request.UsuarioEjecutorId <= 0)
+                throw new BusinessException("El usuario ejecutor es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerPorIdAsync(
-                request.UsuarioEjecutorId
-            );
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
 
             if (usuarioEjecutor is null)
-            {
-                return ResultadoOperacionResponse<IEnumerable<NotificacionResponse>>.Error(
-                    "El usuario ejecutor no existe."
-                );
-            }
+                throw new BusinessException("El usuario ejecutor no existe.");
 
             if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
-            {
-                return ResultadoOperacionResponse<IEnumerable<NotificacionResponse>>.Error(
-                    "El usuario ejecutor no está activo."
-                );
-            }
+                throw new BusinessException("El usuario ejecutor no está activo.");
 
-            if (usuarioEjecutor.Tipo != TipoUsuario.Administrador &&
-                usuarioEjecutor.Tipo != TipoUsuario.Auditor)
+            if (request.UsuarioId.HasValue &&
+                request.UsuarioId.Value != request.UsuarioEjecutorId &&
+                usuarioEjecutor is not Bibliotecario &&
+                usuarioEjecutor is not Administrador &&
+                usuarioEjecutor is not Auditor)
             {
-                return ResultadoOperacionResponse<IEnumerable<NotificacionResponse>>.Error(
-                    "Solo un administrador o auditor puede consultar notificaciones."
-                );
-            }
-
-            if (request.FechaInicio.HasValue &&
-                request.FechaFin.HasValue &&
-                request.FechaInicio.Value > request.FechaFin.Value)
-            {
-                return ResultadoOperacionResponse<IEnumerable<NotificacionResponse>>.Error(
-                    "La fecha de inicio no puede ser mayor que la fecha final."
-                );
+                throw new BusinessException("Solo personal autorizado puede consultar notificaciones de otros usuarios.");
             }
 
             var notificaciones = await _notificaciones.ConsultarAsync(
-                request.UsuarioDestinatarioId,
-                request.TipoEvento,
-                request.FechaInicio,
-                request.FechaFin
+                request.UsuarioId,
+                request.Tipo
             );
 
-            var response = notificaciones
+            return notificaciones
                 .Select(MapearNotificacion)
                 .ToList();
-
-            return ResultadoOperacionResponse<IEnumerable<NotificacionResponse>>.Ok(
-                "Consulta de notificaciones realizada correctamente.",
-                response
-            );
         }
 
         private static NotificacionResponse MapearNotificacion(Notificacion notificacion)
         {
             return new NotificacionResponse
             {
-                Id = notificacion.Id,
-                UsuarioDestinatarioId = notificacion.UsuarioDestinatarioId,
-                CorreoDestinatario = notificacion.CorreoDestinatario,
-                TipoEvento = notificacion.TipoEvento,
+                NotificacionId = notificacion.NotificacionId,
+                UsuarioId = notificacion.UsuarioId,
+                Tipo = notificacion.Tipo.ToString(),
                 Mensaje = notificacion.Mensaje,
                 FechaRegistro = notificacion.FechaRegistro,
-                EstadoEnvio = notificacion.EstadoEnvio
+                Leida = notificacion.Leida
             };
         }
     }

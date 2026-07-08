@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SIGEBI.Application.DTOs.Request;
+﻿namespace SIGEBI.Application.DTOs.Request;
 
 public class ConsultarNotificacionesRequest
 {
-    public Guid UsuarioEjecutorId { get; set; }
+    public int UsuarioEjecutorId { get; set; }
 
-    public Guid? UsuarioDestinatarioId { get; set; }
+    public int? UsuarioId { get; set; }
 
-    public string? TipoEvento { get; set; }
-
-    public DateTime? FechaInicio { get; set; }
-
-    public DateTime? FechaFin { get; set; }
+    public string? Tipo { get; set; }
 }

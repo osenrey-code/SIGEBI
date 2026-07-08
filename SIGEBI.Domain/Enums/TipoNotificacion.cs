@@ -1,13 +1,11 @@
-﻿
-
-namespace SIGEBI.Domain.Enums
+﻿namespace SIGEBI.Domain.Enums
 {
     public enum TipoNotificacion
     {
-        Recordatorio,
-        Aviso,
-        Devolucion,
-        Penalizacion
-
+        RecordatorioVencimiento,
+        PenalizacionGenerada,
+        PenalizacionResuelta,
+        SolicitudRecibida,
+        PrestamoFormalizado
     }
 }

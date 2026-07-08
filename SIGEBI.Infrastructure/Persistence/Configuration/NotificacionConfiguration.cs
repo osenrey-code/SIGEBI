@@ -10,29 +10,30 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
         {
             builder.ToTable("Notificaciones");
 
-            builder.HasKey(n => n.Id);
+            builder.HasKey(n => n.NotificacionId);
 
-            builder.Property(n => n.UsuarioDestinatarioId)
-                .IsRequired(false);
+            builder.Property(n => n.NotificacionId)
+                .ValueGeneratedOnAdd();
 
-            builder.Property(n => n.CorreoDestinatario)
+            builder.Property(n => n.UsuarioId)
+                .IsRequired();
+
+            builder.Property(n => n.Tipo)
                 .IsRequired()
-                .HasMaxLength(150);
-
-            builder.Property(n => n.TipoEvento)
-                .IsRequired()
-                .HasMaxLength(100);
+                .HasConversion<string>()
+                .HasMaxLength(50);
 
             builder.Property(n => n.Mensaje)
                 .IsRequired()
-                .HasMaxLength(1000);
+                .HasMaxLength(500);
 
             builder.Property(n => n.FechaRegistro)
                 .IsRequired();
 
-            builder.Property(n => n.EstadoEnvio)
-                .IsRequired()
-                .HasMaxLength(50);
+            builder.HasOne(n => n.Usuario)
+                .WithMany()
+                .HasForeignKey(n => n.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
