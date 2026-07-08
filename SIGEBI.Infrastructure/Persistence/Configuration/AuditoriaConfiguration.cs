@@ -10,7 +10,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
         {
             builder.ToTable("Auditorias");
 
-            builder.HasKey(a => a.IdAuditoria);
+            builder.HasKey(a => a.AuditoriaId);
 
             builder.Property(a => a.UsuarioId)
                 .IsRequired();

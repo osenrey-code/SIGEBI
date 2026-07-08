@@ -2,7 +2,7 @@
 
 public class LogAuditoriaResponse
 {
-    public int IdAuditoria { get; set; }
+    public int AuditoriaId { get; set; }
 
     public int UsuarioId { get; set; }
 
