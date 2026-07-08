@@ -120,5 +120,16 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             return await _context.Prestamos.FindAsync(id);
         }
+
+        public async Task<bool> ExistePrestamoActivoPorRecursoAsync(
+        int recursoBibliograficoId)
+        {
+            return await _context.Prestamos
+                .AsNoTracking()
+                .AnyAsync(p =>
+                    p.Estado == EstadoPrestamo.Activo &&
+                    p.Ejemplar != null &&
+                    p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId);
+        }
     }
 }

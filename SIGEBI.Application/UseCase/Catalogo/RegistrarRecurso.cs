@@ -2,6 +2,7 @@
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
@@ -31,8 +32,30 @@ namespace SIGEBI.Application.UseCase.Catalogo
             RegistrarRecursoRequest request,
             int usuarioEjecutorId)
         {
+            Guard.NotNull(request, "Los datos del recurso");
+
             if (usuarioEjecutorId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
+
+            Guard.NotNullOrWhiteSpace(request.ISBN, "El ISBN");
+            Guard.NotNullOrWhiteSpace(request.Titulo, "El título del recurso");
+            Guard.NotNullOrWhiteSpace(request.Autor, "El autor del recurso");
+
+            if (request.CategoriaId <= 0)
+                throw new BusinessException("La categoría del recurso es obligatoria.");
+
+            if (request.AnioPublicado <= 0)
+                throw new BusinessException("El año de publicación es obligatorio.");
+
+            if (request.CantidadEjemplares <= 0)
+                throw new BusinessException("La cantidad de ejemplares debe ser mayor que cero.");
+
+            string isbn = request.ISBN.Trim();
+            string titulo = request.Titulo.Trim();
+            string autor = request.Autor.Trim();
+            string? imagenUrl = string.IsNullOrWhiteSpace(request.ImagenUrl)
+                ? null
+                : request.ImagenUrl.Trim();
 
             var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(usuarioEjecutorId);
 
@@ -45,25 +68,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
             if (usuarioEjecutor is not Bibliotecario && usuarioEjecutor is not Administrador)
                 throw new BusinessException("Solo un bibliotecario o administrador puede registrar recursos.");
 
-            if (string.IsNullOrWhiteSpace(request.ISBN))
-                throw new BusinessException("El ISBN es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(request.Titulo))
-                throw new BusinessException("El título del recurso es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(request.Autor))
-                throw new BusinessException("El autor del recurso es obligatorio.");
-
-            if (request.CategoriaId <= 0)
-                throw new BusinessException("La categoría del recurso es obligatoria.");
-
-            if (request.AnioPublicado <= 0)
-                throw new BusinessException("El año de publicación es obligatorio.");
-
-            if (request.CantidadEjemplares <= 0)
-                throw new BusinessException("La cantidad de ejemplares debe ser mayor que cero.");
-
-            var recursoExistente = await _recursos.BuscarPorIsbnAsync(request.ISBN.Trim());
+            var recursoExistente = await _recursos.BuscarPorIsbnAsync(isbn);
 
             if (recursoExistente is not null)
                 throw new BusinessException("Ya existe un recurso registrado con ese ISBN.");
@@ -74,27 +79,27 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 throw new BusinessException("La categoría indicada no existe.");
 
             var recurso = new RecursoBibliografico(
-                request.ISBN.Trim(),
-                request.Titulo.Trim(),
-                request.Autor.Trim(),
+                isbn,
+                titulo,
+                autor,
                 request.CategoriaId,
                 request.AnioPublicado,
-                request.ImagenUrl
+                imagenUrl
             );
 
             for (int i = 1; i <= request.CantidadEjemplares; i++)
             {
-                var identificadorEjemplar = $"{request.ISBN.Trim()}-{i:D3}";
+                string identificadorEjemplar = $"{isbn}-{i:D3}";
                 recurso.RegistrarNuevoEjemplar(identificadorEjemplar);
             }
 
             await _recursos.AgregarAsync(recurso);
 
             await _auditoria.RegistrarAsync(
-                usuarioEjecutorId,
-                "Registrar recurso",
-                "RecursoBibliografico",
-                $"Se registró el recurso '{recurso.Titulo}' con ISBN {recurso.ISBN}."
+                UsuarioId: usuarioEjecutorId,
+                Accion: "Registrar Recurso",
+                EntidadAfectada: "RecursosBibliograficos",
+                detalles: $"Se registró el recurso '{recurso.Titulo}' con ISBN {recurso.ISBN} y {request.CantidadEjemplares} ejemplares."
             );
 
             return MapearRecurso(recurso, categoria.Nombre);
