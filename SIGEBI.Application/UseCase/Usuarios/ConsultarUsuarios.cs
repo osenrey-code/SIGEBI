@@ -3,6 +3,7 @@ using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
@@ -18,34 +19,55 @@ namespace SIGEBI.Application.UseCase.Usuarios
 
         public async Task<IEnumerable<UsuarioResponse>> ConsultarUsuariosAsync(ConsultarUsuariosRequest filtros)
         {
+            if (filtros is null)
+                throw new BusinessException("Los filtros de consulta son obligatorios.");
+
+            string? nombre = string.IsNullOrWhiteSpace(filtros.nombre)
+                ? null
+                : filtros.nombre.Trim();
+
+            string? tipoUsuario = string.IsNullOrWhiteSpace(filtros.TipoUsuario)
+                ? null
+                : filtros.TipoUsuario.Trim();
+
+            string? estado = string.IsNullOrWhiteSpace(filtros.Estado)
+                ? null
+                : filtros.Estado.Trim();
+
             var listaUsuarios = await _usuarios.ConsultarPorFiltrosAsync(
-                filtros.nombre,
-                filtros.TipoUsuario,
-                filtros.Estado
+                nombre,
+                tipoUsuario,
+                estado
             );
 
-            return listaUsuarios.Select(u => new UsuarioResponse
+            if (listaUsuarios is null)
+                return Enumerable.Empty<UsuarioResponse>();
+
+            var usuariosValidos = listaUsuarios
+                .Where(u => u is not null)
+                .Cast<Usuario>();
+
+            return usuariosValidos.Select(usuario => new UsuarioResponse
             {
-                UsuarioId = u.UsuarioId,
-                Identificacion = ObtenerIdentificacion(u), 
-                NombreCompleto = u.NombreCompleto,
-                Correo = u.Correo,
-                TipoUsuario = u.GetType().Name,
-                Estado = u.Estado.ToString()
-            });
+                UsuarioId = usuario.UsuarioId,
+                Identificacion = ObtenerIdentificacion(usuario),
+                NombreCompleto = usuario.NombreCompleto,
+                Correo = usuario.Correo,
+                TipoUsuario = usuario.GetType().Name,
+                Estado = usuario.Estado.ToString()
+            }).ToList();
         }
 
-        // Método privado para saber si debemos leer la Matrícula o el Código de Empleado
-        private string ObtenerIdentificacion(Usuario usuario)
+        private static string ObtenerIdentificacion(Usuario usuario)
         {
             return usuario switch
             {
-                Estudiante e => e.Matricula,
-                Docente d => d.CodigoEmpleado,
-                Administrador a => a.CodigoEmpleado,
-                Bibliotecario b => b.CodigoEmpleado,
-                Auditor au => au.CodigoEmpleado,
-                _ => string.Empty //por si ocurre un error de casteo
+                Estudiante estudiante => estudiante.Matricula,
+                Docente docente => docente.CodigoEmpleado,
+                Administrador administrador => administrador.CodigoEmpleado,
+                Bibliotecario bibliotecario => bibliotecario.CodigoEmpleado,
+                Auditor auditor => auditor.CodigoEmpleado,
+                _ => string.Empty
             };
         }
     }

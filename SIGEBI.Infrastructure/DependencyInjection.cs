@@ -6,6 +6,7 @@ using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
 using SIGEBI.Infrastructure.Services;
+using SIGEBI.Application.Services;
 
 namespace SIGEBI.Infrastructure
 {
@@ -21,15 +22,23 @@ namespace SIGEBI.Infrastructure
                 )
             );
 
+            //Repositorios 
             services.AddScoped<IUsuario, RepositorioUsuario>();
-
+            services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
             services.AddScoped<IRepositorioRecurso, RepositorioRecurso>();
             services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
             services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
             services.AddScoped<IRepositorioPenalizacion, RepositorioPenalizacion>();
-            services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
-            // services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
+            services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
+            services.AddScoped<IEjemplarRepository, RepositorioEjemplar>();
+            services.AddScoped<ISolicitudRepository, RepositorioSolicitud>();
+            services.AddScoped<IRepositorioDevolucion, RepositorioDevolucion>();
 
+            //Servicios de aplicacion
+            services.AddScoped<INotificador, Notificador>();
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
+
+            //Servicios Tecnicos
             services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
             services.AddScoped<IServicioToken, ServicioToken>();
             services.AddScoped<IServicioPassword, ServicioPassword>();

@@ -100,7 +100,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             //Auditoria y notificaciones
             string tituloLibro = prestamo.Ejemplar.RecursoBibliografico?.Titulo ?? "Recurso";
 
-            var registroAuditoria = _auditoria.RegistrarAsync(
+            await _auditoria.RegistrarAsync(
                 UsuarioId: bibliotecarioId,
                 Accion: "Registrar",
                 EntidadAfectada: "Devolucion",

@@ -2,18 +2,16 @@
 {
     public class ReporteInventarioResponse
     {
+        public int RecursoBibliograficoId { get; set; }
+        public string ISBN { get; set; } = string.Empty;
+        public string Titulo { get; set; } = string.Empty;
+        public string Autor { get; set; } = string.Empty;
         public string Categoria { get; set; } = string.Empty;
 
-        public int TotalTitulos { get; set; }
-
         public int TotalEjemplares { get; set; }
-
-        public int EjemplaresDisponibles { get; set; }
-
-        public int EjemplaresPrestados { get; set; }
-
-        public int EjemplaresReservados { get; set; }
-
-        public int EjemplaresFueraDeServicio { get; set; }
+        public int Disponibles { get; set; }
+        public int Prestados { get; set; }
+        public int Reservados { get; set; }
+        public int FueraDeServicio { get; set; }
     }
 }

@@ -62,7 +62,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 request.UsuarioResolucionId,
                 "Resolver penalización",
                 "Penalizacion",
-                $"Se resolvió la penalización ID {penalizacion.IdPenalizacion} del usuario ID {penalizacion.UsuarioId}."
+                $"Se resolvió la penalización ID {penalizacion.PenalizacionId} del usuario ID {penalizacion.UsuarioId}."
             );
 
             return MapearPenalizacion(penalizacion);
@@ -72,7 +72,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         {
             return new PenalizacionResponse
             {
-                IdPenalizacion = penalizacion.IdPenalizacion,
+                PenalizacionId = penalizacion.PenalizacionId,
                 UsuarioId = penalizacion.UsuarioId,
                 PrestamoId = penalizacion.PrestamoId,
                 DiasRetraso = penalizacion.DiasRetraso,

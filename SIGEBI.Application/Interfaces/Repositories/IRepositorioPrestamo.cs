@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
@@ -18,6 +19,8 @@ namespace SIGEBI.Application.Interfaces.Repositories
 
         Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? ejemplarId);
         Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId);
+
+        Task<ReportePrestamoResponse> ObtenerEstadisticaPrestamoAsync(DateTime fechaInicio, DateTime fechaFin);
     }
 }
 

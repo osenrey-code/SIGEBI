@@ -44,8 +44,8 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 throw new BusinessException("Solo personal autorizado puede consultar penalizaciones activas.");
             }
 
-            var penalizaciones = await _penalizaciones.ObtenerActivasPorUsuarioAsync(
-                request.UsuarioId
+            var penalizaciones = await _penalizaciones.ConsultarAsync(
+                request.UsuarioId, null, EstadoPenalizacion.Activa, null, null
             );
 
             return penalizaciones
@@ -57,7 +57,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         {
             return new PenalizacionResponse
             {
-                IdPenalizacion = penalizacion.IdPenalizacion,
+                PenalizacionId = penalizacion.PenalizacionId,
                 UsuarioId = penalizacion.UsuarioId,
                 PrestamoId = penalizacion.PrestamoId,
                 DiasRetraso = penalizacion.DiasRetraso,

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
@@ -15,19 +16,23 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task<IEnumerable<Penalizacion>> ObtenerPorUsuarioAsync(int usuarioId)
         {
             return await _context.Penalizaciones
-                .Include(p => p.Prestamo)
-                .AsNoTracking()
-                .Where(p => p.UsuarioId == usuarioId)
-                .ToListAsync();
+               .Include(p => p.Usuario)
+               .Include(p => p.Prestamo)
+               .AsNoTracking()
+               .Where(p => p.UsuarioId == usuarioId)
+               .OrderByDescending(p => p.FechaGeneracion)
+               .ToListAsync();
         }
 
         public async Task<Penalizacion?> ObtenerActivaPorUsuarioAsync(int usuarioId)
         {
             return await _context.Penalizaciones
-                .Include(p => p.Prestamo)
-                .FirstOrDefaultAsync(p =>
-                    p.UsuarioId == usuarioId &&
-                    p.Estado == EstadoPenalizacion.Activa);
+           .Include(p => p.Usuario)
+           .Include(p => p.Prestamo)
+           .AsNoTracking()
+           .FirstOrDefaultAsync(p =>
+               p.UsuarioId == usuarioId &&
+               p.Estado == EstadoPenalizacion.Activa);
         }
 
         public async Task<bool> TienePenalizacionActivaAsync(int usuarioId)
@@ -40,19 +45,25 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<IEnumerable<Penalizacion>> ConsultarAsync(
             int? usuarioId,
+            int? prestamoId,
             EstadoPenalizacion? estado,
             DateTime? fechaInicio,
             DateTime? fechaFin)
         {
             var query = _context.Penalizaciones
-                .Include(p => p.Usuario)
-                .Include(p => p.Prestamo)
-                .AsNoTracking() 
-                .AsQueryable();
+           .Include(p => p.Usuario)
+           .Include(p => p.Prestamo)
+           .AsNoTracking()
+           .AsQueryable();
 
-            if (usuarioId > 0)
+            if (usuarioId.HasValue && usuarioId.Value > 0)
             {
-                query = query.Where(p => p.UsuarioId == usuarioId);
+                query = query.Where(p => p.UsuarioId == usuarioId.Value);
+            }
+
+            if (prestamoId.HasValue && prestamoId.Value > 0)
+            {
+                query = query.Where(p => p.PrestamoId == prestamoId.Value);
             }
 
             if (estado.HasValue)
@@ -70,7 +81,50 @@ namespace SIGEBI.Infrastructure.Repositories
                 query = query.Where(p => p.FechaGeneracion <= fechaFin.Value);
             }
 
-            return await query.ToListAsync();
+            return await query
+                .OrderByDescending(p => p.FechaGeneracion)
+                .ToListAsync();
+        }
+
+        public async Task<ReportePenalizacionesResponse> ObtenerEstadisticaPenalizacionesAsync(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var query = _context.Penalizaciones
+            .AsNoTracking()
+            .Where(p => p.FechaGeneracion >= fechaInicio &&
+                   p.FechaGeneracion <= fechaFin);
+
+            int total = await query.CountAsync();
+
+            int activas = await query.CountAsync(p =>
+                p.Estado == EstadoPenalizacion.Activa);
+
+            int resueltas = await query.CountAsync(p =>
+                p.Estado == EstadoPenalizacion.Pagada);
+
+            int totalDiasRetraso = await query.SumAsync(p =>
+                (int?)p.DiasRetraso) ?? 0;
+
+            decimal montoTotal = await query.SumAsync(p =>
+                (decimal?)p.MontoMora) ?? 0;
+
+            decimal montoActivo = await query
+                .Where(p => p.Estado == EstadoPenalizacion.Activa)
+                .SumAsync(p => (decimal?)p.MontoMora) ?? 0;
+
+            decimal montoResuelto = await query
+                .Where(p => p.Estado == EstadoPenalizacion.Pagada)
+                .SumAsync(p => (decimal?)p.MontoMora) ?? 0;
+
+            return new ReportePenalizacionesResponse
+            {
+                TotalPenalizaciones = total,
+                PenalizacionesActivas = activas,
+                PenalizacionesResueltas = resueltas,
+                TotalDiasRetraso = totalDiasRetraso,
+                MontoTotalMora = montoTotal,
+                MontoMoraActiva = montoActivo,
+                MontoMoraResuelta = montoResuelto
+            };
         }
     }
 }

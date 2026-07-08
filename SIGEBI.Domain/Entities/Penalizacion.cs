@@ -22,13 +22,30 @@ namespace SIGEBI.Domain.Entities
         public DateTime FechaGeneracion { get; private set; }
         public DateTime? FechaResolucion { get; private set; }
 
+        public int? UsuarioResolucionId { get; private set; }
+        public string? MotivoResolucion { get; private set; }
+
         protected Penalizacion() { }
 
-        public Penalizacion(int usuarioId, int prestamoId, int diasRetraso, decimal montoMora, string motivo)
+        public Penalizacion(
+            int usuarioId,
+            int prestamoId,
+            int diasRetraso,
+            decimal montoMora,
+            string motivo)
         {
-            Guard.GreaterThanD(montoMora, 0, "debe ser mayor a ");
-            Guard.NotNullOrWhiteSpace(motivo, "El motivo ");
-                
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario de la penalización es obligatorio.");
+
+            if (prestamoId <= 0)
+                throw new BusinessException("El préstamo asociado a la penalización es obligatorio.");
+
+            if (diasRetraso <= 0)
+                throw new BusinessException("Los días de retraso deben ser mayor a cero.");
+
+            Guard.GreaterThanD(montoMora, 0, "El monto de mora");
+            Guard.NotNullOrWhiteSpace(motivo, "El motivo");
+
             UsuarioId = usuarioId;
             PrestamoId = prestamoId;
             DiasRetraso = diasRetraso;
@@ -39,15 +56,20 @@ namespace SIGEBI.Domain.Entities
             Estado = EstadoPenalizacion.Activa;
         }
 
-        public void Resolver()
+        public void Resolver(int usuarioResolucionId, string motivoResolucion)
         {
             if (Estado != EstadoPenalizacion.Activa)
-            {
-                throw new BusinessException("Solo se pueden pagar o resolver penalizaciones activas.");
-            }
+                throw new BusinessException("Solo se pueden resolver penalizaciones activas.");
+
+            if (usuarioResolucionId <= 0)
+                throw new BusinessException("El usuario que resuelve la penalización es obligatorio.");
+
+            Guard.NotNullOrWhiteSpace(motivoResolucion, "El motivo de resolución");
 
             Estado = EstadoPenalizacion.Pagada;
             FechaResolucion = DateTime.UtcNow;
+            UsuarioResolucionId = usuarioResolucionId;
+            MotivoResolucion = motivoResolucion;
         }
     }
 }

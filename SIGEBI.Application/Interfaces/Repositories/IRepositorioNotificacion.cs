@@ -1,13 +1,21 @@
 ﻿using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioNotificacion : ReadOnly<Notificacion>, Writer<Notificacion>
+    public interface IRepositorioNotificacion : IRepositoryInmutable<Notificacion>
     {
+        Task<IEnumerable<Notificacion>> ObtenerPorUsuarioAsync(int usuarioId);
+
         Task<IEnumerable<Notificacion>> ConsultarAsync(
-            Guid? usuarioDestinatarioId,
-            string? tipoEvento,
-            DateTime? fechaInicio,
-            DateTime? fechaFin);
+            int? usuarioId,
+            string? tipo
+        );
+
+        Task<bool> ExisteAsync(
+            int usuarioId,
+            TipoNotificacion tipo,
+            string mensaje
+        );
     }
 }

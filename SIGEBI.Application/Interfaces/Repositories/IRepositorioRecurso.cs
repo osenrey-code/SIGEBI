@@ -16,6 +16,8 @@ namespace SIGEBI.Application.Interfaces.Repositories
             bool? soloDisponibles
         );
 
-        Task<IEnumerable<ReporteInventarioResponse>> ObtenerEstadisticasInventarioAsync();
+        Task<IEnumerable<ReporteUsoCatalogoResponse>> ObtenerEstadisticasUsoAsync(DateTime fechaInicio, DateTime fechaFin);
+
+        Task<IEnumerable<ReporteInventarioResponse>> ObtenerReporteInventarioAsync();
     }
 }
