@@ -5,11 +5,11 @@ using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Domain.Exceptions;
-using System.Net.Http.Headers;
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
-    public class RegistrarUsuario 
+    public class RegistrarUsuario
     {
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
@@ -22,40 +22,125 @@ namespace SIGEBI.Application.UseCase.Usuarios
             _password = password;
         }
 
-        public async Task RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int actorId)
+        public async Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int actorId)
         {
-            var existe = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
+            Guard.NotNull(request, "Los datos del usuario");
 
-            if (existe != null)
-                throw new BusinessException("El usuario ya esta registrado.");
+            if (actorId <= 0)
+                throw new BusinessException("El usuario que realiza la acción es obligatorio.");
 
-            bool CorreoOcupado = await _usuarios.ExisteCorreoAsync(request.Correo);
+            Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación del usuario");
+            Guard.NotNullOrWhiteSpace(request.NombreCompleto, "El nombre completo del usuario");
+            Guard.NotNullOrWhiteSpace(request.Correo, "El correo del usuario");
+            Guard.NotNullOrWhiteSpace(request.Tipo, "El tipo de usuario");
 
-            if (CorreoOcupado) throw new BusinessException("Ya existe un usuario registrado con este correo.");
+            string identificacion = request.Identificacion.Trim();
+            string nombreCompleto = request.NombreCompleto.Trim();
+            string correo = request.Correo.Trim();
+            string tipo = request.Tipo.Trim().ToLower();
 
+            var actor = await _usuarios.ObtenerporIdAsync(actorId);
 
-            Usuario usuario = request.Tipo.ToLower() switch
+            if (actor is null)
+                throw new BusinessException("El usuario que realiza la acción no existe.");
+
+            if (actor.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("El usuario que realiza la acción no está activo.");
+
+            if (actor is not Administrador)
+                throw new BusinessException("Solo un administrador puede registrar usuarios.");
+
+            var usuarioExistente = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
+                identificacion
+            );
+
+            if (usuarioExistente is not null)
+                throw new BusinessException("El usuario ya está registrado.");
+
+            bool correoOcupado = await _usuarios.ExisteCorreoAsync(correo);
+
+            if (correoOcupado)
+                throw new BusinessException("Ya existe un usuario registrado con este correo.");
+
+            string passwordInicial = _password.GenerarHash(identificacion);
+
+            Usuario usuario = tipo switch
             {
-                "estudiante" => new Estudiante { Matricula = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
-                "docente" => new Docente { CodigoEmpleado = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
-                "administrador" => new Administrador { CodigoEmpleado = request.Identificacion, PassWord = _password.GenerarHash(request.Identificacion) },
-                "bibliotecario" => new Bibliotecario { CodigoEmpleado = request.Identificacion , PassWord = _password.GenerarHash(request.Identificacion) },
-                "auditor" => new Auditor { CodigoEmpleado = request.Identificacion , PassWord = _password.GenerarHash(request.Identificacion) },
-                _ => throw new BusinessException("Usuario Inválido.")
+                "estudiante" => new Estudiante
+                {
+                    Matricula = identificacion,
+                    PassWord = passwordInicial
+                },
+
+                "docente" => new Docente
+                {
+                    CodigoEmpleado = identificacion,
+                    PassWord = passwordInicial
+                },
+
+                "administrador" => new Administrador
+                {
+                    CodigoEmpleado = identificacion,
+                    PassWord = passwordInicial
+                },
+
+                "bibliotecario" => new Bibliotecario
+                {
+                    CodigoEmpleado = identificacion,
+                    PassWord = passwordInicial
+                },
+
+                "auditor" => new Auditor
+                {
+                    CodigoEmpleado = identificacion,
+                    PassWord = passwordInicial
+                },
+
+                _ => throw new BusinessException("Tipo de usuario inválido.")
             };
 
-            usuario.NombreCompleto = request.NombreCompleto;
-            usuario.Correo = request.Correo;
+            usuario.NombreCompleto = nombreCompleto;
+            usuario.Correo = correo;
             usuario.Estado = EstadoUsuario.Activo;
 
             await _usuarios.AgregarAsync(usuario);
+
             await _auditoria.RegistrarAsync(
-               UsuarioId: actorId,
-               Accion: "Registrar Usuario",
-               EntidadAfectada: "Usuarios",
-               detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {request.Identificacion}"
-             );
+                UsuarioId: actorId,
+                Accion: "Registrar Usuario",
+                EntidadAfectada: "Usuarios",
+                detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {identificacion}."
+            );
+
+            return MapearUsuario(usuario);
+        }
+
+        private static UsuarioResponse MapearUsuario(Usuario usuario)
+        {
+            return new UsuarioResponse
+            {
+                UsuarioId = usuario.UsuarioId,
+                Identificacion = ObtenerIdentificacion(usuario),
+                NombreCompleto = usuario.NombreCompleto,
+                Correo = usuario.Correo,
+                TipoUsuario = usuario.GetType().Name,
+                Estado = usuario.Estado.ToString()
+            };
+        }
+
+        private static string ObtenerIdentificacion(Usuario usuario)
+        {
+            return usuario switch
+            {
+                Estudiante estudiante => estudiante.Matricula,
+                Docente docente => docente.CodigoEmpleado,
+                Administrador administrador => administrador.CodigoEmpleado,
+                Bibliotecario bibliotecario => bibliotecario.CodigoEmpleado,
+                Auditor auditor => auditor.CodigoEmpleado,
+                _ => string.Empty
+            };
         }
     }
-} 
+}
+
 

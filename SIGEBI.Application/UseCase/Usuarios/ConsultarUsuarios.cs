@@ -22,10 +22,22 @@ namespace SIGEBI.Application.UseCase.Usuarios
             if (filtros is null)
                 throw new BusinessException("Los filtros de consulta son obligatorios.");
 
+            string? nombre = string.IsNullOrWhiteSpace(filtros.nombre)
+                ? null
+                : filtros.nombre.Trim();
+
+            string? tipoUsuario = string.IsNullOrWhiteSpace(filtros.TipoUsuario)
+                ? null
+                : filtros.TipoUsuario.Trim();
+
+            string? estado = string.IsNullOrWhiteSpace(filtros.Estado)
+                ? null
+                : filtros.Estado.Trim();
+
             var listaUsuarios = await _usuarios.ConsultarPorFiltrosAsync(
-                filtros.nombre,
-                filtros.TipoUsuario,
-                filtros.Estado
+                nombre,
+                tipoUsuario,
+                estado
             );
 
             if (listaUsuarios is null)
@@ -45,19 +57,17 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 Estado = usuario.Estado.ToString()
             }).ToList();
         }
-        
 
-        // Método privado para saber si debemos leer la Matrícula o el Código de Empleado
-        private string ObtenerIdentificacion(Usuario usuario)
+        private static string ObtenerIdentificacion(Usuario usuario)
         {
             return usuario switch
             {
-                Estudiante e => e.Matricula,
-                Docente d => d.CodigoEmpleado,
-                Administrador a => a.CodigoEmpleado,
-                Bibliotecario b => b.CodigoEmpleado,
-                Auditor au => au.CodigoEmpleado,
-                _ => string.Empty //por si ocurre un error de casteo
+                Estudiante estudiante => estudiante.Matricula,
+                Docente docente => docente.CodigoEmpleado,
+                Administrador administrador => administrador.CodigoEmpleado,
+                Bibliotecario bibliotecario => bibliotecario.CodigoEmpleado,
+                Auditor auditor => auditor.CodigoEmpleado,
+                _ => string.Empty
             };
         }
     }
