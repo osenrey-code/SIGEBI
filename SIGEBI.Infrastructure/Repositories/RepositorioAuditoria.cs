@@ -21,12 +21,14 @@ namespace SIGEBI.Infrastructure.Repositories
             var auditoriaId = Convert.ToInt32(id);
 
             return await _dbSet
-                .FirstOrDefaultAsync(a => a.IdAuditoria == auditoriaId);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.AuditoriaId == auditoriaId);
         }
 
         public async Task<IReadOnlyList<Auditoria>> ObtenerTodosAsync()
         {
             return await _dbSet
+                .AsNoTracking()
                 .OrderByDescending(a => a.FechaRegistro)
                 .ToListAsync();
         }
@@ -39,12 +41,15 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public Task ActualizarAsync(Auditoria entidad)
         {
-            throw new NotSupportedException("Los registros de auditoría no pueden ser modificados.");
+            throw new NotSupportedException(
+                "Los registros de auditoría no pueden ser modificados."
+            );
         }
 
         public async Task<IEnumerable<Auditoria>> ObtenerPorEjecutorAsync(int usuarioId)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Where(a => a.UsuarioId == usuarioId)
                 .OrderByDescending(a => a.FechaRegistro)
                 .ToListAsync();
@@ -53,6 +58,7 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task<IEnumerable<Auditoria>> ObtenerPorEntidadAsync(string entidad)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Where(a => a.EntidadAfectada.Contains(entidad.Trim()))
                 .OrderByDescending(a => a.FechaRegistro)
                 .ToListAsync();
@@ -65,7 +71,9 @@ namespace SIGEBI.Infrastructure.Repositories
             DateTime? fechaInicio,
             DateTime? fechaFin)
         {
-            var query = _dbSet.AsQueryable();
+            var query = _dbSet
+                .AsNoTracking()
+                .AsQueryable();
 
             if (usuarioId.HasValue)
                 query = query.Where(a => a.UsuarioId == usuarioId.Value);

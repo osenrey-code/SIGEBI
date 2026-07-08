@@ -36,7 +36,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 .OrderByDescending(r => r.FechaRegistro)
                 .Select(r => new HistorialRecursoResponse
                 {
-                    AuditoriaId = r.IdAuditoria,
+                    AuditoriaId = r.AuditoriaId,
                     RecursoBibliograficoId = request.RecursoBibliograficoId,
                     TipoCambio = r.Accion,
                     Detalle = r.Detalle,

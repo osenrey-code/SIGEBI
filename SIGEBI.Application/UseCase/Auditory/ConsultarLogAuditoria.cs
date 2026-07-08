@@ -59,7 +59,7 @@ namespace SIGEBI.Application.UseCase.Auditory
         {
             return new LogAuditoriaResponse
             {
-                IdAuditoria = registro.IdAuditoria,
+                AuditoriaId = registro.AuditoriaId,
                 UsuarioId = registro.UsuarioId,
                 Accion = registro.Accion,
                 EntidadAfectada = registro.EntidadAfectada,
