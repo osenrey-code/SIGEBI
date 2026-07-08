@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SIGEBI.Application.DTOs.Response
+﻿namespace SIGEBI.Application.DTOs.Response
 {
     public class ReporteInventarioResponse
     {

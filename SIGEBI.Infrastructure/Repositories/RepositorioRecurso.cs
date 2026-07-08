@@ -4,6 +4,7 @@ using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Infrastructure.Persistence;
+using SIGEBI.Application.DTOs.Response;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
@@ -19,6 +20,41 @@ namespace SIGEBI.Infrastructure.Repositories
                 .Include(r => r.Categoria)
                 .Include(r => r.Ejemplares)
                 .FirstOrDefaultAsync(r => r.ISBN.ToLower() == isbn.Trim().ToLower());
+        }
+
+        public async Task<IEnumerable<ReporteInventarioResponse>> ObtenerEstadisticasInventarioAsync()
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .GroupBy(r => r.Categoria != null ? r.Categoria.Nombre : "Sin Categoría")
+                .Select(grupo => new ReporteInventarioResponse
+                {
+                    Categoria = grupo.Key,
+
+                    TotalTitulos = grupo.Count(),
+
+                    TotalEjemplares = grupo
+                        .SelectMany(r => r.Ejemplares)
+                        .Count(),
+
+                    EjemplaresDisponibles = grupo
+                        .SelectMany(r => r.Ejemplares)
+                        .Count(e => e.Estado == EstadoEjemplar.Disponible),
+
+                    EjemplaresPrestados = grupo
+                        .SelectMany(r => r.Ejemplares)
+                        .Count(e => e.Estado == EstadoEjemplar.Prestado),
+
+                    EjemplaresReservados = grupo
+                        .SelectMany(r => r.Ejemplares)
+                        .Count(e => e.Estado == EstadoEjemplar.Reservado),
+
+                    EjemplaresFueraDeServicio = grupo
+                        .SelectMany(r => r.Ejemplares)
+                        .Count(e => e.Estado == EstadoEjemplar.FueraDeServicio)
+                })
+                .OrderBy(r => r.Categoria)
+                .ToListAsync();
         }
 
         public async Task<RecursoBibliografico?> BuscarConCategoriaAsync(int recursoBibliograficoId)
