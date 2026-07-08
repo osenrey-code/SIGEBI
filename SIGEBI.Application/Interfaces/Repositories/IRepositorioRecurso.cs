@@ -1,4 +1,5 @@
-﻿using SIGEBI.Domain.Entities;
+﻿using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
@@ -14,5 +15,9 @@ namespace SIGEBI.Application.Interfaces.Repositories
             string? categoria,
             bool? soloDisponibles
         );
+
+        Task<IEnumerable<ReporteUsoCatalogoResponse>> ObtenerEstadisticasUsoAsync(DateTime fechaInicio, DateTime fechaFin);
+
+        Task<IEnumerable<ReporteInventarioResponse>> ObtenerReporteInventarioAsync();
     }
 }

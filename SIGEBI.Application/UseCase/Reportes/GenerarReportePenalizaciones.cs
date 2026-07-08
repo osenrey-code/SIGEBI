@@ -16,60 +16,10 @@ namespace SIGEBI.Application.UseCase.Reportes
             _penalizaciones = penalizaciones;
         }
 
-        public async Task<ResultadoOperacionResponse<ReportePenalizacionesResponse>> EjecutarAsync(
-            GenerarReporteRequest request)
+        public async Task<ReportePenalizacionesResponse> EjecutarAsync(
+            ReporteRangoFRequest request)
         {
-            if (request.FechaInicio.HasValue &&
-                request.FechaFin.HasValue &&
-                request.FechaInicio.Value.Date > request.FechaFin.Value.Date)
-            {
-                return ResultadoOperacionResponse<ReportePenalizacionesResponse>.Error(
-                    "La fecha de inicio no puede ser mayor que la fecha final."
-                );
-            }
-
-            var penalizaciones = await _penalizaciones.ObtenerTodosAsync();
-
-            var lista = penalizaciones.ToList();
-
-            if (request.FechaInicio.HasValue)
-            {
-                lista = lista
-                     .Where(p => p.FechaGeneracion.Date >= request.FechaInicio.Value.Date)
-                     .ToList();
-            }
-
-            if (request.FechaFin.HasValue)
-            {
-                lista = lista
-                    .Where(p => p.FechaGeneracion.Date <= request.FechaFin.Value.Date)
-                    .ToList();
-            }
-
-            //Filtramos por fecha
-            var activas = lista.Where(p =>
-              p.Estado == EstadoPenalizacion.Activa)
-                .ToList();
-
-            var resueltas = lista.Where(p =>
-                p.Estado == EstadoPenalizacion.Resuelta)
-                .ToList();
-
-            var response = new ReportePenalizacionesResponse
-            {
-                TotalPenalizaciones = lista.Count,
-                PenalizacionesActivas = activas.Count,
-                PenalizacionesResueltas = resueltas.Count,
-                TotalDiasRetraso = lista.Sum(p => p.DiasRetraso),
-                MontoTotalMora = lista.Sum(p => p.MontoMora),
-                MontoMoraActiva = activas.Sum(p => p.MontoMora),
-                MontoMoraResuelta = resueltas.Sum(p => p.MontoMora)
-            };
-
-            return ResultadoOperacionResponse<ReportePenalizacionesResponse>.Ok(
-                "Reporte de penalizaciones generado correctamente.",
-                response
-            );
+            return await _penalizaciones.ObtenerEstadisticaPenalizacionesAsync(request.FechaInicio, request.FechaFin);
         }
     }
 }

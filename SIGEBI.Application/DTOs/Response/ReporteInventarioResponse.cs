@@ -6,10 +6,16 @@ namespace SIGEBI.Application.DTOs.Response
 {
     public class ReporteInventarioResponse
     {
-        public int TotalRecursos { get; set; }
-        public int RecursosDisponibles { get; set; }
-        public int RecursosPrestados { get; set; }
-        public int RecursosReservados { get; set; }
-        public int RecursosFueraDeServicio { get; set; }
+        public int RecursoBibliograficoId { get; set; }
+        public string ISBN { get; set; } = string.Empty;
+        public string Titulo { get; set; } = string.Empty;
+        public string Autor { get; set; } = string.Empty;
+        public string Categoria { get; set; } = string.Empty;
+
+        public int TotalEjemplares { get; set; }
+        public int Disponibles { get; set; }
+        public int Prestados { get; set; }
+        public int Reservados { get; set; }
+        public int FueraDeServicio { get; set; }
     }
 }
