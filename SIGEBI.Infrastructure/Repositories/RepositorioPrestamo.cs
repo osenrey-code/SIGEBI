@@ -45,7 +45,7 @@ namespace SIGEBI.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId, int? recursoBibliograficoId)
+        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? recursoBibliograficoId, int? ejemplarId)
         {
             var query = _context.Prestamos
             .AsNoTracking()
