@@ -1,11 +1,11 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
-using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Domain.Exceptions;
-
 
 namespace SIGEBI.Application.UseCase.Prestamos
 {
@@ -15,7 +15,6 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly ISolicitudRepository _solicitudes;
-        private readonly INotificador _notificador;
         private readonly IAuditoriaService _auditoria;
         private readonly IEjemplarRepository _ejemplares;
 
@@ -25,7 +24,6 @@ namespace SIGEBI.Application.UseCase.Prestamos
             ISolicitudRepository solicitudes,
             IRepositorioPrestamo prestamos,
             IRepositorioPenalizacion penalizaciones,
-            INotificador notificador,
             IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
@@ -33,46 +31,79 @@ namespace SIGEBI.Application.UseCase.Prestamos
             _solicitudes = solicitudes;
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
-            _notificador = notificador;
             _auditoria = auditoria;
         }
 
-        public async Task<SolicitudResponse> SolicitarPrestamoAsync(RegistrarSolicitudRequest request, string Identificacion, int usuarioId )
+        public async Task<SolicitudResponse> SolicitarPrestamoAsync(
+            RegistrarSolicitudRequest request,
+            int usuarioId)
         {
-            // 1. Validar que el usuario exista
-            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(Identificacion);
-            if (usuario == null)
-                throw new BusinessException("Usuario no encontrado."); // Idealmente usarías una custom BusinessException
+            Guard.NotNull(request, "Los datos de la solicitud");
 
-            // 2. Validar Penalizaciones Activas
-            bool tienePenalizacion = await _penalizaciones.TienePenalizacionActivaAsync(usuarioId);
-            if (tienePenalizacion)
-                throw new BusinessException("El usuario tiene una penalización activa y no puede solicitar recursos.");
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario solicitante es obligatorio.");
 
-            // 3. Validar Límite de Préstamos
-            int prestamosActivos = await _prestamos.ContarActivosPorUsuarioAsync(usuarioId);
+            if (request.EjemplarId <= 0)
+                throw new BusinessException("El ejemplar solicitado es obligatorio.");
 
-            int LimitesPermitidos = usuario switch
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
+
+            if (usuario is null)
+                throw new BusinessException("El usuario solicitante no existe.");
+
+            if (usuario.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("El usuario solicitante no está activo.");
+
+            int limitePermitido = usuario switch
             {
                 Estudiante estudiante => estudiante.LimitePrestamos,
                 Docente docente => docente.LimitePrestamo,
-                _ => throw new BusinessException("El tipo de usuario no tiene permiso para solicitud ")
+                _ => throw new BusinessException("Solo estudiantes y docentes pueden solicitar préstamos.")
             };
 
-            if (prestamosActivos >= LimitesPermitidos)
-                throw new Exception($"Límite excedido. Su rol permite un máximo de {LimitesPermitidos} préstamos simultáneos.");
+            bool tienePenalizacion = await _penalizaciones.TienePenalizacionActivaAsync(
+                usuario.UsuarioId
+            );
 
-            // 4. Validar Existencia y Disponibilidad del Ejemplar
+            if (tienePenalizacion)
+                throw new BusinessException("El usuario tiene una penalización activa y no puede solicitar recursos.");
+
+            int prestamosActivos = await _prestamos.ContarActivosPorUsuarioAsync(
+                usuario.UsuarioId
+            );
+
+            if (prestamosActivos >= limitePermitido)
+            {
+                throw new BusinessException(
+                    $"Solicitud rechazada. El usuario tiene {prestamosActivos} préstamos activos y su límite permitido es {limitePermitido}."
+                );
+            }
+
             var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
-            if (ejemplar == null)
+
+            if (ejemplar is null)
                 throw new BusinessException("El ejemplar físico solicitado no existe.");
 
             if (ejemplar.Estado != EstadoEjemplar.Disponible)
-                throw new BusinessException($"El ejemplar seleccionado no está disponible. Estado actual: {ejemplar.Estado}");
+            {
+                throw new BusinessException(
+                    $"El ejemplar seleccionado no está disponible. Estado actual: {ejemplar.Estado}."
+                );
+            }
 
+            var nuevaSolicitud = new Solicitud(
+                usuario.UsuarioId,
+                request.EjemplarId
+            );
 
-            var nuevaSolicitud = new Solicitud(usuarioId, request.EjemplarId);
             await _solicitudes.AgregarAsync(nuevaSolicitud);
+
+            await _auditoria.RegistrarAsync(
+                UsuarioId: usuario.UsuarioId,
+                Accion: "Solicitar Préstamo",
+                EntidadAfectada: "Solicitudes",
+                detalles: $"El usuario '{usuario.NombreCompleto}' solicitó el ejemplar ID {ejemplar.EjemplarId}. Préstamos activos actuales: {prestamosActivos}. Límite permitido: {limitePermitido}."
+            );
 
             return new SolicitudResponse
             {
@@ -82,10 +113,6 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 FechaSolicitud = nuevaSolicitud.FechaSolicitud,
                 Estado = nuevaSolicitud.Estado.ToString()
             };
-
-
         }
     }
-
-} 
-
+}

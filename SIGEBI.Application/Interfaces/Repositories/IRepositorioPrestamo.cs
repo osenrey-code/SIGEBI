@@ -17,8 +17,16 @@ namespace SIGEBI.Application.Interfaces.Repositories
         Task<Prestamo?> ObtenerPorIdAsync(int id);
         Task<Prestamo?> ObtenerConDetallesAsync(int id);
 
-        Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? ejemplarId);
-        Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId);
+        Task<IEnumerable<Prestamo>> ConsultarActivosAsync(
+             int? usuarioId,
+             int? recursoBibliograficoId,
+             int? ejemplarId
+        );
+        Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(
+            int? usuarioId,
+            int? recursoBibliograficoId,
+            int? ejemplarId
+        );
 
         Task<ReportePrestamoResponse> ObtenerEstadisticaPrestamoAsync(DateTime fechaInicio, DateTime fechaFin);
         Task<bool> ExistePrestamoActivoPorRecursoAsync(int recursoBibliograficoId);

@@ -13,41 +13,67 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? ejemplarId)
+        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? ejemplarId, int? recursoBibliograficoId)
         {
             var query = _context.Prestamos
-                .AsNoTracking()
-                .Include(p => p.Ejemplar)
-                   .ThenInclude(e => e!.RecursoBibliografico)
-                .Where(p => p.Estado == EstadoPrestamo.Activo)
-                .AsQueryable();
+            .AsNoTracking()
+            .Include(p => p.Usuario)
+            .Include(p => p.Ejemplar)
+                .ThenInclude(e => e!.RecursoBibliografico)
+            .Where(p => p.Estado == EstadoPrestamo.Activo)
+            .AsQueryable();
 
             if (usuarioId.HasValue)
+            {
                 query = query.Where(p => p.UsuarioId == usuarioId.Value);
+            }
+
+            if (recursoBibliograficoId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Ejemplar != null &&
+                    p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId.Value);
+            }
 
             if (ejemplarId.HasValue)
+            {
                 query = query.Where(p => p.EjemplarId == ejemplarId.Value);
+            }
 
-            return await query.ToListAsync();
+            return await query
+                .OrderByDescending(p => p.FechaInicio)
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId)
+        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? ejemplarId, int? recursoBibliograficoId)
         {
             var query = _context.Prestamos
-                .AsNoTracking()
-                .Include(p => p.Ejemplar)
-                    .ThenInclude(e => e!.RecursoBibliografico)
-                .AsQueryable();
+            .AsNoTracking()
+            .Include(p => p.Usuario)
+            .Include(p => p.Ejemplar)
+                .ThenInclude(e => e!.RecursoBibliografico)
+            .AsQueryable();
 
             if (usuarioId.HasValue)
+            {
                 query = query.Where(p => p.UsuarioId == usuarioId.Value);
+            }
+
+            if (recursoBibliograficoId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Ejemplar != null &&
+                    p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId.Value);
+            }
 
             if (ejemplarId.HasValue)
+            {
                 query = query.Where(p => p.EjemplarId == ejemplarId.Value);
+            }
 
-            query = query.OrderByDescending(p => p.FechaInicio);
-
-            return await query.ToListAsync();
+            return await query
+                .OrderByDescending(p => p.FechaInicio)
+                .ToListAsync();
         }
 
       
