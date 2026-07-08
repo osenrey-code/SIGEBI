@@ -10,14 +10,10 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
         {
             builder.ToTable("Usuarios");
 
-            builder.HasKey(u => u.Id);
+            builder.HasKey(u => u.UsuarioId);
 
-            builder.Property(u => u.Identificacion)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            builder.HasIndex(u => u.Identificacion)
-                .IsUnique();
+            builder.Property(u => u.UsuarioId)
+                .ValueGeneratedOnAdd();
 
             builder.Property(u => u.NombreCompleto)
                 .IsRequired()
@@ -27,20 +23,39 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(u => u.Tipo)
+            builder.HasIndex(u => u.Correo)
+                .IsUnique();
+
+            builder.Property(u => u.PassWord)
                 .IsRequired()
-                .HasConversion<string>()
-                .HasMaxLength(50);
+                .HasMaxLength(300);
 
             builder.Property(u => u.Estado)
                 .IsRequired()
                 .HasConversion<string>()
                 .HasMaxLength(50);
 
-            builder.HasOne(u => u.PerfilLector)
-                .WithOne()
-                .HasForeignKey<PerfilLector>(p => p.UsuarioId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasDiscriminator<string>("TipoUsuario")
+                .HasValue<Estudiante>("Estudiante")
+                .HasValue<Docente>("Docente")
+                .HasValue<Bibliotecario>("Bibliotecario")
+                .HasValue<Administrador>("Administrador")
+                .HasValue<Auditor>("Auditor");
+
+            builder.HasMany(u => u.Prestamos)
+                .WithOne(p => p.Usuario)
+                .HasForeignKey(p => p.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(u => u.penalizciones)
+                .WithOne(p => p.Usuario)
+                .HasForeignKey(p => p.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(u => u.notificaciones)
+                .WithOne(n => n.Usuario)
+                .HasForeignKey(n => n.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

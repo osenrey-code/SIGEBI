@@ -6,6 +6,7 @@ using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
 using SIGEBI.Infrastructure.Services;
+using SIGEBI.Application.Services;
 
 namespace SIGEBI.Infrastructure
 {
@@ -22,7 +23,8 @@ namespace SIGEBI.Infrastructure
             );
 
             services.AddScoped<IUsuario, RepositorioUsuario>();
-
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
+            services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
             services.AddScoped<IRepositorioRecurso, RepositorioRecurso>();
             services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
             services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();

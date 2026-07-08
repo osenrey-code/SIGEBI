@@ -3,7 +3,7 @@ using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioNotificacion : IBaseRepository<Notificacion>
+    public interface IRepositorioNotificacion : IRepositoryInmutable<Notificacion>
     {
         Task<IEnumerable<Notificacion>> ObtenerPorUsuarioAsync(int usuarioId);
 

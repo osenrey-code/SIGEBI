@@ -10,7 +10,10 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
         {
             builder.ToTable("Penalizaciones");
 
-            builder.HasKey(p => p.IdPenalizacion);
+            builder.HasKey(p => p.PenalizacionId);
+
+            builder.Property(p => p.PenalizacionId)
+                .ValueGeneratedOnAdd();
 
             builder.Property(p => p.UsuarioId)
                 .IsRequired();
@@ -45,7 +48,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .HasMaxLength(300);
 
             builder.HasOne(p => p.Usuario)
-                .WithMany()
+                .WithMany(u => u.penalizciones)
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 

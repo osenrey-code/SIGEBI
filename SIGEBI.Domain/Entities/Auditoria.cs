@@ -20,7 +20,7 @@ namespace SIGEBI.Domain.Entities
             if (usuarioId <= 0) throw new BusinessException("El ID del Bibliotecario es obligatorio.");
             Guard.NotNullOrWhiteSpace(entidadAfectada, "La entidad que fue afectada.");
             Guard.NotNullOrWhiteSpace(accion, "La acción ");
-            Guard.NotNullOrWhiteSpace(detalle, "Detallar la acción");
+            Guard.NotNullOrWhiteSpace(detalles, "El detalle de la acción");
 
             UsuarioId = usuarioId;
             EntidadAfectada = entidadAfectada;

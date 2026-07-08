@@ -26,50 +26,61 @@ namespace SIGEBI.Infrastructure.Repositories
                 .FirstOrDefaultAsync(n => n.NotificacionId == notificacionId);
         }
 
-        public async Task<IReadOnlyList<Notificacion>> ObtenerTodosAsync()
+        public async Task AgregarAsync(Notificacion notificacion)
+        {
+            await _dbSet.AddAsync(notificacion);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Notificacion>> ObtenerPorUsuarioAsync(int usuarioId)
         {
             return await _dbSet
                 .AsNoTracking()
+                .Where(n => n.UsuarioId == usuarioId)
                 .OrderByDescending(n => n.FechaRegistro)
                 .ToListAsync();
         }
 
-        public async Task AgregarAsync(Notificacion entidad)
-        {
-            await _dbSet.AddAsync(entidad);
-            await _context.SaveChangesAsync();
-        }
-
-        public Task ActualizarAsync(Notificacion entidad)
-        {
-            throw new NotSupportedException(
-                "Las notificaciones no pueden ser modificadas."
-            );
-        }
-
-        public async Task<IEnumerable<Notificacion>> ConsultarAsync(
-            int? usuarioId,
-            TipoNotificacion? tipo,
-            DateTime? fechaInicio,
-            DateTime? fechaFin)
+        public async Task<IEnumerable<Notificacion>> ConsultarAsync(int? usuarioId, string? tipo)
         {
             var query = _dbSet
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (usuarioId.HasValue)
+            if (usuarioId.HasValue && usuarioId.Value > 0)
+            {
                 query = query.Where(n => n.UsuarioId == usuarioId.Value);
+            }
 
-            if (tipo.HasValue)
-                query = query.Where(n => n.Tipo == tipo.Value);
-
-            if (fechaInicio.HasValue)
-                query = query.Where(n => n.FechaRegistro >= fechaInicio.Value);
-
-            if (fechaFin.HasValue)
-                query = query.Where(n => n.FechaRegistro <= fechaFin.Value);
+            if (!string.IsNullOrWhiteSpace(tipo))
+            {
+                if (Enum.TryParse<TipoNotificacion>(
+                        tipo,
+                        true,
+                        out var tipoConvertido))
+                {
+                    query = query.Where(n => n.Tipo == tipoConvertido);
+                }
+            }
 
             return await query
+                .OrderByDescending(n => n.FechaRegistro)
+                .ToListAsync();
+        }
+
+        public async Task<bool> ExisteAsync(int usuarioId, TipoNotificacion tipo, string mensaje)
+        {
+            return await _dbSet
+                .AnyAsync(n =>
+                    n.UsuarioId == usuarioId &&
+                    n.Tipo == tipo &&
+                    n.Mensaje == mensaje);
+        }
+
+        public async Task<IEnumerable<Notificacion>> ObtenerTodosAsync()
+        {
+            return await _dbSet
+                .AsNoTracking()
                 .OrderByDescending(n => n.FechaRegistro)
                 .ToListAsync();
         }
