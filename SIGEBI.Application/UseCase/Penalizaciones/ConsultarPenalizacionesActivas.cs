@@ -57,7 +57,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         {
             return new PenalizacionResponse
             {
-                IdPenalizacion = penalizacion.IdPenalizacion,
+                PenalizacionId = penalizacion.PenalizacionId,
                 UsuarioId = penalizacion.UsuarioId,
                 PrestamoId = penalizacion.PrestamoId,
                 DiasRetraso = penalizacion.DiasRetraso,

@@ -26,7 +26,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
 
         public async Task<PenalizacionResponse> EjecutarAsync(ResolverPenalizacionRequest request)
         {
-            if (request.IdPenalizacion <= 0)
+            if (request.PenalizacionId <= 0)
                 throw new BusinessException("La penalización es obligatoria.");
 
             if (request.UsuarioResolucionId <= 0)
@@ -46,7 +46,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             if (usuarioResponsable is not Bibliotecario && usuarioResponsable is not Administrador)
                 throw new BusinessException("Solo un bibliotecario o administrador puede resolver penalizaciones.");
 
-            var penalizacion = await _penalizaciones.ObtenerporIdAsync(request.IdPenalizacion);
+            var penalizacion = await _penalizaciones.ObtenerporIdAsync(request.PenalizacionId);
 
             if (penalizacion is null)
                 throw new BusinessException("La penalización no existe.");
@@ -62,7 +62,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 request.UsuarioResolucionId,
                 "Resolver penalización",
                 "Penalizacion",
-                $"Se resolvió la penalización ID {penalizacion.IdPenalizacion} del usuario ID {penalizacion.UsuarioId}."
+                $"Se resolvió la penalización ID {penalizacion.PenalizacionId} del usuario ID {penalizacion.UsuarioId}."
             );
 
             return MapearPenalizacion(penalizacion);
@@ -72,7 +72,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         {
             return new PenalizacionResponse
             {
-                IdPenalizacion = penalizacion.IdPenalizacion,
+                PenalizacionId = penalizacion.PenalizacionId,
                 UsuarioId = penalizacion.UsuarioId,
                 PrestamoId = penalizacion.PrestamoId,
                 DiasRetraso = penalizacion.DiasRetraso,

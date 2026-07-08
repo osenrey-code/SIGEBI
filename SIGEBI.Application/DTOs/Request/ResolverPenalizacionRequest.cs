@@ -2,7 +2,7 @@
 
 public class ResolverPenalizacionRequest
 {
-    public int IdPenalizacion { get; set; }
+    public int PenalizacionId { get; set; }
 
     public int UsuarioResolucionId { get; set; }
 

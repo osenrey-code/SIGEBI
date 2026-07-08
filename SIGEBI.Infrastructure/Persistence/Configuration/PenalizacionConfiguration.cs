@@ -10,7 +10,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
         {
             builder.ToTable("Penalizaciones");
 
-            builder.HasKey(p => p.IdPenalizacion);
+            builder.HasKey(p => p.PenalizacionId);
 
             builder.Property(p => p.UsuarioId)
                 .IsRequired();

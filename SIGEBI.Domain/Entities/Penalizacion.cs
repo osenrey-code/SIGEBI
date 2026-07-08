@@ -21,7 +21,8 @@ namespace SIGEBI.Domain.Entities
         public EstadoPenalizacion Estado { get; private set; }
         public DateTime FechaGeneracion { get; private set; }
         public DateTime? FechaResolucion { get; private set; }
-
+        public int? UsuarioResolucionId { get; private set; }
+        public string? MotivoResolucion { get; private set; }
         protected Penalizacion() { }
 
         public Penalizacion(int usuarioId, int prestamoId, int diasRetraso, decimal montoMora, string motivo)
@@ -39,14 +40,19 @@ namespace SIGEBI.Domain.Entities
             Estado = EstadoPenalizacion.Activa;
         }
 
-        public void Resolver()
+        public void Resolver(int usuarioResolucionId, string motivoResolucion)
         {
             if (Estado != EstadoPenalizacion.Activa)
-            {
-                throw new BusinessException("Solo se pueden pagar o resolver penalizaciones activas.");
-            }
+                throw new BusinessException("Solo se pueden resolver penalizaciones activas.");
 
-            Estado = EstadoPenalizacion.Pagada;
+            if (usuarioResolucionId <= 0)
+                throw new BusinessException("El usuario responsable es obligatorio.");
+
+            Guard.NotNullOrWhiteSpace(motivoResolucion, "El motivo de resolución");
+
+            Estado = EstadoPenalizacion.Resuelta;
+            UsuarioResolucionId = usuarioResolucionId;
+            MotivoResolucion = motivoResolucion.Trim();
             FechaResolucion = DateTime.UtcNow;
         }
     }
