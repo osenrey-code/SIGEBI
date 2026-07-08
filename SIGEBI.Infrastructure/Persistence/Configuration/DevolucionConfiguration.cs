@@ -14,13 +14,21 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.Property(d => d.DevolucionId)
                 .ValueGeneratedOnAdd();
+
+            builder.Property(d => d.PrestamoId)
+                .IsRequired();
+
             builder.Property(d => d.BibliotecarioId)
                 .IsRequired();
             builder.Property(d => d.FechaDevolucion)
                 .IsRequired();
 
+            builder.Property(d => d.Condicion)
+                .IsRequired()
+                .HasMaxLength(50);
+
             builder.Property(d => d.Observacion)
-                .HasMaxLength(500)
+                .HasMaxLength(150)
                 .IsRequired(false);
 
             builder.HasOne(d => d.Prestamo)
