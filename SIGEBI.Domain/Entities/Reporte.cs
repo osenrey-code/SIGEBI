@@ -11,19 +11,19 @@ namespace SIGEBI.Domain.Entities
     {
         public int IdReporte { get; private set; }
 
-        public string Tipo { get; private set;  }
+        public string Tipo { get; private set;  } = string.Empty;
         public DateTime FechaSolicitud { get; private set;  }
         public DateTime? FechaGenerado { get; private set; }// Nullable es porque aun no se ha generado
-        public string IdUsuario { get; private set; }
+        public string IdUsuario { get; private set; } = string.Empty;
         public EstadoReporte Estado { get; private set; }
-        public string ArchivoGenerado { get; private set; }// Ubicacion del archivo generado
+        public string ArchivoGenerado { get; private set; } = string.Empty;// Ubicacion del archivo generado
 
         protected Reporte() { }
 
         public Reporte(string Tipo, string IdUsuario)
         {
             Guard.NotNullOrWhiteSpace(Tipo, "El tipo ");
-            Guard.NotNullOrWhiteSpace(Tipo, "El usuario ");
+            Guard.NotNullOrWhiteSpace(IdUsuario, "El usuario ");
 
             this.Tipo = Tipo;
             this.IdUsuario = IdUsuario;
