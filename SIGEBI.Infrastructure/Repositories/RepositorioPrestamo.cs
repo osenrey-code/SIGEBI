@@ -13,7 +13,7 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? ejemplarId, int? recursoBibliograficoId)
+        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? recursoBibliograficoId, int? ejemplarId )
         {
             var query = _context.Prestamos
             .AsNoTracking()
