@@ -22,6 +22,9 @@ namespace SIGEBI.Infrastructure.Persistence
         public DbSet<Penalizacion> Penalizaciones { get; set; }
 
         public DbSet<Notificacion> Notificaciones { get; set; }
+        public DbSet<Solicitud> Solicitudes { get; set; }
+        public DbSet<Ejemplar> Ejemplares { get; set; }
+        public DbSet<Devolucion> Devolucion { get; set; }
 
         public DbSet<Auditoria> Auditorias { get; set; }
 

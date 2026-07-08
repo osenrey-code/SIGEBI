@@ -4,6 +4,7 @@ using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Domain.Exceptions;
 
 
 namespace SIGEBI.Application.UseCase.Prestamos
@@ -11,145 +12,80 @@ namespace SIGEBI.Application.UseCase.Prestamos
     public class SolicitarPrestamo
     {
         private readonly IUsuario _usuarios;
-        private readonly IRepositorioRecurso _recursos;
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IRepositorioPenalizacion _penalizaciones;
+        private readonly ISolicitudRepository _solicitudes;
         private readonly INotificador _notificador;
         private readonly IAuditoriaService _auditoria;
+        private readonly IEjemplarRepository _ejemplares;
 
-        public SolicitarPrestamo(IUsuario usuarios, IRepositorioRecurso recursos,
-            IRepositorioPrestamo prestamos, IRepositorioPenalizacion penalizaciones,
-            INotificador notificador, IAuditoriaService auditoria)
+        public SolicitarPrestamo(
+            IUsuario usuarios,
+            IEjemplarRepository ejemplares,
+            ISolicitudRepository solicitudes,
+            IRepositorioPrestamo prestamos,
+            IRepositorioPenalizacion penalizaciones,
+            INotificador notificador,
+            IAuditoriaService auditoria)
         {
             _usuarios = usuarios;
-            _recursos = recursos;
+            _ejemplares = ejemplares;
+            _solicitudes = solicitudes;
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
             _notificador = notificador;
             _auditoria = auditoria;
         }
 
-        public async Task<ResultadoOperacionResponse<PrestamoResponse>> EjecutarAsync(
-            SolicitarPrestamoRequest request)
+        public async Task<SolicitudResponse> SolicitarPrestamoAsync(RegistrarSolicitudRequest request, string Identificacion, int usuarioId )
         {
-            if (request.UsuarioId == Guid.Empty)
+            // 1. Validar que el usuario exista
+            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(Identificacion);
+            if (usuario == null)
+                throw new BusinessException("Usuario no encontrado."); // Idealmente usarías una custom BusinessException
+
+            // 2. Validar Penalizaciones Activas
+            bool tienePenalizacion = await _penalizaciones.TienePenalizacionActivaAsync(usuarioId);
+            if (tienePenalizacion)
+                throw new BusinessException("El usuario tiene una penalización activa y no puede solicitar recursos.");
+
+            // 3. Validar Límite de Préstamos
+            int prestamosActivos = await _prestamos.ContarActivosPorUsuarioAsync(usuarioId);
+
+            int LimitesPermitidos = usuario switch
             {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El usuario es obligatorio."
-                );
-            }
-
-            if (request.RecursoId == Guid.Empty)
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El recurso bibliográfico es obligatorio."
-                );
-            }
-
-            var usuario = await _usuarios.ObtenerConPerfilAsync(request.UsuarioId);
-
-            if (usuario is null)
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El usuario no existe."
-                );
-            }
-
-            if (usuario.Estado != EstadoUsuario.Activo)
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El usuario no está activo."
-                );
-            }
-
-            if (usuario.Tipo != TipoUsuario.Estudiante &&
-                usuario.Tipo != TipoUsuario.Docente)
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "Solo estudiantes y docentes pueden solicitar préstamos."
-                );
-            }
-
-            if (usuario.PerfilLector is null)
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El usuario no tiene un perfil lector asignado."
-                );
-            }
-
-            var penalizacionActiva = await _penalizaciones.ObtenerActivaPorPerfilLectorAsync(
-                usuario.PerfilLector.Id
-            );
-
-            if (penalizacionActiva is not null)
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El usuario tiene una penalización activa y no puede solicitar préstamos."
-                );
-            }
-
-            var recurso = await _recursos.ObtenerporIdAsync(request.RecursoId);
-
-            if (recurso is null)
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El recurso bibliográfico no existe."
-                );
-            }
-
-            if (!recurso.EstaDisponible())
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    "El recurso bibliográfico no está disponible para préstamo."
-                );
-            }
-
-            var prestamosActivos = await _prestamos.ObtenerActivosPorPerfilLectorAsync(
-                usuario.PerfilLector.Id
-            );
-
-            var cantidadPrestamosActivos = prestamosActivos.Count();
-
-            if (!usuario.PerfilLector.PuedeSolicitarPrestamo(cantidadPrestamosActivos))
-            {
-                return ResultadoOperacionResponse<PrestamoResponse>.Error(
-                    $"El usuario alcanzó el límite de préstamos permitidos. Préstamos activos actuales: {cantidadPrestamosActivos}."
-                );
-            }
-
-            var prestamo = new Prestamo(
-                usuario.PerfilLector.Id,
-                recurso.Id
-            );
-
-            await _prestamos.AgregarAsync(prestamo);
-
-            await _notificador.NotificarSolicitudPrestamoAsync(usuario.Id, prestamo.Id);
-            var response = MapearPrestamo(prestamo);
-
-            await _auditoria.RegistrarAsync(usuario.Id, "Solicitar Préstamo",
-                "Prestamo", prestamo.Id, "Exitoso", $"El usuario solicitó el préstamo del recurso {recurso.Id}");
-
-            return ResultadoOperacionResponse<PrestamoResponse>.Ok(
-                "Solicitud de préstamo registrada correctamente.",
-                response
-            );
-        }
-
-        private static PrestamoResponse MapearPrestamo(Prestamo prestamo)
-        {
-            return new PrestamoResponse
-            {
-                PrestamoId = prestamo.Id,
-                PerfilLectorId = prestamo.PerfilLectorId,
-                RecursoId = prestamo.RecursoId,
-                FechaSolicitud = prestamo.FechaSolicitud,
-                FechaInicio = prestamo.FechaInicio,
-                FechaLimite = prestamo.FechaLimite,
-                FechaDevolucion = prestamo.FechaDevolucion,
-                Estado = prestamo.Estado.ToString(),
-                MotivoRechazo = prestamo.MotivoRechazo
+                Estudiante estudiante => estudiante.LimitePrestamos,
+                Docente docente => docente.LimitePrestamo,
+                _ => throw new BusinessException("El tipo de usuario no tiene permiso para solicitud ")
             };
+
+            if (prestamosActivos >= LimitesPermitidos)
+                throw new Exception($"Límite excedido. Su rol permite un máximo de {LimitesPermitidos} préstamos simultáneos.");
+
+            // 4. Validar Existencia y Disponibilidad del Ejemplar
+            var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
+            if (ejemplar == null)
+                throw new BusinessException("El ejemplar físico solicitado no existe.");
+
+            if (ejemplar.Estado != EstadoEjemplar.Disponible)
+                throw new BusinessException($"El ejemplar seleccionado no está disponible. Estado actual: {ejemplar.Estado}");
+
+
+            var nuevaSolicitud = new Solicitud(usuarioId, request.EjemplarId);
+            await _solicitudes.AgregarAsync(nuevaSolicitud);
+
+            return new SolicitudResponse
+            {
+                SolicitudId = nuevaSolicitud.SolicitudId,
+                TituloRecurso = ejemplar.RecursoBibliografico?.Titulo ?? "Título no disponible",
+                IdentificadorEjemplar = ejemplar.Identificador,
+                FechaSolicitud = nuevaSolicitud.FechaSolicitud,
+                Estado = nuevaSolicitud.Estado.ToString()
+            };
+
+
         }
-    } 
-}
+    }
+
+} 
+

@@ -9,6 +9,5 @@ namespace SIGEBI.Application.Interfaces.Repositories
         Task<T?> ObtenerporIdAsync(object id);
         Task<IEnumerable<T>> ObtenerTodosAsync();
         Task AgregarAsync(T entidad);
-        Task ActualizarAsync(T entidad);
     }
 }

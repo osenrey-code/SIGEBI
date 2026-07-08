@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.AccessControl;
 using System.Text;
 
 namespace SIGEBI.Application.DTOs.Response
 {
-    public class DevolucionResponse
+    public record DevolucionResponse
     {
-        public Guid PrestamoId { get; set; }
-        public Guid PerfilLectorId { get; set; }
-        public Guid RecursoId { get; set; }
-
-        public DateTime? FechaInicio { get; set; }
-        public DateTime? FechaLimite { get; set; }
-        public DateTime FechaDevolucion { get; set; }
-
-        public string EstadoPrestamo { get; set; } = string.Empty;
-        public bool FueTardia { get; set; }
-        public int DiasRetraso { get; set; }
-        public bool PenalizacionGenerada { get; set; }
+        public int PrestamoId { get; init; }
+        public string TituloRecurso { get; init; } = string.Empty;
+        public DateTime FechaDevolucion { get; init; }
+        public int DiasRetraso { get; init; }
+        public string Condicion { get; init; } = string.Empty;
+        public bool PenalizacionGenerada { get; init; }
+        public decimal MontoPenalizacion { get; init; }
+        public string Mensaje { get; init; } = string.Empty;
     }
 }

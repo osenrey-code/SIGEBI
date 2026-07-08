@@ -1,8 +1,7 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Entities;
-using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Prestamos
 {
@@ -19,77 +18,32 @@ namespace SIGEBI.Application.UseCase.Prestamos
             _usuarios = usuarios;
         }
 
-        public async Task<ResultadoOperacionResponse<List<PrestamoResponse>>> EjecutarAsync(
-            ConsultarPrestamosActivosRequest request)
+        public async Task<IEnumerable<PrestamoResponse>> ConsultarPrestamosActivosAsync(ConsultarPrestamosActivosRequest request)
         {
-            IEnumerable<Prestamo> prestamos;
+            int? usuarioId = null;
 
-            if (request.UsuarioId.HasValue && request.UsuarioId.Value != Guid.Empty)
+            if (!string.IsNullOrWhiteSpace(request.Identificacion))
             {
-                var usuario = await _usuarios.ObtenerConPerfilAsync(
-                    request.UsuarioId.Value
-                );
+                var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
 
-                if (usuario is null)
-                {
-                    return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
-                        "El usuario no existe."
-                    );
-                }
+                if (usuario == null) throw new BusinessException("Usuario no encontrado en el sistema.");
 
-                if (usuario.PerfilLector is null)
-                {
-                    return ResultadoOperacionResponse<List<PrestamoResponse>>.Error(
-                        "El usuario no tiene perfil lector asignado."
-                    );
-                }
-
-                prestamos = await _prestamos.ObtenerActivosPorPerfilLectorAsync(
-                    usuario.PerfilLector.Id
-                );
-            }
-            else
-            {
-                var todosLosPrestamos = await _prestamos.ObtenerTodosAsync();
-
-                prestamos = todosLosPrestamos.Where(p =>
-                    p.Estado == EstadoPrestamo.Activo
-                );
+                usuarioId = usuario.UsuarioId;
             }
 
-            if (request.RecursoId.HasValue && request.RecursoId.Value != Guid.Empty)
+            var prestamosActivos = await _prestamos.ConsultarActivosAsync(usuarioId, request.EjemplarId);
+
+            return prestamosActivos.Select(p => new PrestamoResponse
             {
-                prestamos = prestamos.Where(p =>
-                    p.RecursoId == request.RecursoId.Value
-                );
-            }
+                PrestamoId = p.PrestamoId,
+                TituloRecurso = p.Ejemplar?.RecursoBibliografico?.Titulo ?? "Titulo no disponible",
+                IdentificadorEjemplar = p.Ejemplar?.Identificador ?? "N/A",
+                FechaInicio = p.FechaInicio,
+                FechaLimite = p.FechaLimite,
+                Estado = p.Estado.ToString()
 
-            var response = prestamos
-                .Select(MapearPrestamo)
-                .ToList();
+            });
 
-            return ResultadoOperacionResponse<List<PrestamoResponse>>.Ok(
-                "Préstamos activos consultados correctamente.",
-                response
-            );
-        }
-
-        private static PrestamoResponse MapearPrestamo(Prestamo prestamo)
-        {
-            return new PrestamoResponse
-            {
-                PrestamoId = prestamo.Id,
-                PerfilLectorId = prestamo.PerfilLectorId,
-                RecursoId = prestamo.RecursoId,
-
-                FechaSolicitud = prestamo.FechaSolicitud,
-                FechaInicio = prestamo.FechaInicio,
-                FechaLimite = prestamo.FechaLimite,
-                FechaDevolucion = prestamo.FechaDevolucion,
-
-                Estado = prestamo.Estado.ToString(),
-                MotivoRechazo = prestamo.MotivoRechazo
-            };
         }
     }
 }

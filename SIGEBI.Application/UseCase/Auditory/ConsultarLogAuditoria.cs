@@ -5,7 +5,7 @@ using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
-namespace SIGEBI.Application.UseCase.Auditoria
+namespace SIGEBI.Application.UseCase.Auditory
 {
     public class ConsultarLogAuditoria
     {
@@ -52,9 +52,7 @@ namespace SIGEBI.Application.UseCase.Auditoria
                 request.FechaFin
             );
 
-            return registros
-                .Select(MapearRegistro)
-                .ToList();
+            return registros.Select(MapearRegistro).ToList();
         }
 
         private static LogAuditoriaResponse MapearRegistro(SIGEBI.Domain.Entities.Auditoria registro)
