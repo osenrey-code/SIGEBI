@@ -1,4 +1,5 @@
-﻿using SIGEBI.Domain.Entities;
+﻿using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Application.Interfaces.Repositories
@@ -15,6 +16,9 @@ namespace SIGEBI.Application.Interfaces.Repositories
             int? usuarioId,
             EstadoPenalizacion? estado,
             DateTime? fechaInicio,
-            DateTime? fechaFin);
+            DateTime? fechaFin
+        );
+
+        Task<ReportePenalizacionesResponse> ObtenerEstadisticaPenalizacionesAsync(DateTime fechaInicio, DateTime fechaFin);
     }
 }
