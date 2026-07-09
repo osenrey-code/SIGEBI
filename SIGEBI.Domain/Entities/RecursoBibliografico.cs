@@ -26,10 +26,10 @@ namespace SIGEBI.Domain.Entities
 
         public IReadOnlyCollection<Ejemplar> Ejemplares => _ejemplares.AsReadOnly();
 
-        public int TotalEjemplares => _ejemplares.Count;
+        public int TotalEjemplares { get; private set; }
 
-        public int CopiasDisponibles =>
-            _ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
+        public int CopiasDisponibles { get; private set; }
+            
 
         protected RecursoBibliografico() { }
 
@@ -108,6 +108,9 @@ namespace SIGEBI.Domain.Entities
             var nuevoEjemplar = new Ejemplar(RecursoBibliograficoId, identificador.Trim());
 
             _ejemplares.Add(nuevoEjemplar);
+
+            TotalEjemplares++;
+            CopiasDisponibles++;
         }
     }
 }

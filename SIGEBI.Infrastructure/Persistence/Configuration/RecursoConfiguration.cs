@@ -8,9 +8,12 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<RecursoBibliografico> builder)
         {
-            builder.ToTable("RecursosBibliografico");
+            builder.ToTable("RecursoBibliografico");
 
             builder.HasKey(r => r.RecursoBibliograficoId);
+
+            builder.Property(r => r.RecursoBibliograficoId)
+                .ValueGeneratedOnAdd();
 
             builder.Property(r => r.ISBN)
                 .IsRequired()
@@ -21,7 +24,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.Property(r => r.Titulo)
                 .IsRequired()
-                .HasMaxLength(200);
+                .HasMaxLength(150);
 
             builder.Property(r => r.Autor)
                 .IsRequired()
@@ -31,9 +34,15 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.Property(r => r.ImagenUrl)
-                .HasMaxLength(500);
+                .HasMaxLength(200);
 
             builder.Property(r => r.CategoriaId)
+                .IsRequired();
+
+            builder.Property(r => r.TotalEjemplares)
+                .IsRequired();
+
+            builder.Property(r => r.CopiasDisponibles)
                 .IsRequired();
 
             builder.HasOne(r => r.Categoria)
@@ -45,6 +54,9 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .WithOne(e => e.RecursoBibliografico)
                 .HasForeignKey(e => e.RecursoBibliograficoId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(r => r.Ejemplares)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

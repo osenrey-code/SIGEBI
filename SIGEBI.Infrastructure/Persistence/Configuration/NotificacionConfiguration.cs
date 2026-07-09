@@ -8,7 +8,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Notificacion> builder)
         {
-            builder.ToTable("Notificacione");
+            builder.ToTable("Notificacion");
 
             builder.HasKey(n => n.NotificacionId);
 
@@ -19,13 +19,13 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.Property(n => n.Tipo)
-                .IsRequired()
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(50);
 
             builder.Property(n => n.Mensaje)
                 .IsRequired()
-                .HasMaxLength(500);
+                .HasMaxLength(150);
 
             builder.Property(n => n.FechaRegistro)
                 .IsRequired();
@@ -34,17 +34,17 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.HasOne(n => n.Usuario)
-                .WithMany(u => u.notificaciones)
+                .WithMany()
                 .HasForeignKey(n => n.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(n => n.UsuarioId);
 
+            builder.HasIndex(n => n.Tipo);
+
             builder.HasIndex(n => n.Leida);
 
             builder.HasIndex(n => n.FechaRegistro);
-
-            builder.HasIndex(n => new { n.UsuarioId, n.Leida });
         }
     }
 }

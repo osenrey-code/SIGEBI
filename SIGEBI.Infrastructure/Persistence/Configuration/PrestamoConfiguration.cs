@@ -31,9 +31,9 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.Property(p => p.Estado)
-                .IsRequired()
                 .HasConversion<string>()
-                .HasMaxLength(50);
+                .IsRequired()
+                .HasMaxLength(30);
 
             builder.HasOne(p => p.Solicitud)
                 .WithOne()
@@ -41,7 +41,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(p => p.Usuario)
-                .WithMany(u => u.Prestamos)
+                .WithMany()
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -49,15 +49,6 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .WithMany()
                 .HasForeignKey(p => p.EjemplarId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasIndex(p => p.SolicitudId)
-                .IsUnique();
-
-            builder.HasIndex(p => new { p.UsuarioId, p.Estado });
-
-            builder.HasIndex(p => new { p.EjemplarId, p.Estado });
-
-            builder.HasIndex(p => p.FechaLimite);
         }
     }
 }

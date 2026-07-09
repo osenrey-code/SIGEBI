@@ -25,13 +25,12 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.Property(s => s.Estado)
-                .IsRequired()
                 .HasConversion<string>()
-                .HasMaxLength(50);
+                .IsRequired()
+                .HasMaxLength(30);
 
             builder.Property(s => s.MotivoRechazo)
-                .HasMaxLength(300)
-                .IsRequired(false);
+                .HasMaxLength(180);
 
             builder.HasOne(s => s.Usuario)
                 .WithMany()
@@ -50,8 +49,6 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
             builder.HasIndex(s => s.Estado);
 
             builder.HasIndex(s => s.FechaSolicitud);
-
-            builder.HasIndex(s => new { s.UsuarioId, s.EjemplarId, s.Estado });
         }
     }
 }

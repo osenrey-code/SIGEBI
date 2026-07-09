@@ -50,7 +50,7 @@ namespace SIGEBI.Domain.Entities
             PrestamoId = prestamoId;
             DiasRetraso = diasRetraso;
             MontoMora = montoMora;
-            Motivo = motivo;
+            Motivo = motivo.Trim();
 
             FechaGeneracion = DateTime.UtcNow;
             Estado = EstadoPenalizacion.Activa;
@@ -69,7 +69,7 @@ namespace SIGEBI.Domain.Entities
             Estado = EstadoPenalizacion.Pagada;
             FechaResolucion = DateTime.UtcNow;
             UsuarioResolucionId = usuarioResolucionId;
-            MotivoResolucion = motivoResolucion;
+            MotivoResolucion = motivoResolucion.Trim();
         }
     }
 }

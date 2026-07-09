@@ -17,22 +17,22 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.Property(u => u.NombreCompleto)
                 .IsRequired()
-                .HasMaxLength(150);
+                .HasMaxLength(60);
 
             builder.Property(u => u.Correo)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(50);
 
             builder.HasIndex(u => u.Correo)
                 .IsUnique();
 
             builder.Property(u => u.PassWord)
                 .IsRequired()
-                .HasMaxLength(300);
+                .HasMaxLength(20);
 
             builder.Property(u => u.Estado)
-                .IsRequired()
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(50);
 
             builder.HasDiscriminator<string>("TipoUsuario")
@@ -49,21 +49,6 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
             builder.HasIndex("TipoUsuario");
 
             builder.HasIndex(u => u.Estado);
-
-            builder.HasMany(u => u.Prestamos)
-                .WithOne(p => p.Usuario)
-                .HasForeignKey(p => p.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasMany(u => u.penalizciones)
-                .WithOne(p => p.Usuario)
-                .HasForeignKey(p => p.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasMany(u => u.notificaciones)
-                .WithOne(n => n.Usuario)
-                .HasForeignKey(n => n.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

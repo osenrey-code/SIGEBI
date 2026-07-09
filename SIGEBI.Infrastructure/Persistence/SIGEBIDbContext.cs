@@ -9,11 +9,13 @@ namespace SIGEBI.Infrastructure.Persistence
         {
         }
 
-        public DbSet<Usuario> Usuarios { get; set; }
+       public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Estudiante> Estudiantes { get; set; }
+        public DbSet<Docente> Docentes { get; set; }
         public DbSet<Bibliotecario> Bibliotecarios { get; set; }
         public DbSet<Administrador> Administradores { get; set; }
         public DbSet<Auditor> Auditores { get; set; }
+
         public DbSet<Prestamo> Prestamos { get; set; }
         public DbSet<RecursoBibliografico> RecursosBibliograficos { get; set; }
         public DbSet<Categoria> Categorias { get; set; }

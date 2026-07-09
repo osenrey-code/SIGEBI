@@ -32,7 +32,7 @@ namespace SIGEBI.Domain.Entities
             UsuarioId = usuarioId;
             Tipo = tipo;
             Mensaje = mensaje.Trim();
-            FechaRegistro = DateTime.Now;
+            FechaRegistro = DateTime.UtcNow;
             Leida = false;
         }
 

@@ -8,7 +8,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Penalizacion> builder)
         {
-            builder.ToTable("Penalizacione");
+            builder.ToTable("Penalizacion");
 
             builder.HasKey(p => p.PenalizacionId);
 
@@ -25,16 +25,16 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.Property(p => p.MontoMora)
-                .HasColumnType("decimal(10,2)")
+                .HasPrecision(10, 2)
                 .IsRequired();
 
             builder.Property(p => p.Motivo)
                 .IsRequired()
-                .HasMaxLength(300);
+                .HasMaxLength(500);
 
             builder.Property(p => p.Estado)
-                .IsRequired()
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(30);
 
             builder.Property(p => p.FechaGeneracion)
@@ -47,11 +47,10 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired(false);
 
             builder.Property(p => p.MotivoResolucion)
-                .HasMaxLength(300)
-                .IsRequired(false);
+                .HasMaxLength(500);
 
             builder.HasOne(p => p.Usuario)
-                .WithMany(u => u.penalizciones)
+                .WithMany()
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -72,8 +71,6 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
             builder.HasIndex(p => p.Estado);
 
             builder.HasIndex(p => p.FechaGeneracion);
-
-            builder.HasIndex(p => new { p.UsuarioId, p.Estado });
         }
     }
 }

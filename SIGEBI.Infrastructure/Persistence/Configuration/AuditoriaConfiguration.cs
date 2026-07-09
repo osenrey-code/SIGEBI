@@ -8,6 +8,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Auditoria> builder)
         {
+
             builder.ToTable("Auditoria");
 
             builder.HasKey(a => a.AuditoriaId);
@@ -20,15 +21,15 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.Property(a => a.EntidadAfectada)
                 .IsRequired()
-                .HasMaxLength(150);
+                .HasMaxLength(100);
 
             builder.Property(a => a.Accion)
                 .IsRequired()
-                .HasMaxLength(150);
+                .HasMaxLength(100);
 
             builder.Property(a => a.Detalle)
                 .IsRequired()
-                .HasMaxLength(500);
+                .HasMaxLength(1000);
 
             builder.Property(a => a.FechaRegistro)
                 .IsRequired();

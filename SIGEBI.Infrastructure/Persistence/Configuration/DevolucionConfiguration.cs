@@ -20,6 +20,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.Property(d => d.BibliotecarioId)
                 .IsRequired();
+
             builder.Property(d => d.FechaDevolucion)
                 .IsRequired();
 
@@ -28,8 +29,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .HasMaxLength(50);
 
             builder.Property(d => d.Observacion)
-                .HasMaxLength(150)
-                .IsRequired(false);
+                .HasMaxLength(500);
 
             builder.HasOne(d => d.Prestamo)
                 .WithOne(p => p.Devolucion)
@@ -43,9 +43,6 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.HasIndex(d => d.PrestamoId)
                 .IsUnique();
-
-            builder.HasIndex(d => d.BibliotecarioId);
-            builder.HasIndex(d => d.FechaDevolucion);
         }
     }
 }

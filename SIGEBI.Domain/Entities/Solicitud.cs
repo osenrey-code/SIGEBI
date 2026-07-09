@@ -1,14 +1,12 @@
-﻿
-
-using SIGEBI.Domain.Enums;
+﻿using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
-using System.Data;
+
 
 namespace SIGEBI.Domain.Entities
 {
     public class Solicitud
     {
-        public int SolicitudId { get; set; }
+        public int SolicitudId { get; private set; }
 
         public int UsuarioId { get; private set; }
         public virtual Usuario? Usuario { get; private set; }
@@ -21,6 +19,12 @@ namespace SIGEBI.Domain.Entities
 
         public Solicitud(int usuarioId, int ejemplarId)
         {
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario de la solicitud es inválido.");
+
+            if (ejemplarId <= 0)
+                throw new BusinessException("El ejemplar de la solicitud es inválido.");
+
             UsuarioId = usuarioId;
             EjemplarId = ejemplarId;
             FechaSolicitud = DateTime.UtcNow; 

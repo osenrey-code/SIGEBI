@@ -12,20 +12,26 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.HasKey(e => e.EjemplarId);
 
+            builder.Property(e => e.EjemplarId)
+                .ValueGeneratedOnAdd();
+
             builder.Property(e => e.Identificador)
                 .IsRequired()
                 .HasMaxLength(50);
 
-            builder.HasIndex(e => new { e.RecursoBibliograficoId, e.Identificador })
+            builder.HasIndex(e => e.Identificador)
                 .IsUnique();
 
+            builder.Property(e => e.RecursoBibliograficoId)
+                .IsRequired();
+
             builder.Property(e => e.Estado)
-                .IsRequired()
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(30);
 
             builder.Property(e => e.Observacion)
-                .HasMaxLength(300);
+                .HasMaxLength(200);
 
             builder.HasOne(e => e.RecursoBibliografico)
                 .WithMany(r => r.Ejemplares)
