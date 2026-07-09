@@ -8,6 +8,7 @@ using SIGEBI.Application.Services;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
 using SIGEBI.Infrastructure.Services;
+using QuestPDF.Infrastructure;
 
 namespace SIGEBI.Infrastructure
 {
@@ -45,6 +46,9 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IServicioToken, ServicioToken>();
             services.AddScoped<IServicioPassword, ServicioPassword>();
             services.AddScoped<IStorageService, LocalStorageService>();
+
+            QuestPDF.Settings.License = LicenseType.Community;
+            services.AddScoped<IExportadorReportePdf, ExportadorReportePdf>();
 
             return services;
         }
