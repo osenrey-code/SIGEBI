@@ -8,7 +8,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<RecursoBibliografico> builder)
         {
-            builder.ToTable("RecursosBibliograficos");
+            builder.ToTable("RecursosBibliografico");
 
             builder.HasKey(r => r.RecursoBibliograficoId);
 

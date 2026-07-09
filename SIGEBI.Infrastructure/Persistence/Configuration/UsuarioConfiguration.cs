@@ -8,7 +8,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Usuario> builder)
         {
-            builder.ToTable("Usuarios");
+            builder.ToTable("Usuario");
 
             builder.HasKey(u => u.UsuarioId);
 
@@ -41,6 +41,14 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .HasValue<Bibliotecario>("Bibliotecario")
                 .HasValue<Administrador>("Administrador")
                 .HasValue<Auditor>("Auditor");
+
+            builder.Property<string>("TipoUsuario")
+                .IsRequired()
+                .HasMaxLength(50);
+
+            builder.HasIndex("TipoUsuario");
+
+            builder.HasIndex(u => u.Estado);
 
             builder.HasMany(u => u.Prestamos)
                 .WithOne(p => p.Usuario)

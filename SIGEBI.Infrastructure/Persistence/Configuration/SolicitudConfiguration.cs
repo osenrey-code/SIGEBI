@@ -8,7 +8,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Solicitud> builder)
         {
-            builder.ToTable("Solicitudes");
+            builder.ToTable("Solicitud");
 
             builder.HasKey(s => s.SolicitudId);
 
