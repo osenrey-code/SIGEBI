@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Application.Common;
 using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Application.Services;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
 using SIGEBI.Infrastructure.Services;
-using SIGEBI.Application.Services;
 
 namespace SIGEBI.Infrastructure
 {
@@ -33,6 +34,7 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IEjemplarRepository, RepositorioEjemplar>();
             services.AddScoped<ISolicitudRepository, RepositorioSolicitud>();
             services.AddScoped<IRepositorioDevolucion, RepositorioDevolucion>();
+            services.AddScoped<IRepositorioReporte, RepositorioReporte>();
 
             //Servicios de aplicacion
             services.AddScoped<INotificador, Notificador>();

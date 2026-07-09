@@ -27,8 +27,6 @@ namespace SIGEBI.Application.Interfaces.Repositories
             int? recursoBibliograficoId,
             int? ejemplarId
         );
-
-        Task<ReportePrestamoResponse> ObtenerEstadisticaPrestamoAsync(DateTime fechaInicio, DateTime fechaFin);
         Task<bool> ExistePrestamoActivoPorRecursoAsync(int recursoBibliograficoId);
     }
 }

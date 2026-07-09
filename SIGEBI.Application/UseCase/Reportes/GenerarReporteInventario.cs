@@ -1,23 +1,28 @@
-﻿using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.DTOs.Response;
+﻿using SIGEBI.Application.Common;
+using SIGEBI.Application.DTOs.Response.ReporteResponse;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Enums;
-
 
 namespace SIGEBI.Application.UseCase.Reportes
 {
     public class GenerarReporteInventario
     {
-        private readonly IRepositorioRecurso _recursos;
+        private readonly IRepositorioReporte _reportes;
+        private readonly ValidadorReportes _validador;
 
-        public GenerarReporteInventario(IRepositorioRecurso recursos)
+        public GenerarReporteInventario(
+            IRepositorioReporte reportes,
+            ValidadorReportes validador)
         {
-            _recursos = recursos;
+            _reportes = reportes;
+            _validador = validador;
         }
 
-        public async Task<IEnumerable<ReporteInventarioResponse>> EjecutarAsync()
+        public async Task<ReporteInventarioResponse> EjecutarAsync(
+            int usuarioEjecutorId)
         {
-            return await _recursos.ObtenerReporteInventarioAsync();
+            await _validador.ValidarAccesoReporteInventarioAsync(usuarioEjecutorId);
+
+            return await _reportes.ObtenerReporteInventarioAsync();
         }
     }
 }

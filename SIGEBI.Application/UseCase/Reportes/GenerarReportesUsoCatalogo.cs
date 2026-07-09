@@ -1,27 +1,41 @@
-﻿using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.DTOs.Response;
+﻿using SIGEBI.Application.Common;
+using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.DTOs.Response.ReporteResponse;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Application.UseCase.Reportes
 {
-     public class GenerarReportesUsoCatalogo
+    public class GenerarReportesUsoCatalogo
     {
-        private readonly IRepositorioPrestamo _prestamos;
-        private readonly IRepositorioRecurso _recursos;
+        private readonly IRepositorioReporte _reportes;
+        private readonly ValidadorReportes _validador;
 
         public GenerarReportesUsoCatalogo(
-            IRepositorioPrestamo prestamos,
-            IRepositorioRecurso recursos)
+            IRepositorioReporte reportes,
+            ValidadorReportes validador)
         {
-            _prestamos = prestamos;
-            _recursos = recursos;
+            _reportes = reportes;
+            _validador = validador;
         }
 
-        public async Task<IEnumerable<ReporteUsoCatalogoResponse>> EjecutarAsync(
-            ReporteRangoFRequest request)
+        public async Task<ReporteUsoCatalogoResponse> EjecutarAsync(
+            ReporteRangoFRequest request,
+            int usuarioEjecutorId)
         {
-            return await _recursos.ObtenerEstadisticasUsoAsync(request.FechaInicio, request.FechaFin);
+            Guard.NotNull(request, "Los filtros del reporte");
+
+            await _validador.ValidarAdministradorOAuditorAsync(usuarioEjecutorId);
+
+            ValidadorReportes.ValidarRangoFechas(
+                request.FechaInicio,
+                request.FechaFin
+            );
+
+            return await _reportes.ObtenerReporteUsoCatalogoAsync(
+                request.FechaInicio,
+                request.FechaFin
+            );
         }
     }
 }
