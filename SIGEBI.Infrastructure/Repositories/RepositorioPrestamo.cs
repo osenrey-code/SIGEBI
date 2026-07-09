@@ -108,40 +108,6 @@ namespace SIGEBI.Infrastructure.Repositories
             .FirstOrDefaultAsync(p => p.PrestamoId == id);
         }
 
-        public async Task<ReportePrestamoResponse> ObtenerEstadisticaPrestamoAsync(DateTime fechaInicio, DateTime fechaFin)
-        {
-            var query = _dbSet
-        .Include(p => p.Devolucion)
-        .AsNoTracking()
-        .Where(p => p.FechaInicio >= fechaInicio &&
-                    p.FechaInicio <= fechaFin);
-
-            int total = await query.CountAsync();
-
-            int puntuales = await query.CountAsync(p =>
-                p.Devolucion != null &&
-                p.Devolucion.FechaDevolucion <= p.FechaLimite);
-
-            int vencidos = await query.CountAsync(p =>
-                (p.Devolucion != null &&
-                 p.Devolucion.FechaDevolucion > p.FechaLimite)
-                ||
-                (p.Devolucion == null &&
-                 DateTime.UtcNow > p.FechaLimite));
-
-            decimal tasa = total > 0
-                ? Math.Round((decimal)puntuales / total * 100, 2)
-                : 0;
-
-            return new ReportePrestamoResponse
-            {
-                TotalPrestamos = total,
-                DevolucionesPuntuales = puntuales,
-                PrestamosVencidos = vencidos,
-                TasaDevolucionPuntual = tasa
-            };
-        }
-
         public async Task<Prestamo?> ObtenerPorIdAsync(int id)
         {
             return await _context.Prestamos.FindAsync(id);

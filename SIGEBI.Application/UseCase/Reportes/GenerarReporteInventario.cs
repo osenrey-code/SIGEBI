@@ -1,23 +1,39 @@
-﻿using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.DTOs.Response;
+﻿using SIGEBI.Application.Common;
+using SIGEBI.Application.DTOs.Response.ReporteResponse;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Enums;
-
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Application.UseCase.Reportes
 {
     public class GenerarReporteInventario
     {
-        private readonly IRepositorioRecurso _recursos;
+        private readonly IRepositorioReporte _reportes;
+        private readonly ValidadorReportes _validador;
+        private readonly IExportadorReportePdf _exportadorPdf;
 
-        public GenerarReporteInventario(IRepositorioRecurso recursos)
+        public GenerarReporteInventario(
+            IRepositorioReporte reportes,
+            ValidadorReportes validador, IExportadorReportePdf exportador)
         {
-            _recursos = recursos;
+            _reportes = reportes;
+            _validador = validador;
+            _exportadorPdf = exportador;
         }
 
-        public async Task<IEnumerable<ReporteInventarioResponse>> EjecutarAsync()
+        public async Task<ReporteInventarioResponse> EjecutarAsync(
+            int usuarioEjecutorId)
         {
-            return await _recursos.ObtenerReporteInventarioAsync();
+ 
+            await _validador.ValidarAccesoReporteInventarioAsync(usuarioEjecutorId);
+            return await _reportes.ObtenerReporteInventarioAsync();
+        }
+
+        public async Task<byte[]> EjecutarPdfAsync(int usuarioEjecutorId)
+        {
+            var reporte = await EjecutarAsync(usuarioEjecutorId);
+
+            return _exportadorPdf.GenerarReporteInventarioPdf(reporte);
         }
     }
 }

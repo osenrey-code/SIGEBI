@@ -17,10 +17,5 @@ namespace SIGEBI.Application.Interfaces.Repositories
             DateTime? fechaInicio,
             DateTime? fechaFin
         );
-
-        Task<ReportePenalizacionesResponse> ObtenerEstadisticaPenalizacionesAsync(
-            DateTime fechaInicio,
-            DateTime fechaFin
-        );
     }
 }

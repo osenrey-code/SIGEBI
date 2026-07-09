@@ -85,46 +85,5 @@ namespace SIGEBI.Infrastructure.Repositories
                 .OrderByDescending(p => p.FechaGeneracion)
                 .ToListAsync();
         }
-
-        public async Task<ReportePenalizacionesResponse> ObtenerEstadisticaPenalizacionesAsync(DateTime fechaInicio, DateTime fechaFin)
-        {
-            var query = _context.Penalizaciones
-            .AsNoTracking()
-            .Where(p => p.FechaGeneracion >= fechaInicio &&
-                   p.FechaGeneracion <= fechaFin);
-
-            int total = await query.CountAsync();
-
-            int activas = await query.CountAsync(p =>
-                p.Estado == EstadoPenalizacion.Activa);
-
-            int resueltas = await query.CountAsync(p =>
-                p.Estado == EstadoPenalizacion.Pagada);
-
-            int totalDiasRetraso = await query.SumAsync(p =>
-                (int?)p.DiasRetraso) ?? 0;
-
-            decimal montoTotal = await query.SumAsync(p =>
-                (decimal?)p.MontoMora) ?? 0;
-
-            decimal montoActivo = await query
-                .Where(p => p.Estado == EstadoPenalizacion.Activa)
-                .SumAsync(p => (decimal?)p.MontoMora) ?? 0;
-
-            decimal montoResuelto = await query
-                .Where(p => p.Estado == EstadoPenalizacion.Pagada)
-                .SumAsync(p => (decimal?)p.MontoMora) ?? 0;
-
-            return new ReportePenalizacionesResponse
-            {
-                TotalPenalizaciones = total,
-                PenalizacionesActivas = activas,
-                PenalizacionesResueltas = resueltas,
-                TotalDiasRetraso = totalDiasRetraso,
-                MontoTotalMora = montoTotal,
-                MontoMoraActiva = montoActivo,
-                MontoMoraResuelta = montoResuelto
-            };
-        }
     }
 }

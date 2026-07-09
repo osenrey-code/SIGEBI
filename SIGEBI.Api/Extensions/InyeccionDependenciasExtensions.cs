@@ -1,11 +1,12 @@
-﻿using SIGEBI.Application.UseCase.Usuarios;
-using SIGEBI.Application.UseCase.Prestamos;
-using SIGEBI.Application.UseCase.Devoluciones;
-using SIGEBI.Application.UseCase.Catalogo;
-using SIGEBI.Application.UseCase.Penalizaciones;
-using SIGEBI.Application.UseCase.Notificaciones;
+﻿using SIGEBI.Application.Common;
 using SIGEBI.Application.UseCase.Auditory;
+using SIGEBI.Application.UseCase.Catalogo;
+using SIGEBI.Application.UseCase.Devoluciones;
+using SIGEBI.Application.UseCase.Notificaciones;
+using SIGEBI.Application.UseCase.Penalizaciones;
+using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
+using SIGEBI.Application.UseCase.Usuarios;
 
 namespace SIGEBI.Api.Extensions
 {
@@ -14,6 +15,10 @@ namespace SIGEBI.Api.Extensions
         public static IServiceCollection AddApplicationUseCases(
             this IServiceCollection services)
         {
+            // Validadores comunes
+            services.AddScoped<ValidadorReportes>();
+
+            // Usuarios
             services.AddScoped<RegistrarUsuario>();
             services.AddScoped<ActualizarUsuario>();
             services.AddScoped<DesactivarUsuario>();
@@ -27,6 +32,11 @@ namespace SIGEBI.Api.Extensions
             services.AddScoped<ConsultarCatalogo>();
             services.AddScoped<ConsultarDetalleRecurso>();
             services.AddScoped<ConsultarHistorialRecurso>();
+            services.AddScoped<EliminarRecurso>();
+
+            // Categorías
+            services.AddScoped<RegistrarCategoria>();
+            services.AddScoped<ConsultarCategorias>();
 
             // Préstamos
             services.AddScoped<SolicitarPrestamo>();
