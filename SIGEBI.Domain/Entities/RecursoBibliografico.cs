@@ -22,15 +22,14 @@ namespace SIGEBI.Domain.Entities
 
         public virtual Categoria? Categoria { get; private set; }
 
-        private readonly List<Ejemplar> _ejemplares = new();
+        public ICollection<Ejemplar> Ejemplares { get; private set; } = new List<Ejemplar>();
 
-        public IReadOnlyCollection<Ejemplar> Ejemplares => _ejemplares.AsReadOnly();
+        public int TotalEjemplares => Ejemplares.Count;
 
-        public int TotalEjemplares { get; private set; }
+        public int CopiasDisponibles => Ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
 
-        public int CopiasDisponibles { get; private set; }
-            
-
+        
+        
         protected RecursoBibliografico() { }
 
         public RecursoBibliografico(
@@ -98,7 +97,7 @@ namespace SIGEBI.Domain.Entities
         {
             Guard.NotNullOrWhiteSpace(identificador, "El identificador del ejemplar");
 
-            if (_ejemplares.Any(e => e.Identificador == identificador.Trim()))
+            if (Ejemplares.Any(e => e.Identificador == identificador.Trim()))
             {
                 throw new BusinessException(
                     $"Ya existe un ejemplar con el código {identificador} en este recurso."
@@ -107,10 +106,8 @@ namespace SIGEBI.Domain.Entities
 
             var nuevoEjemplar = new Ejemplar(RecursoBibliograficoId, identificador.Trim());
 
-            _ejemplares.Add(nuevoEjemplar);
-
-            TotalEjemplares++;
-            CopiasDisponibles++;
+            Ejemplares.Add(nuevoEjemplar);
+            
         }
     }
 }

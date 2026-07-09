@@ -29,11 +29,11 @@ namespace SIGEBI.Application.UseCase.Catalogo
         }
 
         public async Task<RecursoResponse> EjecutarAsync(
-            ActualizarRecursoRequest request)
+            ActualizarRecursoRequest request, int usuarioId)
         {
             Guard.NotNull(request, "Los datos del recurso");
 
-            if (request.UsuarioEjecutorId <= 0)
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
 
             if (request.RecursoBibliograficoId <= 0)
@@ -55,7 +55,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 : request.ImagenUrl.Trim();
 
             var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(
-                request.UsuarioEjecutorId
+               usuarioId
             );
 
             if (usuarioEjecutor is null)
@@ -92,7 +92,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
             await _recursos.ActualizarAsync(recurso);
 
             await _auditoria.RegistrarAsync(
-                UsuarioId: request.UsuarioEjecutorId,
+                UsuarioId: usuarioId,
                 Accion: "Actualizar Recurso",
                 EntidadAfectada: "RecursosBibliograficos",
                 detalles: $"Se actualizó el recurso ID {recurso.RecursoBibliograficoId}. Título anterior: '{tituloAnterior}', nuevo título: '{recurso.Titulo}'."

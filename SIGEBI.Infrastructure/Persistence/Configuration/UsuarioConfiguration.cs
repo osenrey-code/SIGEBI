@@ -28,7 +28,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.Property(u => u.PassWord)
                 .IsRequired()
-                .HasMaxLength(20);
+                .HasMaxLength(200);
 
             builder.Property(u => u.Estado)
                 .HasConversion<string>()

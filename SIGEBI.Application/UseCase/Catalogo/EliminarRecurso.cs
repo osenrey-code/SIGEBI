@@ -27,11 +27,11 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _auditoria = auditoria;
         }
 
-        public async Task EjecutarAsync(EliminarRecursoRequest request)
+        public async Task EjecutarAsync(EliminarRecursoRequest request, int usuarioId)
         {
             Guard.NotNull(request, "Los datos de eliminación del recurso");
 
-            if (request.UsuarioEjecutorId <= 0)
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
 
             if (request.RecursoBibliograficoId <= 0)
@@ -42,7 +42,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 : request.Motivo.Trim();
 
             var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(
-                request.UsuarioEjecutorId
+                usuarioId
             );
 
             if (usuarioEjecutor is null)
@@ -79,7 +79,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
             await _recursos.EliminarAsync(recurso);
 
             await _auditoria.RegistrarAsync(
-                UsuarioId: request.UsuarioEjecutorId,
+                UsuarioId: usuarioId,
                 Accion: "Eliminar Recurso",
                 EntidadAfectada: "RecursosBibliograficos",
                 detalles: $"Se eliminó el recurso '{titulo}' con ISBN {isbn}. Motivo: '{motivo}'."
