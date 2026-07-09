@@ -2,7 +2,5 @@
 
 public class ConsultarPenalizacionesActivasRequest
 {
-    public int UsuarioEjecutorId { get; set; }
-
     public int UsuarioId { get; set; }
 }

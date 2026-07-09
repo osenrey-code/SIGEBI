@@ -21,12 +21,12 @@ namespace SIGEBI.Application.UseCase.Notificaciones
         }
 
         public async Task<IEnumerable<NotificacionResponse>> EjecutarAsync(
-            ConsultarNotificacionesRequest request)
+            ConsultarNotificacionesRequest request, int usuarioId)
         {
-            if (request.UsuarioEjecutorId <= 0)
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuarioEjecutor is null)
                 throw new BusinessException("El usuario ejecutor no existe.");
@@ -35,7 +35,7 @@ namespace SIGEBI.Application.UseCase.Notificaciones
                 throw new BusinessException("El usuario ejecutor no está activo.");
 
             if (request.UsuarioId.HasValue &&
-                request.UsuarioId.Value != request.UsuarioEjecutorId &&
+                request.UsuarioId.Value != usuarioId &&
                 usuarioEjecutor is not Bibliotecario &&
                 usuarioEjecutor is not Administrador &&
                 usuarioEjecutor is not Auditor)

@@ -2,8 +2,6 @@
 
 public class ConsultarPenalizacionesRequest
 {
-    public int UsuarioEjecutorId { get; set; }
-
     public int? UsuarioId { get; set; }
 
     public int? PrestamoId { get; set; }
