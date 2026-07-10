@@ -19,7 +19,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IUsuario _usuarios;
         private readonly IRepositorioDevolucion _devoluciones;
         private readonly IAuditoriaService _auditoria;
-        private readonly INotificador _notificador;
+        private readonly IServicioNotificacion _notificador;
 
         public RegistrarDevoluciones(
             IRepositorioPrestamo prestamos,
@@ -28,7 +28,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             IRepositorioDevolucion devoluciones,
             IEjemplarRepository ejemplares,
             IAuditoriaService auditoria,
-            INotificador notificador)
+            IServicioNotificacion notificador)
         {
             _prestamos = prestamos;
             _ejemplares = ejemplares;

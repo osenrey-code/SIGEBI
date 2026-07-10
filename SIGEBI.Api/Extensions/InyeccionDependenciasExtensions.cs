@@ -2,7 +2,6 @@
 using SIGEBI.Application.UseCase.Auditory;
 using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
-using SIGEBI.Application.UseCase.Notificaciones;
 using SIGEBI.Application.UseCase.Penalizaciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
@@ -52,10 +51,6 @@ namespace SIGEBI.Api.Extensions
             services.AddScoped<ConsultarPenalizaciones>();
             services.AddScoped<ConsultarPenalizacionesActivas>();
             services.AddScoped<ResolverPenalizacion>();
-
-            // Notificaciones
-            services.AddScoped<ConsultarNotificaciones>();
-            services.AddScoped<EnviarRecordatorioVencimiento>();
 
             // Auditoría
             services.AddScoped<ConsultarLogAuditoria>();

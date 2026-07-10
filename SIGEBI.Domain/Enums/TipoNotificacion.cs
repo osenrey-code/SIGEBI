@@ -2,10 +2,11 @@
 {
     public enum TipoNotificacion
     {
-        RecordatorioVencimiento,
+        General,
+        SolicitudRecibida,
+        PrestamoAprobado,
         PenalizacionGenerada,
         PenalizacionResuelta,
-        SolicitudRecibida,
-        PrestamoFormalizado
+        RecordatorioVencimiento
     }
 }

@@ -1,16 +1,16 @@
 ﻿namespace SIGEBI.Application.DTOs.Response;
 
-public class NotificacionResponse
+public record NotificacionResponse
 {
-    public int NotificacionId { get; set; }
+    public int NotificacionId { get; init; }
 
-    public int UsuarioId { get; set; }
+    public int UsuarioId { get; init; }
 
-    public string Tipo { get; set; } = string.Empty;
+    public string Tipo { get; init; } = string.Empty;
 
-    public string Mensaje { get; set; } = string.Empty;
+    public string Mensaje { get; init; } = string.Empty;
 
-    public DateTime FechaRegistro { get; set; }
+    public DateTime FechaRegistro { get; init; }
 
-    public bool Leida { get; set; }
+    public bool Leida { get; init; }
 }

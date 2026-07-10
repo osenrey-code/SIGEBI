@@ -38,7 +38,7 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IRepositorioReporte, RepositorioReporte>();
 
             //Servicios de aplicacion
-            services.AddScoped<INotificador, Notificador>();
+            services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
             services.AddScoped<IAuditoriaService, AuditoriaService>();
 
             //Servicios Tecnicos

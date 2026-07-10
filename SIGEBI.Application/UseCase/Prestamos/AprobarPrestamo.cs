@@ -17,7 +17,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IEjemplarRepository _ejemplares;
         private readonly ISolicitudRepository _solicitudes;
-        private readonly INotificador _notificador;
+        private readonly IServicioNotificacion _notificador;
 
         public AprobarPrestamo(
             IRepositorioPrestamo prestamos,
@@ -25,7 +25,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             IAuditoriaService auditoria,
             IEjemplarRepository ejemplares,
             IRepositorioPenalizacion penalizaciones,
-            ISolicitudRepository solicitudes, INotificador notificador)
+            ISolicitudRepository solicitudes, IServicioNotificacion notificador)
         {
             _prestamos = prestamos;
             _usuarios = usuarios;
