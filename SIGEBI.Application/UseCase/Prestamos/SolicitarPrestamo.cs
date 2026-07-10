@@ -17,6 +17,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly ISolicitudRepository _solicitudes;
         private readonly IAuditoriaService _auditoria;
         private readonly IEjemplarRepository _ejemplares;
+        private readonly IServicioNotificacion _notificaciones;
 
         public SolicitarPrestamo(
             IUsuario usuarios,
@@ -24,7 +25,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
             ISolicitudRepository solicitudes,
             IRepositorioPrestamo prestamos,
             IRepositorioPenalizacion penalizaciones,
-            IAuditoriaService auditoria)
+            IAuditoriaService auditoria,
+            IServicioNotificacion notificaciones)
         {
             _usuarios = usuarios;
             _ejemplares = ejemplares;
@@ -32,6 +34,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
             _auditoria = auditoria;
+            _notificaciones = notificaciones;
         }
 
         public async Task<SolicitudResponse> SolicitarPrestamoAsync(
@@ -143,6 +146,11 @@ namespace SIGEBI.Application.UseCase.Prestamos
             );
 
             await _solicitudes.AgregarAsync(nuevaSolicitud);
+
+            await _notificaciones.EnviarNotificacionAsync(
+                 nuevaSolicitud.UsuarioId,
+                 $"Tu solicitud de préstamo #{nuevaSolicitud.SolicitudId} fue recibida y está pendiente de revisión.",
+                 TipoNotificacion.SolicitudRecibida);
 
             await _auditoria.RegistrarAsync(
                 UsuarioId: usuario.UsuarioId,

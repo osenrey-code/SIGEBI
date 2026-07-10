@@ -17,7 +17,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IEjemplarRepository _ejemplares;
         private readonly ISolicitudRepository _solicitudes;
-        private readonly IServicioNotificacion _notificador;
+        private readonly IServicioNotificacion _notificaciones;
 
         public AprobarPrestamo(
             IRepositorioPrestamo prestamos,
@@ -25,7 +25,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             IAuditoriaService auditoria,
             IEjemplarRepository ejemplares,
             IRepositorioPenalizacion penalizaciones,
-            ISolicitudRepository solicitudes, IServicioNotificacion notificador)
+            ISolicitudRepository solicitudes, IServicioNotificacion notificaciones)
         {
             _prestamos = prestamos;
             _usuarios = usuarios;
@@ -33,7 +33,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             _ejemplares = ejemplares;
             _penalizaciones = penalizaciones;
             _solicitudes = solicitudes;
-            _notificador = notificador;
+            _notificaciones = notificaciones;
         }
 
         public async Task<PrestamoResponse> AprobarPrestamoAsync(
@@ -199,6 +199,12 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             string tituloLibro = solicitud.Ejemplar.RecursoBibliografico?.Titulo
                 ?? "Recurso solicitado";
+
+            await _notificaciones.EnviarNotificacionAsync(
+                nuevoPrestamo.UsuarioId,
+                 $"Tu préstamo #{nuevoPrestamo.PrestamoId} fue aprobado correctamente.",
+                 TipoNotificacion.PrestamoAprobado
+                 );
 
             await _auditoria.RegistrarAsync(
                 UsuarioId: usuarioEjecutorId,
