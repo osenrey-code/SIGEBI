@@ -13,15 +13,17 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         private readonly IRepositorioPenalizacion _penalizaciones;
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
+        private readonly IServicioNotificacion _notificaciones;
 
         public ResolverPenalizacion(
             IRepositorioPenalizacion penalizaciones,
             IUsuario usuarios,
-            IAuditoriaService auditoria)
+            IAuditoriaService auditoria, IServicioNotificacion notificaciones)
         {
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
             _auditoria = auditoria;
+            _notificaciones = notificaciones;
         }
 
         public async Task<PenalizacionResponse> EjecutarAsync(ResolverPenalizacionRequest request, int usuarioId)
@@ -57,6 +59,11 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             );
 
             await _penalizaciones.ActualizarAsync(penalizacion);
+
+            await _notificaciones.EnviarNotificacionAsync(
+                penalizacion.UsuarioId,
+                 $"Tu penalización #{penalizacion.PenalizacionId} fue marcada como resuelta.",
+                 TipoNotificacion.PenalizacionResuelta);
 
             await _auditoria.RegistrarAsync(
                 usuarioId,

@@ -249,7 +249,7 @@ namespace SIGEBI.Infrastructure.Repositories
                 p.Estado == EstadoPenalizacion.Activa);
 
             int resueltas = penalizaciones.Count(p =>
-                p.Estado == EstadoPenalizacion.Pagada);
+                p.Estado == EstadoPenalizacion.Resuelta);
 
             int totalDiasRetraso = penalizaciones.Sum(p =>
                 p.DiasRetraso);
@@ -262,7 +262,7 @@ namespace SIGEBI.Infrastructure.Repositories
                 .Sum(p => p.MontoMora);
 
             decimal montoResuelto = penalizaciones
-                .Where(p => p.Estado == EstadoPenalizacion.Pagada)
+                .Where(p => p.Estado == EstadoPenalizacion.Resuelta)
                 .Sum(p => p.MontoMora);
 
             var porTipoUsuario = penalizaciones
@@ -277,7 +277,7 @@ namespace SIGEBI.Infrastructure.Repositories
                         p.Estado == EstadoPenalizacion.Activa),
 
                     Resueltas = grupo.Count(p =>
-                        p.Estado == EstadoPenalizacion.Pagada),
+                        p.Estado == EstadoPenalizacion.Resuelta),
 
                     MontoTotal = grupo.Sum(p =>
                         p.MontoMora)
