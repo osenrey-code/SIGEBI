@@ -39,11 +39,9 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
             builder.Property(r => r.CategoriaId)
                 .IsRequired();
 
-            builder.Property(r => r.TotalEjemplares)
-                .IsRequired();
-
-            builder.Property(r => r.CopiasDisponibles)
-                .IsRequired();
+            builder.Ignore(r => r.TotalEjemplares);
+            builder.Ignore(r => r.CopiasDisponibles);
+                
 
             builder.HasOne(r => r.Categoria)
                 .WithMany(c => c.Libros)
