@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SIGEBI.Application.Common;
 using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Application.Services;
@@ -42,11 +41,9 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IAuditoriaService, AuditoriaService>();
 
             //Servicios Tecnicos
-            services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
             services.AddScoped<IServicioToken, ServicioToken>();
             services.AddScoped<IServicioPassword, ServicioPassword>();
             services.AddScoped<IStorageService, LocalStorageService>();
-
             QuestPDF.Settings.License = LicenseType.Community;
             services.AddScoped<IExportadorReportePdf, ExportadorReportePdf>();
 
