@@ -19,7 +19,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IUsuario _usuarios;
         private readonly IRepositorioDevolucion _devoluciones;
         private readonly IAuditoriaService _auditoria;
-        private readonly IServicioNotificacion _notificador;
+        private readonly IServicioNotificacion _notificaciones;
 
         public RegistrarDevoluciones(
             IRepositorioPrestamo prestamos,
@@ -28,7 +28,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             IRepositorioDevolucion devoluciones,
             IEjemplarRepository ejemplares,
             IAuditoriaService auditoria,
-            IServicioNotificacion notificador)
+            IServicioNotificacion notificaciones)
         {
             _prestamos = prestamos;
             _ejemplares = ejemplares;
@@ -36,7 +36,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             _usuarios = usuarios;
             _devoluciones = devoluciones;
             _auditoria = auditoria;
-            _notificador = notificador;
+            _notificaciones = notificaciones;
         }
 
         public async Task<DevolucionResponse> EjecutarAsync(
@@ -129,6 +129,11 @@ namespace SIGEBI.Application.UseCase.Devoluciones
 
                 await _penalizaciones.AgregarAsync(penalizacion);
 
+                await _notificaciones.EnviarNotificacionAsync(
+                    penalizacion.UsuarioId,
+                    $"Se ha generado una penalización #{penalizacion.PenalizacionId} por retraso en la devolución del préstamo #{prestamo.PrestamoId}.",
+                    TipoNotificacion.PenalizacionGenerada
+                    );
                 penalizacionGenerada = true;
             }
 
