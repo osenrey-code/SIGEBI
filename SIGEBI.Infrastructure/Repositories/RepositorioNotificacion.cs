@@ -6,70 +6,38 @@ using SIGEBI.Infrastructure.Persistence;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
-    public class RepositorioNotificacion : IRepositorioNotificacion
+    public class RepositorioNotificacion : RepositorioBase<Notificacion>,IRepositorioNotificacion
     {
-        private readonly SIGEBIDbContext _context;
-        private readonly DbSet<Notificacion> _dbSet;
 
         public RepositorioNotificacion(SIGEBIDbContext context)
+            : base(context)
         {
-            _context = context;
-            _dbSet = context.Set<Notificacion>();
         }
 
-        public async Task<Notificacion?> ObtenerporIdAsync(object id)
+        public async Task<IEnumerable<Notificacion>> ObtenerPorUsuarioAsync(
+            int usuarioId)
         {
-            var notificacionId = Convert.ToInt32(id);
-
-            return await _dbSet
+            return await _context.Notificaciones
                 .AsNoTracking()
-                .FirstOrDefaultAsync(n => n.NotificacionId == notificacionId);
-        }
-
-        public async Task<IReadOnlyList<Notificacion>> ObtenerTodosAsync()
-        {
-            return await _dbSet
-                .AsNoTracking()
+                .Where(n => n.UsuarioId == usuarioId)
                 .OrderByDescending(n => n.FechaRegistro)
                 .ToListAsync();
         }
 
-        public async Task AgregarAsync(Notificacion entidad)
+        public async Task<IEnumerable<Notificacion>> ObtenerNoLeidasPorUsuarioAsync(
+            int usuarioId)
         {
-            await _dbSet.AddAsync(entidad);
-            await _context.SaveChangesAsync();
-        }
-
-        public Task ActualizarAsync(Notificacion entidad)
-        {
-            throw new NotSupportedException(
-                "Las notificaciones no pueden ser modificadas."
-            );
-        }
-
-        public async Task<IEnumerable<Notificacion>> ConsultarAsync(
-            int? usuarioId,
-            TipoNotificacion? tipo,
-            DateTime? fechaInicio,
-            DateTime? fechaFin)
-        {
-            var query = _dbSet
+            return await _context.Notificaciones
                 .AsNoTracking()
-                .AsQueryable();
+                .Where(n => n.UsuarioId == usuarioId && !n.Leida)
+                .OrderByDescending(n => n.FechaRegistro)
+                .ToListAsync();
+        }
 
-            if (usuarioId.HasValue)
-                query = query.Where(n => n.UsuarioId == usuarioId.Value);
-
-            if (tipo.HasValue)
-                query = query.Where(n => n.Tipo == tipo.Value);
-
-            if (fechaInicio.HasValue)
-                query = query.Where(n => n.FechaRegistro >= fechaInicio.Value);
-
-            if (fechaFin.HasValue)
-                query = query.Where(n => n.FechaRegistro <= fechaFin.Value);
-
-            return await query
+        public async Task<IEnumerable<Notificacion>> ObtenerTodoElHistorialAsync()
+        {
+            return await _context.Notificaciones
+                .AsNoTracking()
                 .OrderByDescending(n => n.FechaRegistro)
                 .ToListAsync();
         }

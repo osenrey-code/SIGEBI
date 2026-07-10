@@ -24,18 +24,18 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             _auditoria = auditoria;
         }
 
-        public async Task<PenalizacionResponse> EjecutarAsync(ResolverPenalizacionRequest request)
+        public async Task<PenalizacionResponse> EjecutarAsync(ResolverPenalizacionRequest request, int usuarioId)
         {
             if (request.PenalizacionId <= 0)
                 throw new BusinessException("La penalización es obligatoria.");
 
-            if (request.UsuarioResolucionId <= 0)
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario responsable de la resolución es obligatorio.");
 
             if (string.IsNullOrWhiteSpace(request.MotivoResolucion))
                 throw new BusinessException("El motivo de resolución es obligatorio.");
 
-            var usuarioResponsable = await _usuarios.ObtenerporIdAsync(request.UsuarioResolucionId);
+            var usuarioResponsable = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuarioResponsable is null)
                 throw new BusinessException("El usuario responsable no existe.");
@@ -52,14 +52,14 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 throw new BusinessException("La penalización no existe.");
 
             penalizacion.Resolver(
-                request.UsuarioResolucionId,
+                usuarioId,
                 request.MotivoResolucion
             );
 
             await _penalizaciones.ActualizarAsync(penalizacion);
 
             await _auditoria.RegistrarAsync(
-                request.UsuarioResolucionId,
+                usuarioId,
                 "Resolver penalización",
                 "Penalizacion",
                 $"Se resolvió la penalización ID {penalizacion.PenalizacionId} del usuario ID {penalizacion.UsuarioId}."

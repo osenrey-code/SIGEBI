@@ -8,9 +8,7 @@ namespace SIGEBI.Domain.Entities
         public int CategoriaId { get; private set; }
 
         public string Nombre { get; private set; } = string.Empty;
-
         public string Descripcion { get; private set; } = string.Empty;
-
         public virtual ICollection<RecursoBibliografico> Libros { get; private set; } =
             new List<RecursoBibliografico>();
 

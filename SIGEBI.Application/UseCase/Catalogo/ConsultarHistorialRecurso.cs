@@ -1,6 +1,7 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Catalogo
@@ -21,18 +22,28 @@ namespace SIGEBI.Application.UseCase.Catalogo
         public async Task<IEnumerable<HistorialRecursoResponse>> EjecutarAsync(
             ConsultarHistorialRecursoRequest request)
         {
+            Guard.NotNull(request, "Los datos de consulta del historial");
+
             if (request.RecursoBibliograficoId <= 0)
                 throw new BusinessException("El recurso es obligatorio.");
 
-            var recurso = await _recursos.ObtenerporIdAsync(request.RecursoBibliograficoId);
+            var recurso = await _recursos.ObtenerporIdAsync(
+                request.RecursoBibliograficoId
+            );
 
             if (recurso is null)
                 throw new BusinessException("El recurso no existe.");
 
-            var registros = await _auditoria.ObtenerPorEntidadAsync("RecursoBibliografico");
+            var registros = await _auditoria.ObtenerPorEntidadAsync(
+                "RecursosBibliograficos"
+            );
+
+            string filtroId = $"ID {request.RecursoBibliograficoId}";
 
             var historial = registros
-                .Where(r => r.Detalle.Contains($"ID {request.RecursoBibliograficoId}"))
+                .Where(r =>
+                    !string.IsNullOrWhiteSpace(r.Detalle) &&
+                    r.Detalle.Contains(filtroId, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(r => r.FechaRegistro)
                 .Select(r => new HistorialRecursoResponse
                 {

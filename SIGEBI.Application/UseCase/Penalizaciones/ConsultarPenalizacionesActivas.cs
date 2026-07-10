@@ -21,15 +21,15 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         }
 
         public async Task<IEnumerable<PenalizacionResponse>> EjecutarAsync(
-            ConsultarPenalizacionesActivasRequest request)
+            ConsultarPenalizacionesActivasRequest request, int usuarioId)
         {
-            if (request.UsuarioEjecutorId <= 0)
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
 
             if (request.UsuarioId <= 0)
                 throw new BusinessException("El usuario consultado es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuarioEjecutor is null)
                 throw new BusinessException("El usuario ejecutor no existe.");
@@ -44,8 +44,8 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 throw new BusinessException("Solo personal autorizado puede consultar penalizaciones activas.");
             }
 
-            var penalizaciones = await _penalizaciones.ObtenerActivasPorUsuarioAsync(
-                request.UsuarioId
+            var penalizaciones = await _penalizaciones.ConsultarAsync(
+                request.UsuarioId, null, EstadoPenalizacion.Activa, null, null
             );
 
             return penalizaciones

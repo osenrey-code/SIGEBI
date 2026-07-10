@@ -26,22 +26,27 @@ namespace SIGEBI.Application.UseCase.Usuarios
 
         public async Task<LoginResponse> AutenticarUsuarioAsync(LoginRequest request)
         {
-            // 1. Validaciones de entrada
+            Guard.NotNull(request, "Los datos de inicio de sesión");
             Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación");
             Guard.NotNullOrWhiteSpace(request.Password, "La contraseña");
 
-            // 2. Búsqueda por Identificación (Matrícula o Código de Empleado)
-            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(request.Identificacion);
+            string identificacion = request.Identificacion.Trim();
+            string password = request.Password.Trim();
 
-            // 3. Validaciones de negocio y seguridad
+            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
+                identificacion
+            );
+
             if (usuario is null)
                 throw new BusinessException("Credenciales inválidas.");
 
             if (usuario.Estado != EstadoUsuario.Activo)
                 throw new BusinessException("La cuenta de usuario no está activa.");
 
-            // 4. Verificación de contraseña y auditoría de fallos
-            var passwordValido = _servicioPassword.VerificarPassword(request.Password, usuario.PassWord);
+            bool passwordValido = _servicioPassword.VerificarPassword(
+                password,
+                usuario.PassWord
+            );
 
             if (!passwordValido)
             {
@@ -49,23 +54,21 @@ namespace SIGEBI.Application.UseCase.Usuarios
                     UsuarioId: usuario.UsuarioId,
                     Accion: "Inicio de sesión fallido",
                     EntidadAfectada: "Usuarios",
-                    detalles: $"Intento fallido con identificación: {request.Identificacion}"
+                    detalles: $"Intento fallido con identificación: {identificacion}."
                 );
 
                 throw new BusinessException("Credenciales inválidas.");
             }
 
-            // 5. Generación de Token
-            var tipoUsuarioReal = usuario.GetType().Name;
+            string tipoUsuarioReal = usuario.GetType().Name;
 
-            var token = _servicioToken.GenerarToken(
+            string token = _servicioToken.GenerarToken(
                 usuario.UsuarioId,
                 usuario.NombreCompleto,
                 usuario.Correo,
                 tipoUsuarioReal
             );
 
-            // 6. Auditoría de éxito
             await _auditoria.RegistrarAsync(
                 UsuarioId: usuario.UsuarioId,
                 Accion: "Inicio de sesión",
@@ -73,7 +76,6 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 detalles: $"El usuario '{usuario.NombreCompleto}' inició sesión correctamente."
             );
 
-            // 7. Retorno del DTO de respuesta
             return new LoginResponse
             {
                 UsuarioId = usuario.UsuarioId,

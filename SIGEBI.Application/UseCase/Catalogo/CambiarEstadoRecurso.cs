@@ -24,9 +24,9 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _auditoria = auditoria;
         }
 
-        public async Task<RecursoResponse> EjecutarAsync(CambiarEstadoRecursoRequest request)
+        public async Task<RecursoResponse> EjecutarAsync(CambiarEstadoRecursoRequest request, int usuarioId)
         {
-            if (request.UsuarioEjecutorId <= 0)
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
 
             if (request.RecursoBibliograficoId <= 0)
@@ -38,7 +38,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
             if (string.IsNullOrWhiteSpace(request.NuevoEstado))
                 throw new BusinessException("El nuevo estado del ejemplar es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuarioEjecutor is null)
                 throw new BusinessException("El usuario ejecutor no existe.");
@@ -89,7 +89,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
             await _recursos.ActualizarAsync(recurso);
 
             await _auditoria.RegistrarAsync(
-                request.UsuarioEjecutorId,
+                usuarioId,
                 "Cambiar estado de ejemplar",
                 "RecursoBibliografico",
                 $"Se cambió el ejemplar ID {ejemplar.EjemplarId} del recurso ID {recurso.RecursoBibliograficoId} de {estadoAnterior} a {ejemplar.Estado}."

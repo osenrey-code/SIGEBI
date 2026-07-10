@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SIGEBI.Application.DTOs.Response.ReporteResponse;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
@@ -64,5 +65,6 @@ namespace SIGEBI.Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+
     }
 }

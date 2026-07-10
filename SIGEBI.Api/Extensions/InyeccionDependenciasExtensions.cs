@@ -1,14 +1,11 @@
-﻿using SIGEBI.Application.Interfaces.ext;
-using SIGEBI.Application.Services;
-
-using SIGEBI.Application.UseCase.Usuarios;
-using SIGEBI.Application.UseCase.Prestamos;
-using SIGEBI.Application.UseCase.Devoluciones;
+﻿using SIGEBI.Application.Common;
+using SIGEBI.Application.UseCase.Auditory;
 using SIGEBI.Application.UseCase.Catalogo;
+using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Penalizaciones;
-using SIGEBI.Application.UseCase.Notificaciones;
-using SIGEBI.Application.UseCase.Auditoria;
+using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
+using SIGEBI.Application.UseCase.Usuarios;
 
 namespace SIGEBI.Api.Extensions
 {
@@ -17,16 +14,14 @@ namespace SIGEBI.Api.Extensions
         public static IServiceCollection AddApplicationUseCases(
             this IServiceCollection services)
         {
-            services.AddScoped<INotificador, Notificador>();
-            services.AddScoped<IAuditoriaService, AuditoriaService>();
+            // Validadores comunes
+            services.AddScoped<ValidadorReportes>();
 
             // Usuarios
             services.AddScoped<RegistrarUsuario>();
-            services.AddScoped<RegistrarUsuarioWeb>();
             services.AddScoped<ActualizarUsuario>();
             services.AddScoped<DesactivarUsuario>();
             services.AddScoped<ConsultarUsuarios>();
-            services.AddScoped<AsignarPerfilLector>();
             services.AddScoped<AutenticarUsuario>();
 
             // Catálogo / Recursos
@@ -36,17 +31,18 @@ namespace SIGEBI.Api.Extensions
             services.AddScoped<ConsultarCatalogo>();
             services.AddScoped<ConsultarDetalleRecurso>();
             services.AddScoped<ConsultarHistorialRecurso>();
+            services.AddScoped<EliminarRecurso>();
+
+            // Categorías
+            services.AddScoped<RegistrarCategoria>();
+            services.AddScoped<ConsultarCategorias>();
 
             // Préstamos
             services.AddScoped<SolicitarPrestamo>();
             services.AddScoped<AprobarPrestamo>();
-            services.AddScoped<RechazarPrestamo>();
-            services.AddScoped<ConsultarPrestamoPorId>();
             services.AddScoped<ConsultarPrestamosActivos>();
             services.AddScoped<ConsultarHistorialPrestamos>();
-            services.AddScoped<RegistrarPrestamoPresencial>();
 
-      
             // Devoluciones
             services.AddScoped<RegistrarDevoluciones>();
             services.AddScoped<ConsultarHistorialDevoluciones>();
@@ -55,11 +51,6 @@ namespace SIGEBI.Api.Extensions
             services.AddScoped<ConsultarPenalizaciones>();
             services.AddScoped<ConsultarPenalizacionesActivas>();
             services.AddScoped<ResolverPenalizacion>();
-
-            // Notificaciones
-            services.AddScoped<ConsultarNotificaciones>();
-            services.AddScoped<EnviarRecordatorioVencimiento>();
-
 
             // Auditoría
             services.AddScoped<ConsultarLogAuditoria>();

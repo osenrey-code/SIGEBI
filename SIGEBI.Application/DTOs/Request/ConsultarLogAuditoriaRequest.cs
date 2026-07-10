@@ -2,8 +2,6 @@
 
 public class ConsultarLogAuditoriaRequest
 {
-    public int UsuarioEjecutorId { get; set; }
-
     public int? UsuarioId { get; set; }
 
     public string? Accion { get; set; }

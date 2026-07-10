@@ -6,8 +6,8 @@ namespace SIGEBI.Application.Interfaces.Repositories
 {
     public interface IRepositoryInmutable<T> where T : class
     {
-        Task<T?> ObtenerporIdAsync(object id);
-        Task<IEnumerable<T>> ObtenerTodosAsync();
-        Task AgregarAsync(T entidad);
+       public Task<T?> ObtenerporIdAsync(object id);
+       public Task<IEnumerable<T>> ObtenerTodosAsync();
+       public Task AgregarAsync(T entidad);
     }
 }

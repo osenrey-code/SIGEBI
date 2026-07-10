@@ -1,74 +1,57 @@
-﻿using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.DTOs.Response;
+﻿using SIGEBI.Application.Common;
+using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.DTOs.Response.ReporteResponse;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Enums;
-
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Application.UseCase.Reportes
 {
     public class GenerarReportePenalizaciones
     {
-        private readonly IRepositorioPenalizacion _penalizaciones;
+        private readonly IRepositorioReporte _reportes;
+        private readonly ValidadorReportes _validador;
+        private readonly IExportadorReportePdf _exportadorPdf;
 
         public GenerarReportePenalizaciones(
-            IRepositorioPenalizacion penalizaciones)
+            IRepositorioReporte reportes,
+            ValidadorReportes validador, IExportadorReportePdf exportador)
         {
-            _penalizaciones = penalizaciones;
+            _reportes = reportes;
+            _validador = validador;
+            _exportadorPdf = exportador;
         }
 
-        public async Task<ResultadoOperacionResponse<ReportePenalizacionesResponse>> EjecutarAsync(
-            GenerarReporteRequest request)
+        public async Task<ReportePenalizacionesResponse> EjecutarAsync(
+            ReporteRangoFRequest request,
+            int usuarioEjecutorId)
         {
-            if (request.FechaInicio.HasValue &&
-                request.FechaFin.HasValue &&
-                request.FechaInicio.Value.Date > request.FechaFin.Value.Date)
-            {
-                return ResultadoOperacionResponse<ReportePenalizacionesResponse>.Error(
-                    "La fecha de inicio no puede ser mayor que la fecha final."
-                );
-            }
+            Guard.NotNull(request, "Los filtros del reporte");
 
-            var penalizaciones = await _penalizaciones.ObtenerTodosAsync();
+            await _validador.ValidarAdministradorOAuditorAsync(usuarioEjecutorId);
 
-            var lista = penalizaciones.ToList();
+            ValidadorReportes.ValidarRangoFechas(
+                request.FechaInicio,
+                request.FechaFin
+            );
 
-            if (request.FechaInicio.HasValue)
-            {
-                lista = lista
-                     .Where(p => p.FechaGeneracion.Date >= request.FechaInicio.Value.Date)
-                     .ToList();
-            }
+            return await _reportes.ObtenerReportePenalizacionesAsync(
+                request.FechaInicio,
+                request.FechaFin
+            );
+        }
 
-            if (request.FechaFin.HasValue)
-            {
-                lista = lista
-                    .Where(p => p.FechaGeneracion.Date <= request.FechaFin.Value.Date)
-                    .ToList();
-            }
+        public async Task<byte[]> EjecutarPdfAsync(ReporteRangoFRequest request,
+          int usuarioEjecutorId)
+        {
+            var reporte = await EjecutarAsync(
+                request,
+                usuarioEjecutorId
+            );
 
-            //Filtramos por fecha
-            var activas = lista.Where(p =>
-              p.Estado == EstadoPenalizacion.Activa)
-                .ToList();
-
-            var resueltas = lista.Where(p =>
-                p.Estado == EstadoPenalizacion.Resuelta)
-                .ToList();
-
-            var response = new ReportePenalizacionesResponse
-            {
-                TotalPenalizaciones = lista.Count,
-                PenalizacionesActivas = activas.Count,
-                PenalizacionesResueltas = resueltas.Count,
-                TotalDiasRetraso = lista.Sum(p => p.DiasRetraso),
-                MontoTotalMora = lista.Sum(p => p.MontoMora),
-                MontoMoraActiva = activas.Sum(p => p.MontoMora),
-                MontoMoraResuelta = resueltas.Sum(p => p.MontoMora)
-            };
-
-            return ResultadoOperacionResponse<ReportePenalizacionesResponse>.Ok(
-                "Reporte de penalizaciones generado correctamente.",
-                response
+            return _exportadorPdf.GenerarReportePenalizacionesPdf(
+                reporte,
+                request
             );
         }
     }

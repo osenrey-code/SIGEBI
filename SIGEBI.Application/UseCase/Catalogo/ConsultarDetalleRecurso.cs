@@ -1,6 +1,7 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Exceptions;
 
@@ -15,12 +16,17 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _recursos = recursos;
         }
 
-        public async Task<RecursoResponse> EjecutarAsync(ConsultarDetalleRecursoRequest request)
+        public async Task<RecursoResponse> EjecutarAsync(
+            ConsultarDetalleRecursoRequest request)
         {
+            Guard.NotNull(request, "Los datos de consulta del recurso");
+
             if (request.RecursoBibliograficoId <= 0)
                 throw new BusinessException("El recurso es obligatorio.");
 
-            var recurso = await _recursos.BuscarConCategoriaAsync(request.RecursoBibliograficoId);
+            var recurso = await _recursos.BuscarConCategoriaAsync(
+                request.RecursoBibliograficoId
+            );
 
             if (recurso is null)
                 throw new BusinessException("El recurso no existe.");

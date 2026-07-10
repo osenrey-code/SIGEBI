@@ -9,13 +9,9 @@ namespace SIGEBI.Domain.Entities
         public int EjemplarId { get; private set; }
 
         public string Identificador { get; private set; } = string.Empty;
-
         public int RecursoBibliograficoId { get; private set; }
-
         public RecursoBibliografico? RecursoBibliografico { get; private set; }
-
         public EstadoEjemplar Estado { get; private set; }
-
         public string? Observacion { get; private set; }
 
         protected Ejemplar() { }

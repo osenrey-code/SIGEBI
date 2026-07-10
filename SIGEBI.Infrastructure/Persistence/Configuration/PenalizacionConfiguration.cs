@@ -8,9 +8,12 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Penalizacion> builder)
         {
-            builder.ToTable("Penalizaciones");
+            builder.ToTable("Penalizacion");
 
             builder.HasKey(p => p.PenalizacionId);
+
+            builder.Property(p => p.PenalizacionId)
+                .ValueGeneratedOnAdd();
 
             builder.Property(p => p.UsuarioId)
                 .IsRequired();
@@ -22,27 +25,29 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.Property(p => p.MontoMora)
-                .HasColumnType("decimal(10,2)")
+                .HasPrecision(10, 2)
                 .IsRequired();
 
             builder.Property(p => p.Motivo)
                 .IsRequired()
-                .HasMaxLength(300);
+                .HasMaxLength(500);
 
             builder.Property(p => p.Estado)
-                .IsRequired()
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(30);
 
             builder.Property(p => p.FechaGeneracion)
                 .IsRequired();
 
-            builder.Property(p => p.FechaResolucion);
+            builder.Property(p => p.FechaResolucion)
+                .IsRequired(false);
 
-            builder.Property(p => p.UsuarioResolucionId);
+            builder.Property(p => p.UsuarioResolucionId)
+                .IsRequired(false);
 
             builder.Property(p => p.MotivoResolucion)
-                .HasMaxLength(300);
+                .HasMaxLength(500);
 
             builder.HasOne(p => p.Usuario)
                 .WithMany()
@@ -53,6 +58,19 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .WithMany()
                 .HasForeignKey(p => p.PrestamoId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioResolucionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(p => p.UsuarioId);
+
+            builder.HasIndex(p => p.PrestamoId);
+
+            builder.HasIndex(p => p.Estado);
+
+            builder.HasIndex(p => p.FechaGeneracion);
         }
     }
 }
