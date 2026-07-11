@@ -5,7 +5,7 @@ namespace SIGEBI.Application.Interfaces.Service
 {
     public interface IGestionUsuariosUseCase
     {
-        Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int actorId);
+        Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request);
 
         Task<UsuarioResponse> ActualizarUsuarioAsync(ActualizarUsuarioRequest request, int actorId);
 

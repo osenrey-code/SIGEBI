@@ -1,6 +1,7 @@
 using SIGEBI.Api.Middleware;
 using SIGEBI.Application.Dependency;
 using SIGEBI.Infrastructure;
+using SIGEBI.Infrastructure.Persistence;
 
 namespace SIGEBI.Api
 {
@@ -20,7 +21,14 @@ namespace SIGEBI.Api
 
             var app = builder.Build();
 
-            app.UseMiddleware<ManejadorExcepcionesMiddleware>();
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<SIGEBIDbContext>();
+                context.Database.EnsureCreated();
+            }
+
+                app.UseMiddleware<ManejadorExcepcionesMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {

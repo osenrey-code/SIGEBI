@@ -22,12 +22,9 @@ namespace SIGEBI.Application.UseCase.Usuarios
             _password = password;
         }
 
-        public async Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int actorId)
+        public async Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request)
         {
             Guard.NotNull(request, "Los datos del usuario");
-
-            if (actorId <= 0)
-                throw new BusinessException("El usuario que realiza la acción es obligatorio.");
 
             Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación del usuario");
             Guard.NotNullOrWhiteSpace(request.NombreCompleto, "El nombre completo del usuario");
@@ -39,16 +36,6 @@ namespace SIGEBI.Application.UseCase.Usuarios
             string correo = request.Correo.Trim();
             string tipo = request.Tipo.Trim().ToLower();
 
-            var actor = await _usuarios.ObtenerporIdAsync(actorId);
-
-            if (actor is null)
-                throw new BusinessException("El usuario que realiza la acción no existe.");
-
-            if (actor.Estado != EstadoUsuario.Activo)
-                throw new BusinessException("El usuario que realiza la acción no está activo.");
-
-            if (actor is not Administrador)
-                throw new BusinessException("Solo un administrador puede registrar usuarios.");
 
             var usuarioExistente = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
                 identificacion
@@ -106,7 +93,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             await _usuarios.AgregarAsync(usuario);
 
             await _auditoria.RegistrarAsync(
-                UsuarioId: actorId,
+                UsuarioId: usuario.UsuarioId,
                 Accion: "Registrar Usuario",
                 EntidadAfectada: "Usuarios",
                 detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {identificacion}."
