@@ -4,6 +4,7 @@ using SIGEBI.Application.UseCase;
 using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Prestamos;
+using SIGEBI.Application.UseCase.Reportes;
 using SIGEBI.Application.UseCase.Usuarios;
 
 namespace SIGEBI.Application.Dependency
@@ -16,7 +17,7 @@ namespace SIGEBI.Application.Dependency
             services.AddUsuariosUseCases();
             services.AddPrestamosUseCase();
             services.AddDevolucionesUseCases();
-          
+            services.AddReportesUseCases();
 
             
 
@@ -59,5 +60,17 @@ namespace SIGEBI.Application.Dependency
 
             return services;
         }
+
+        //Gestion de Reportes
+        private static IServiceCollection AddReportesUseCases(this IServiceCollection services)
+        {
+            services.AddScoped<GenerarReporteInventario>();
+            services.AddScoped<GenerarReportePenalizaciones>();
+            services.AddScoped<GenerarReportePrestamo>();
+            services.AddScoped<GenerarReportesUsoCatalogo>();
+
+            return services;
+        }
+
     }
 }
