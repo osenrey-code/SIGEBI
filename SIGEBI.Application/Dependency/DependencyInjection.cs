@@ -20,6 +20,13 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<ConsultarUsuarios>();
 
             //Gestion de Prestamos 
+            services.AddScoped<SolicitarPrestamo>();
+            services.AddScoped<AprobarPrestamo>();
+            services.AddScoped<ConsultarHistorialPrestamos>();
+            services.AddScoped<ConsultarPrestamosActivos>();
+
+
+
 
 
         }
