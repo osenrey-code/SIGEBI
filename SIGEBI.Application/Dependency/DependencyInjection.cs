@@ -2,6 +2,7 @@
 using SIGEBI.Application.Interfaces;
 using SIGEBI.Application.UseCase;
 using SIGEBI.Application.UseCase.Catalogo;
+using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Usuarios;
 
@@ -14,6 +15,7 @@ namespace SIGEBI.Application.Dependency
 
             services.AddUsuariosUseCases();
             services.AddPrestamosUseCase();
+            services.AddDevolucionesUseCases();
           
 
             
@@ -45,6 +47,15 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<DesactivarUsuario>();
             services.AddScoped<ActualizarUsuario>();
             services.AddScoped<ConsultarUsuarios>();
+
+            return services;
+        }
+
+        //Gestion de Devolucion
+        private static IServiceCollection AddDevolucionesUseCases(this IServiceCollection services)
+        {
+            services.AddScoped<RegistrarDevoluciones>();
+            services.AddScoped<ConsultarHistorialDevoluciones>();
 
             return services;
         }
