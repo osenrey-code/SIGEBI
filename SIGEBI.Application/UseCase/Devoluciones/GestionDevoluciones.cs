@@ -9,7 +9,7 @@ using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Devoluciones
 {
-    public class RegistrarDevoluciones
+    public class GestionDevoluciones : IGestionDevolucionesUseCase
     {
         private const decimal MontoMoraPorDia = 25m;
 
@@ -21,7 +21,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioNotificacion _notificaciones;
 
-        public RegistrarDevoluciones(
+        public GestionDevoluciones(
             IRepositorioPrestamo prestamos,
             IRepositorioPenalizacion penalizaciones,
             IUsuario usuarios,
@@ -31,15 +31,15 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             IServicioNotificacion notificaciones)
         {
             _prestamos = prestamos;
-            _ejemplares = ejemplares;
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
             _devoluciones = devoluciones;
+            _ejemplares = ejemplares;
             _auditoria = auditoria;
             _notificaciones = notificaciones;
         }
 
-        public async Task<DevolucionResponse> EjecutarAsync(
+        public async Task<DevolucionResponse> RegistrarDevolucionAsync(
             RegistrarDevolucionRequest request,
             int bibliotecarioId)
         {
@@ -54,11 +54,14 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             Guard.NotNullOrWhiteSpace(request.Condicion, "La condición del recurso");
 
             string condicion = request.Condicion.Trim();
+
             string? observacion = string.IsNullOrWhiteSpace(request.Observacion)
                 ? null
                 : request.Observacion.Trim();
 
-            var bibliotecario = await _usuarios.ObtenerporIdAsync(bibliotecarioId);
+            var bibliotecario = await _usuarios.ObtenerporIdAsync(
+                bibliotecarioId
+            );
 
             if (bibliotecario is null)
                 throw new BusinessException("El bibliotecario responsable no existe.");
@@ -69,7 +72,9 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             if (bibliotecario is not Bibliotecario && bibliotecario is not Administrador)
                 throw new BusinessException("Solo un bibliotecario o administrador puede registrar devoluciones.");
 
-            var prestamo = await _prestamos.ObtenerConDetallesAsync(request.PrestamoId);
+            var prestamo = await _prestamos.ObtenerConDetallesAsync(
+                request.PrestamoId
+            );
 
             if (prestamo is null)
                 throw new BusinessException("El préstamo especificado no existe.");
@@ -106,7 +111,9 @@ namespace SIGEBI.Application.UseCase.Devoluciones
 
             prestamo.MarcarComoDevuelto();
 
-            prestamo.Ejemplar.RegistrarDevolucion(observacion);
+            prestamo.Ejemplar.RegistrarDevolucion(
+                observacion
+            );
 
             if (requiereRetiroDeServicio)
             {
@@ -127,19 +134,30 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                     motivo: $"Devolución tardía de {diasRetraso} día(s) en el préstamo #{prestamo.PrestamoId}."
                 );
 
-                await _penalizaciones.AgregarAsync(penalizacion);
+                await _penalizaciones.AgregarAsync(
+                    penalizacion
+                );
 
                 await _notificaciones.EnviarNotificacionAsync(
                     penalizacion.UsuarioId,
-                    $"Se ha generado una penalización #{penalizacion.PenalizacionId} por retraso en la devolución del préstamo #{prestamo.PrestamoId}.",
+                    $"Se ha generado una penalización por retraso en la devolución del préstamo #{prestamo.PrestamoId}.",
                     TipoNotificacion.PenalizacionGenerada
-                    );
+                );
+
                 penalizacionGenerada = true;
             }
 
-            await _devoluciones.AgregarAsync(nuevaDevolucion);
-            await _prestamos.ActualizarAsync(prestamo);
-            await _ejemplares.ActualizarAsync(prestamo.Ejemplar);
+            await _devoluciones.AgregarAsync(
+                nuevaDevolucion
+            );
+
+            await _prestamos.ActualizarAsync(
+                prestamo
+            );
+
+            await _ejemplares.ActualizarAsync(
+                prestamo.Ejemplar
+            );
 
             string tituloRecurso = prestamo.Ejemplar.RecursoBibliografico?.Titulo
                 ?? "Recurso";
@@ -150,8 +168,6 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 EntidadAfectada: "Devoluciones",
                 detalles: $"Se registró la devolución del préstamo #{prestamo.PrestamoId}. Usuario ID {prestamo.UsuarioId}. Ejemplar ID {prestamo.EjemplarId}. Condición: {condicion}. Días de retraso: {diasRetraso}. Penalización generada: {penalizacionGenerada}. Monto: {montoPenalizacion}."
             );
-
-          
 
             return new DevolucionResponse
             {
@@ -165,6 +181,69 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 Mensaje = penalizacionGenerada
                     ? $"Devolución registrada. Se generó una penalización de {montoPenalizacion} por {diasRetraso} día(s) de retraso."
                     : "Devolución registrada exitosamente sin penalización."
+            };
+        }
+
+        public async Task<IEnumerable<DevolucionResponse>> ConsultarHistorialAsync(
+            ConsultarHistorialDevolucionesRequest request)
+        {
+            Guard.NotNull(request, "Los filtros del historial de devoluciones");
+
+            if (request.UsuarioId.HasValue && request.UsuarioId.Value <= 0)
+                throw new BusinessException("El usuario no existe.");
+
+            if (request.RecursoBibliograficoId.HasValue && request.RecursoBibliograficoId.Value <= 0)
+                throw new BusinessException("El recurso bibliográfico no existe.");
+
+            if (request.EjemplarId.HasValue && request.EjemplarId.Value <= 0)
+                throw new BusinessException("El ejemplar debe ser mayor que cero.");
+
+            if (request.FechaInicio.HasValue &&
+                request.FechaFin.HasValue &&
+                request.FechaInicio.Value > request.FechaFin.Value)
+            {
+                throw new BusinessException("La fecha de inicio no puede ser mayor que la fecha final.");
+            }
+
+            var resultados = await _devoluciones.ConsultarHistorialAsync(
+                request.UsuarioId,
+                request.RecursoBibliograficoId,
+                request.EjemplarId,
+                request.FechaInicio,
+                request.FechaFin
+            );
+
+            return resultados
+                .Select(MapearDevolucion)
+                .ToList();
+        }
+
+        private static DevolucionResponse MapearDevolucion(
+            Devolucion devolucion)
+        {
+            int diasRetraso = devolucion.Prestamo is not null
+                ? devolucion.Prestamo.CalcularDiasRetraso(devolucion.FechaDevolucion)
+                : 0;
+
+            decimal montoPenalizacion = diasRetraso > 0
+                ? diasRetraso * MontoMoraPorDia
+                : 0;
+
+            string tituloRecurso = devolucion.Prestamo?.Ejemplar?.RecursoBibliografico?.Titulo
+                ?? "Recurso no especificado";
+
+            return new DevolucionResponse
+            {
+                PrestamoId = devolucion.PrestamoId,
+                TituloRecurso = tituloRecurso,
+                FechaDevolucion = devolucion.FechaDevolucion,
+                DiasRetraso = diasRetraso,
+                Condicion = devolucion.Condicion,
+                PenalizacionGenerada = diasRetraso > 0,
+                MontoPenalizacion = montoPenalizacion,
+                Mensaje = diasRetraso > 0
+                    ? $"Devolución tardía con {diasRetraso} día(s) de retraso."
+                    : "Devolución realizada dentro del plazo."
             };
         }
     }

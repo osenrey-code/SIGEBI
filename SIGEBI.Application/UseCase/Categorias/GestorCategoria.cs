@@ -9,13 +9,13 @@ using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Catalogo
 {
-    public class RegistrarCategoria
+    public class GestionCategorias : IGestionCategorias
     {
         private readonly IRepositorioCategoria _categorias;
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
 
-        public RegistrarCategoria(
+        public GestionCategorias(
             IRepositorioCategoria categorias,
             IUsuario usuarios,
             IAuditoriaService auditoria)
@@ -37,7 +37,10 @@ namespace SIGEBI.Application.UseCase.Catalogo
             Guard.NotNullOrWhiteSpace(request.Nombre, "El nombre de la categoría");
 
             string nombre = request.Nombre.Trim();
-            string descripcion = request.Descripcion?.Trim() ?? string.Empty;
+
+            string descripcion = string.IsNullOrWhiteSpace(request.Descripcion)
+                ? string.Empty
+                : request.Descripcion.Trim();
 
             var actor = await _usuarios.ObtenerporIdAsync(actorId);
 
@@ -55,7 +58,10 @@ namespace SIGEBI.Application.UseCase.Catalogo
             if (categoriaExistente is not null)
                 throw new BusinessException("Ya existe una categoría con ese nombre.");
 
-            var categoria = new Categoria(nombre, descripcion);
+            var categoria = new Categoria(
+                nombre,
+                descripcion
+            );
 
             await _categorias.AgregarAsync(categoria);
 
@@ -69,7 +75,18 @@ namespace SIGEBI.Application.UseCase.Catalogo
             return MapearCategoria(categoria);
         }
 
-        private static CategoriaResponse MapearCategoria(Categoria categoria)
+        public async Task<IEnumerable<CategoriaResponse>> ConsultarCategoriasAsync()
+        {
+            var categorias = await _categorias.ObtenerTodosAsync();
+
+            return categorias
+                .OrderBy(c => c.Nombre)
+                .Select(MapearCategoria)
+                .ToList();
+        }
+
+        private static CategoriaResponse MapearCategoria(
+            Categoria categoria)
         {
             return new CategoriaResponse
             {

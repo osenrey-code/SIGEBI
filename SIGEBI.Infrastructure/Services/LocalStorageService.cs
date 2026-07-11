@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Infrastructure.Services
 {

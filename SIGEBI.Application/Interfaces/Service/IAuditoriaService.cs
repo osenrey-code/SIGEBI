@@ -1,8 +1,7 @@
-﻿
-using SIGEBI.Application.DTOs.Response;
+﻿using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Domain.Entities;
 
-namespace SIGEBI.Application.Interfaces.ext
+namespace SIGEBI.Application.Interfaces.Service
 {
     public interface IAuditoriaService
     {

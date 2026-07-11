@@ -1,5 +1,4 @@
-﻿
-namespace SIGEBI.Application.Interfaces.ext
+﻿namespace SIGEBI.Application.Interfaces.Service
 {
     public interface IServicioPassword
     {

@@ -50,7 +50,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .HasMaxLength(500);
 
             builder.HasOne(p => p.Usuario)
-                .WithMany()
+                .WithMany(u => u.Penalizciones)
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 

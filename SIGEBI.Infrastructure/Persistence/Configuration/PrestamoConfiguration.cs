@@ -21,6 +21,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
             builder.Property(p => p.UsuarioId)
                 .IsRequired();
 
+
             builder.Property(p => p.EjemplarId)
                 .IsRequired();
 
@@ -41,7 +42,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(p => p.Usuario)
-                .WithMany()
+                .WithMany(u => u.Prestamos)
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 

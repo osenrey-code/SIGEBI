@@ -1,13 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Application.Services;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
 using SIGEBI.Infrastructure.Services;
 using QuestPDF.Infrastructure;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Infrastructure
 {
@@ -35,10 +34,6 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<ISolicitudRepository, RepositorioSolicitud>();
             services.AddScoped<IRepositorioDevolucion, RepositorioDevolucion>();
             services.AddScoped<IRepositorioReporte, RepositorioReporte>();
-
-            //Servicios de aplicacion
-            services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
-            services.AddScoped<IAuditoriaService, AuditoriaService>();
 
             //Servicios Tecnicos
             services.AddScoped<IServicioToken, ServicioToken>();

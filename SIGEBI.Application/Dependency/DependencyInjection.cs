@@ -1,8 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SIGEBI.Application.Common;
 using SIGEBI.Application.Interfaces;
+using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.UseCase;
 using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
+using SIGEBI.Application.UseCase.Penalizaciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
 using SIGEBI.Application.UseCase.Usuarios;
@@ -11,65 +14,23 @@ namespace SIGEBI.Application.Dependency
 {
     public static class DependencyInjection 
     {
-        public static IServiceCollection AddAplication(this IServiceCollection services)
+        public static IServiceCollection AddApplication(this IServiceCollection services)
         {
 
-            services.AddUsuariosUseCases();
-            services.AddPrestamosUseCase();
-            services.AddDevolucionesUseCases();
-            services.AddReportesUseCases();
+            services.AddScoped<IGestionUsuariosUseCase, GestionUsuarios>();
+            services.AddScoped<IGestionPrestamos, GestionPrestamos>();
+            services.AddScoped<IGestionDevolucionesUseCase, GestionDevoluciones>();
+            services.AddScoped<IGestionReportesUseCase, GestionReportes>();
+            services.AddScoped<IGestionCatalogo,GestionCatalogo>();
+            services.AddScoped<IGestionPenalizaciones, GestionPenalizaciones>();
+            services.AddScoped<IGestionCategorias, GestionCategorias>();
 
-
-
-
+            services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
+            services.AddScoped<ValidadorReportes>();
 
             return services;
 
-        }
-
-
-
-        //Gestion de Prestamos
-        private static IServiceCollection AddPrestamosUseCase(this IServiceCollection services)
-        {
-            services.AddScoped<SolicitarPrestamo>();
-            services.AddScoped<AprobarPrestamo>();
-            services.AddScoped<ConsultarHistorialPrestamos>();
-            services.AddScoped<ConsultarPrestamosActivos>();
-
-            return services;
-        }
-
-        //Gestion de Usuarios 
-        private static IServiceCollection AddUsuariosUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<RegistrarUsuario>();
-            services.AddScoped<ActualizarUsuario>();
-            services.AddScoped<DesactivarUsuario>();
-            services.AddScoped<ActualizarUsuario>();
-            services.AddScoped<ConsultarUsuarios>();
-
-            return services;
-        }
-
-        //Gestion de Devolucion
-        private static IServiceCollection AddDevolucionesUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<RegistrarDevoluciones>();
-            services.AddScoped<ConsultarHistorialDevoluciones>();
-
-            return services;
-        }
-
-        //Gestion de Reportes
-        private static IServiceCollection AddReportesUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<GenerarReporteInventario>();
-            services.AddScoped<GenerarReportePenalizaciones>();
-            services.AddScoped<GenerarReportePrestamo>();
-            services.AddScoped<GenerarReportesUsoCatalogo>();
-
-            return services;
         }
 
         
