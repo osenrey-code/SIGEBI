@@ -22,7 +22,7 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<IGestionReportesUseCase, GestionReportes>();
             services.AddScoped<IGestionCatalogo,GestionCatalogo>();
             services.AddScoped<IGestionPenalizaciones, GestionPenalizaciones>();
-
+            services.AddScoped<IGestionCategorias, GestionCategorias>();
 
 
             return services;
