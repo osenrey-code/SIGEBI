@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.Application.Interfaces;
 using SIGEBI.Application.UseCase;
+using SIGEBI.Application.UseCase.Auditory;
 using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Penalizaciones;
@@ -21,6 +22,7 @@ namespace SIGEBI.Application.Dependency
             services.AddReportesUseCases();
             services.AddCatalogoUseCases();
             services.AddPenalizacionUseCases();
+            services.AddAuditoriaUseCases();
 
 
 
@@ -94,6 +96,15 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<ConsultarPenalizaciones>();
             services.AddScoped<ConsultarPenalizacionesActivas>();
             services.AddScoped<ResolverPenalizacion>();
+
+            return services;
+        }
+
+        //Gestion de Auditoria
+        private static IServiceCollection AddAuditoriaUseCases(this IServiceCollection services)
+
+        {
+            services.AddScoped<ConsultarLogAuditoria>();
 
             return services;
         }
