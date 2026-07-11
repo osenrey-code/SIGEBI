@@ -19,11 +19,11 @@ namespace SIGEBI.Application.Dependency
             services.AddDevolucionesUseCases();
             services.AddReportesUseCases();
 
-            
 
 
 
 
+            return services;
 
         }
 
