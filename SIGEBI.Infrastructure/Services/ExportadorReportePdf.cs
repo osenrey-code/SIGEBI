@@ -3,7 +3,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response.ReporteResponse;
-using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Application.Interfaces.Service;
 using System.Globalization;
 
 using QDocument = QuestPDF.Fluent.Document;

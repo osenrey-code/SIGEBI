@@ -1,4 +1,4 @@
-﻿using SIGEBI.Application.Interfaces.ext;
+﻿using SIGEBI.Application.Interfaces.Service;
 using System.Security.Cryptography;
 
 namespace SIGEBI.Infrastructure.Services

@@ -1,7 +1,6 @@
 ﻿using SIGEBI.Application.Common;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response.ReporteResponse;
-using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Domain.Common;

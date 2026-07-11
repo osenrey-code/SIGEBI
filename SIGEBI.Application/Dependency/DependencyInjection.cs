@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using SIGEBI.Application.Common;
 using SIGEBI.Application.Interfaces;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.UseCase;
@@ -13,7 +14,7 @@ namespace SIGEBI.Application.Dependency
 {
     public static class DependencyInjection 
     {
-        public static IServiceCollection AddAplication(this IServiceCollection services)
+        public static IServiceCollection AddApplication(this IServiceCollection services)
         {
 
             services.AddScoped<IGestionUsuariosUseCase, GestionUsuarios>();
@@ -24,6 +25,9 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<IGestionPenalizaciones, GestionPenalizaciones>();
             services.AddScoped<IGestionCategorias, GestionCategorias>();
 
+            services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
+            services.AddScoped<ValidadorReportes>();
 
             return services;
 

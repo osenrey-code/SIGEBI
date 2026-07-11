@@ -1,10 +1,9 @@
-﻿
-using SIGEBI.Application.DTOs.Response;
-using SIGEBI.Application.Interfaces.ext;
+﻿using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Domain.Entities;
 
-namespace SIGEBI.Application.Services
+namespace SIGEBI.Application.UseCase
 {
     public class AuditoriaService : IAuditoriaService
     {

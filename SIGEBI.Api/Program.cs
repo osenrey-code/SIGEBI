@@ -1,4 +1,5 @@
 using SIGEBI.Api.Extensions;
+using SIGEBI.Application.Dependency;
 using SIGEBI.Infrastructure;
 
 namespace SIGEBI.Api
@@ -14,7 +15,7 @@ namespace SIGEBI.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddApplicationUseCases();
+            builder.Services.AddApplication();
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             var app = builder.Build();

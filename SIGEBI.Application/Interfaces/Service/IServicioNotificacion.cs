@@ -1,7 +1,7 @@
 ﻿using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Domain.Enums;
 
-namespace SIGEBI.Application.Interfaces.ext
+namespace SIGEBI.Application.Interfaces.Service
 {
     public interface IServicioNotificacion
     {

@@ -1,10 +1,10 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
-using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 using SIGEBI.Domain.Common;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
