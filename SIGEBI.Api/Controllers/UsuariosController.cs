@@ -47,7 +47,7 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpGet("consultar")]
-        public async Task<IActionResult> Consultar([FromBody] ConsultarUsuariosRequest request)
+        public async Task<IActionResult> Consultar([FromQuery] ConsultarUsuariosRequest request)
         {
             var resultado = await _gestionUsuarios.ConsultarUsuariosAsync(request);
             return Ok(resultado);
