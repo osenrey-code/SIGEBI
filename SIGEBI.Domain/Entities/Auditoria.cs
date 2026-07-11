@@ -17,15 +17,15 @@ namespace SIGEBI.Domain.Entities
 
         public Auditoria(int usuarioId, string entidadAfectada, string accion, string detalles)
         {
-            if (usuarioId <= 0) throw new BusinessException("El ID del Bibliotecario es obligatorio.");
+            if (usuarioId <= 0) throw new BusinessException("El ID del usuario es obligatorio.");
             Guard.NotNullOrWhiteSpace(entidadAfectada, "La entidad que fue afectada.");
             Guard.NotNullOrWhiteSpace(accion, "La acción ");
-            Guard.NotNullOrWhiteSpace(detalles, "El detalle");
+            Guard.NotNullOrWhiteSpace(detalles, "El detalle de la acción");
 
             UsuarioId = usuarioId;
-            EntidadAfectada = entidadAfectada;
-            Accion = accion;
-            Detalle = detalles;
+            EntidadAfectada = entidadAfectada.Trim();
+            Accion = accion.Trim();
+            Detalle = detalles.Trim();
             FechaRegistro = DateTime.UtcNow; 
         }
     }

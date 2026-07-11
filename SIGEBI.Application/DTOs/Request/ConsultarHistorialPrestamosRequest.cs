@@ -6,5 +6,6 @@ namespace SIGEBI.Application.DTOs.Request
         public string? Identificacion { get; init; }
 
         public int? EjemplarId { get; init; }
+        public int? RecursoBibliograficoId { get; set; }
     }
 }

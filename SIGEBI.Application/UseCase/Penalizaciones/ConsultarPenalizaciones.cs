@@ -21,12 +21,12 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         }
 
         public async Task<IEnumerable<PenalizacionResponse>> EjecutarAsync(
-            ConsultarPenalizacionesRequest request)
+            ConsultarPenalizacionesRequest request, int usuarioId)
         {
-            if (request.UsuarioEjecutorId <= 0)
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuarioEjecutor is null)
                 throw new BusinessException("El usuario ejecutor no existe.");
@@ -41,10 +41,28 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 throw new BusinessException("Solo personal autorizado puede consultar penalizaciones.");
             }
 
+            EstadoPenalizacion? estado = null;
+
+            if (!string.IsNullOrWhiteSpace(request.Estado))
+            {
+                if (!Enum.TryParse<EstadoPenalizacion>(
+                        request.Estado,
+                        true,
+                        out var estadoConvertido))
+                {
+                    throw new BusinessException("El estado de penalización no es válido.");
+                }
+
+                estado = estadoConvertido;
+            }
+
+
             var penalizaciones = await _penalizaciones.ConsultarAsync(
                 request.UsuarioId,
                 request.PrestamoId,
-                request.Estado
+                estado,
+                null,
+                null
             );
 
             return penalizaciones
@@ -56,7 +74,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         {
             return new PenalizacionResponse
             {
-                IdPenalizacion = penalizacion.IdPenalizacion,
+                PenalizacionId = penalizacion.PenalizacionId,
                 UsuarioId = penalizacion.UsuarioId,
                 PrestamoId = penalizacion.PrestamoId,
                 DiasRetraso = penalizacion.DiasRetraso,

@@ -1,4 +1,5 @@
-﻿using SIGEBI.Domain.Entities;
+﻿using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {

@@ -1,123 +1,56 @@
-﻿using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.DTOs.Response;
+﻿using SIGEBI.Application.Common;
+using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.DTOs.Response.ReporteResponse;
+using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Domain.Enums;
+using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Application.UseCase.Reportes
 {
-     public class GenerarReportesUsoCatalogo
+    public class GenerarReportesUsoCatalogo
     {
-        private readonly IRepositorioPrestamo _prestamos;
-        private readonly IRepositorioRecurso _recursos;
+        private readonly IRepositorioReporte _reportes;
+        private readonly ValidadorReportes _validador;
+        private readonly IExportadorReportePdf _exportadorPdf;
 
-        public GenerarReportesUsoCatalogo(
-            IRepositorioPrestamo prestamos,
-            IRepositorioRecurso recursos)
+        public GenerarReportesUsoCatalogo(IRepositorioReporte reportes,
+            ValidadorReportes validador, IExportadorReportePdf exportador)
         {
-            _prestamos = prestamos;
-            _recursos = recursos;
+            _reportes = reportes;
+            _validador = validador;
+            _exportadorPdf = exportador;
         }
 
-        public async Task<ResultadoOperacionResponse<ReporteUsoCatalogoResponse>> EjecutarAsync(
-            GenerarReporteRequest request)
+        public async Task<ReporteUsoCatalogoResponse> EjecutarAsync(
+            ReporteRangoFRequest request,
+            int usuarioEjecutorId)
         {
-            if (request.FechaInicio.HasValue &&
-                request.FechaFin.HasValue &&
-                request.FechaInicio.Value.Date > request.FechaFin.Value.Date)
-            {
-                return ResultadoOperacionResponse<ReporteUsoCatalogoResponse>.Error(
-                    "La fecha de inicio no puede ser mayor que la fecha final."
-                );
-            }
+            Guard.NotNull(request, "Los filtros del reporte");
 
-            var prestamos = await _prestamos.ObtenerTodosAsync();
-            var recursos = await _recursos.ObtenerTodosAsync();
+            await _validador.ValidarAdministradorOAuditorAsync(usuarioEjecutorId);
 
-            if (request.FechaInicio.HasValue)
-            {
-                prestamos = prestamos.Where(p =>
-                    p.FechaSolicitud.Date >= request.FechaInicio.Value.Date
-                );
-            }
-
-            if (request.FechaFin.HasValue)
-            {
-                prestamos = prestamos.Where(p =>
-                    p.FechaSolicitud.Date <= request.FechaFin.Value.Date
-                );
-            }
-
-            var listaPrestamos = prestamos.ToList();
-            var listaRecursos = recursos.ToList();
-
-            var prestamosConRecurso = listaPrestamos
-                .Join(
-                    listaRecursos,
-                    prestamo => prestamo.RecursoId,
-                    recurso => recurso.Id,
-                    (prestamo, recurso) => new
-                    {
-                        Prestamo = prestamo,
-                        Recurso = recurso
-                    }
-                )
-                .ToList();
-
-            var recursosMasSolicitados = prestamosConRecurso
-                .GroupBy(x => new
-                {
-                    x.Recurso.Id,
-                    x.Recurso.Titulo
-                })
-                .Select(g => new RecursoSolicitadoReporteResponse
-                {
-                    RecursoId = g.Key.Id,
-                    Titulo = g.Key.Titulo,
-                    CantidadSolicitudes = g.Count()
-                })
-                .OrderByDescending(x => x.CantidadSolicitudes)
-                .Take(10)
-                .ToList();
-
-            var demandaPorCategoria = prestamosConRecurso
-                .GroupBy(x => x.Recurso.Categoria)
-                .Select(g => new DemandaCategoriaReporteResponse
-                {
-                    Categoria = string.IsNullOrWhiteSpace(g.Key)
-                        ? "Sin categoría"
-                        : g.Key,
-                    CantidadSolicitudes = g.Count()
-                })
-                .OrderByDescending(x => x.CantidadSolicitudes)
-                .ToList();
-
-            var recursosDisponibles = listaRecursos.Count(r =>
-                r.Estado == EstadoEjemplar.Disponible
+            ValidadorReportes.ValidarRangoFechas(
+                request.FechaInicio,
+                request.FechaFin
             );
 
-            var porcentajeDisponibilidad = listaRecursos.Count == 0
-                ? 0
-                : Math.Round(
-                    (decimal)recursosDisponibles / listaRecursos.Count * 100,
-                    2
-                );
+            return await _reportes.ObtenerReporteUsoCatalogoAsync(
+                request.FechaInicio,
+                request.FechaFin
+            );
+        }
 
-            var response = new ReporteUsoCatalogoResponse
-            {
-                TotalSolicitudes = listaPrestamos.Count,
-                RecursosDiferentesSolicitados = listaPrestamos
-                    .Select(p => p.RecursoId)
-                    .Distinct()
-                    .Count(),
+        public async Task<byte[]> EjecutarPdfAsync(ReporteRangoFRequest request,
+           int usuarioEjecutorId)
+        {
+            var reporte = await EjecutarAsync(
+                request,
+                usuarioEjecutorId
+            );
 
-                PorcentajeDisponibilidadActual = porcentajeDisponibilidad,
-                RecursosMasSolicitados = recursosMasSolicitados,
-                DemandaPorCategoria = demandaPorCategoria
-            };
-
-            return ResultadoOperacionResponse<ReporteUsoCatalogoResponse>.Ok(
-                "Reporte de uso del catálogo generado correctamente.",
-                response
+            return _exportadorPdf.GenerarReporteUsoCatalogoPdf(
+                reporte,
+                request
             );
         }
     }

@@ -2,9 +2,7 @@
 
 public class ResolverPenalizacionRequest
 {
-    public int IdPenalizacion { get; set; }
-
-    public int UsuarioResolucionId { get; set; }
+    public int PenalizacionId { get; set; }
 
     public string MotivoResolucion { get; set; } = string.Empty;
 }

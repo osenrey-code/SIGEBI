@@ -8,46 +8,47 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Prestamo> builder)
         {
-            builder.ToTable("Prestamos");
+            builder.ToTable("Prestamo");
 
-            builder.HasKey(p => p.Id);
+            builder.HasKey(p => p.PrestamoId);
 
-            builder.Property(p => p.PerfilLectorId)
+            builder.Property(p => p.PrestamoId)
+                .ValueGeneratedOnAdd();
+
+            builder.Property(p => p.SolicitudId)
                 .IsRequired();
 
-            builder.Property(p => p.RecursoId)
+            builder.Property(p => p.UsuarioId)
                 .IsRequired();
 
-            builder.Property(p => p.FechaSolicitud)
+            builder.Property(p => p.EjemplarId)
                 .IsRequired();
 
             builder.Property(p => p.FechaInicio)
-                .IsRequired(false);
+                .IsRequired();
 
             builder.Property(p => p.FechaLimite)
-                .IsRequired(false);
-
-            builder.Property(p => p.FechaDevolucion)
-                .IsRequired(false);
+                .IsRequired();
 
             builder.Property(p => p.Estado)
-                .IsRequired()
                 .HasConversion<string>()
-                .HasMaxLength(50);
+                .IsRequired()
+                .HasMaxLength(30);
 
-            builder.Property(p => p.MotivoRechazo)
-                .HasMaxLength(250)
-                .IsRequired(false);
+            builder.HasOne(p => p.Solicitud)
+                .WithOne()
+                .HasForeignKey<Prestamo>(p => p.SolicitudId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(p => p.PerfilLector)
-                .WithMany(pl => pl.prestamos)
-                .HasForeignKey(p => p.PerfilLectorId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasOne(p => p.Recurso)
+            builder.HasOne(p => p.Usuario)
                 .WithMany()
-                .HasForeignKey(p => p.RecursoId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .HasForeignKey(p => p.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(p => p.Ejemplar)
+                .WithMany()
+                .HasForeignKey(p => p.EjemplarId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

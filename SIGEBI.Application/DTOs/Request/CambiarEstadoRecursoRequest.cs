@@ -2,8 +2,6 @@
 
 public class CambiarEstadoRecursoRequest
 {
-    public int UsuarioEjecutorId { get; set; }
-
     public int RecursoBibliograficoId { get; set; }
 
     public int EjemplarId { get; set; }

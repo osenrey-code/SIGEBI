@@ -1,9 +1,10 @@
 ﻿
 namespace SIGEBI.Application.DTOs.Response
 {
-    public class CategoriaResponse
+    public record CategoriaResponse
     {
-        public int CategoriaId { get; set; }
-        public string Nombre { get; set; } = string.Empty;
+        public int CategoriaId { get; init; }
+        public string Nombre { get; init; } = string.Empty;
+        public string Descripcion { get; init; } = string.Empty;
     }
 }

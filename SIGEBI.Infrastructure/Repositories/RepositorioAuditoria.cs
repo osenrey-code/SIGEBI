@@ -25,25 +25,10 @@ namespace SIGEBI.Infrastructure.Repositories
                 .FirstOrDefaultAsync(a => a.AuditoriaId == auditoriaId);
         }
 
-        public async Task<IReadOnlyList<Auditoria>> ObtenerTodosAsync()
-        {
-            return await _dbSet
-                .AsNoTracking()
-                .OrderByDescending(a => a.FechaRegistro)
-                .ToListAsync();
-        }
-
         public async Task AgregarAsync(Auditoria entidad)
         {
             await _dbSet.AddAsync(entidad);
             await _context.SaveChangesAsync();
-        }
-
-        public Task ActualizarAsync(Auditoria entidad)
-        {
-            throw new NotSupportedException(
-                "Los registros de auditoría no pueden ser modificados."
-            );
         }
 
         public async Task<IEnumerable<Auditoria>> ObtenerPorEjecutorAsync(int usuarioId)
@@ -93,6 +78,14 @@ namespace SIGEBI.Infrastructure.Repositories
             return await query
                 .OrderByDescending(a => a.FechaRegistro)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Auditoria>> ObtenerTodosAsync()
+        {
+            return await _dbSet
+           .AsNoTracking()
+           .OrderByDescending(a => a.FechaRegistro)
+           .ToListAsync();
         }
     }
 }

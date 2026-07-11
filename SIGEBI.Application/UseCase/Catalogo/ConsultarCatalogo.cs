@@ -2,6 +2,7 @@
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Catalogo
 {
@@ -17,21 +18,40 @@ namespace SIGEBI.Application.UseCase.Catalogo
         public async Task<IEnumerable<RecursoResponse>> EjecutarAsync(
             ConsultarCatalogoRequest request)
         {
+            if (request is null)
+                throw new BusinessException("Los filtros de consulta son obligatorios.");
+
+            string? titulo = string.IsNullOrWhiteSpace(request.Titulo)
+                ? null
+                : request.Titulo.Trim();
+
+            string? autor = string.IsNullOrWhiteSpace(request.Autor)
+                ? null
+                : request.Autor.Trim();
+
+            string? categoria = string.IsNullOrWhiteSpace(request.Categoria)
+                ? null
+                : request.Categoria.Trim();
+
             var recursos = await _recursos.ConsultarCatalogoAsync(
-                request.Titulo,
-                request.Autor,
-                request.Categoria,
+                titulo,
+                autor,
+                categoria,
                 request.SoloDisponibles
             );
 
-            return recursos.Select(MapearRecurso).ToList();
+            return recursos
+                .Select(MapearRecurso)
+                .ToList();
         }
 
         public async Task<IEnumerable<RecursoResponse>> ConsultarTodosAsync()
         {
             var recursos = await _recursos.ObtenerTodosAsync();
 
-            return recursos.Select(MapearRecurso).ToList();
+            return recursos
+                .Select(MapearRecurso)
+                .ToList();
         }
 
         private static RecursoResponse MapearRecurso(RecursoBibliografico recurso)

@@ -2,6 +2,7 @@
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
@@ -27,15 +28,35 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _auditoria = auditoria;
         }
 
-        public async Task<RecursoResponse> EjecutarAsync(ActualizarRecursoRequest request)
+        public async Task<RecursoResponse> EjecutarAsync(
+            ActualizarRecursoRequest request, int usuarioId)
         {
-            if (request.UsuarioEjecutorId <= 0)
+            Guard.NotNull(request, "Los datos del recurso");
+
+            if (usuarioId <= 0)
                 throw new BusinessException("El usuario ejecutor es obligatorio.");
 
             if (request.RecursoBibliograficoId <= 0)
                 throw new BusinessException("El recurso es obligatorio.");
 
-            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(request.UsuarioEjecutorId);
+            Guard.NotNullOrWhiteSpace(request.Titulo, "El título del recurso");
+            Guard.NotNullOrWhiteSpace(request.Autor, "El autor del recurso");
+
+            if (request.CategoriaId <= 0)
+                throw new BusinessException("La categoría del recurso es obligatoria.");
+
+            if (request.AnioPublicado <= 0)
+                throw new BusinessException("El año de publicación es obligatorio.");
+
+            string titulo = request.Titulo.Trim();
+            string autor = request.Autor.Trim();
+            string? imagenUrl = string.IsNullOrWhiteSpace(request.ImagenUrl)
+                ? null
+                : request.ImagenUrl.Trim();
+
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(
+               usuarioId
+            );
 
             if (usuarioEjecutor is null)
                 throw new BusinessException("El usuario ejecutor no existe.");
@@ -46,19 +67,9 @@ namespace SIGEBI.Application.UseCase.Catalogo
             if (usuarioEjecutor is not Bibliotecario && usuarioEjecutor is not Administrador)
                 throw new BusinessException("Solo un bibliotecario o administrador puede actualizar recursos.");
 
-            if (string.IsNullOrWhiteSpace(request.Titulo))
-                throw new BusinessException("El título del recurso es obligatorio.");
-
-            if (string.IsNullOrWhiteSpace(request.Autor))
-                throw new BusinessException("El autor del recurso es obligatorio.");
-
-            if (request.CategoriaId <= 0)
-                throw new BusinessException("La categoría del recurso es obligatoria.");
-
-            if (request.AnioPublicado <= 0)
-                throw new BusinessException("El año de publicación es obligatorio.");
-
-            var recurso = await _recursos.ObtenerporIdAsync(request.RecursoBibliograficoId);
+            var recurso = await _recursos.ObtenerporIdAsync(
+                request.RecursoBibliograficoId
+            );
 
             if (recurso is null)
                 throw new BusinessException("El recurso no existe.");
@@ -68,27 +79,31 @@ namespace SIGEBI.Application.UseCase.Catalogo
             if (categoria is null)
                 throw new BusinessException("La categoría indicada no existe.");
 
+            string tituloAnterior = recurso.Titulo;
+
             recurso.ActualizarInformacion(
-                request.Titulo.Trim(),
-                request.Autor.Trim(),
+                titulo,
+                autor,
                 request.CategoriaId,
                 request.AnioPublicado,
-                request.ImagenUrl
+                imagenUrl
             );
 
             await _recursos.ActualizarAsync(recurso);
 
             await _auditoria.RegistrarAsync(
-                request.UsuarioEjecutorId,
-                "Actualizar recurso",
-                "RecursoBibliografico",
-                $"Se actualizó el recurso ID {recurso.RecursoBibliograficoId}: {recurso.Titulo}."
+                UsuarioId: usuarioId,
+                Accion: "Actualizar Recurso",
+                EntidadAfectada: "RecursosBibliograficos",
+                detalles: $"Se actualizó el recurso ID {recurso.RecursoBibliograficoId}. Título anterior: '{tituloAnterior}', nuevo título: '{recurso.Titulo}'."
             );
 
             return MapearRecurso(recurso, categoria.Nombre);
         }
 
-        private static RecursoResponse MapearRecurso(RecursoBibliografico recurso, string nombreCategoria)
+        private static RecursoResponse MapearRecurso(
+            RecursoBibliografico recurso,
+            string nombreCategoria)
         {
             return new RecursoResponse
             {

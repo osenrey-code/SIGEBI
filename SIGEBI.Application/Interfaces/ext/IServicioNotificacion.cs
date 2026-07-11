@@ -1,0 +1,22 @@
+﻿using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Domain.Enums;
+
+namespace SIGEBI.Application.Interfaces.ext
+{
+    public interface IServicioNotificacion
+    {
+        Task<IEnumerable<NotificacionResponse>> ObtenerPendientesAsync(int usuarioId);
+
+        Task MarcarComoLeidaAsync(int notificacionId);
+
+        Task EnviarNotificacionAsync(
+            int usuarioId,
+            string mensaje,
+            TipoNotificacion tipo
+        );
+
+        Task GenerarNotificacionesDeVencimientoAsync(int diasAntelacion);
+
+        Task<IEnumerable<NotificacionResponse>> ConsultarHistorialGlobalAsync();
+    }
+}
