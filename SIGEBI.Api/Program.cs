@@ -1,4 +1,4 @@
-using SIGEBI.Api.Extensions;
+using SIGEBI.Api.Middleware;
 using SIGEBI.Application.Dependency;
 using SIGEBI.Infrastructure;
 
@@ -19,6 +19,8 @@ namespace SIGEBI.Api
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             var app = builder.Build();
+
+            app.UseMiddleware<ManejadorExcepcionesMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
