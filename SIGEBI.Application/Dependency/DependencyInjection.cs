@@ -12,23 +12,41 @@ namespace SIGEBI.Application.Dependency
         public static IServiceCollection AddAplication(this IServiceCollection services)
         {
 
-            //Gestion de Usuarios 
+            services.AddUsuariosUseCases();
+            services.AddPrestamosUseCase();
+          
+
+            
+
+
+
+
+
+        }
+
+
+
+        //Gestion de Prestamos
+        private static IServiceCollection AddPrestamosUseCase(this IServiceCollection services)
+        {
+            services.AddScoped<SolicitarPrestamo>();
+            services.AddScoped<AprobarPrestamo>();
+            services.AddScoped<ConsultarHistorialPrestamos>();
+            services.AddScoped<ConsultarPrestamosActivos>();
+
+            return services;
+        }
+
+        //Gestion de Usuarios 
+        private static IServiceCollection AddUsuariosUseCases(this IServiceCollection services)
+        {
             services.AddScoped<RegistrarUsuario>();
             services.AddScoped<ActualizarUsuario>();
             services.AddScoped<DesactivarUsuario>();
             services.AddScoped<ActualizarUsuario>();
             services.AddScoped<ConsultarUsuarios>();
 
-            //Gestion de Prestamos 
-            services.AddScoped<SolicitarPrestamo>();
-            services.AddScoped<AprobarPrestamo>();
-            services.AddScoped<ConsultarHistorialPrestamos>();
-            services.AddScoped<ConsultarPrestamosActivos>();
-
-
-
-
-
+            return services;
         }
     }
 }
