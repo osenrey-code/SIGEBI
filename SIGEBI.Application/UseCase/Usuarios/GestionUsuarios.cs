@@ -10,14 +10,14 @@ using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
-    public class GestionUsuariosUseCase : IGestionUsuariosUseCase
+    public class GestionUsuarios : IGestionUsuariosUseCase
     {
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioPassword _password;
         private readonly IServicioToken _token;
 
-        public GestionUsuariosUseCase(
+        public GestionUsuarios(
             IUsuario usuarios,
             IAuditoriaService auditoria,
             IServicioPassword password,

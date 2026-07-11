@@ -2,7 +2,6 @@
 using SIGEBI.Application.Interfaces;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.UseCase;
-using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
@@ -15,10 +14,10 @@ namespace SIGEBI.Application.Dependency
         public static IServiceCollection AddAplication(this IServiceCollection services)
         {
 
-            services.AddScoped<IGestionUsuariosUseCase, GestionUsuariosUseCase>();
-            services.AddScoped<IGestionPrestamos, GestionPrestamosUseCase>();
-            services.AddScoped<IGestionDevolucionesUseCase, GestionDevolucionesUseCase>();
-            services.AddReportesUseCases();
+            services.AddScoped<IGestionUsuariosUseCase, GestionUsuarios>();
+            services.AddScoped<IGestionPrestamos, GestionPrestamos>();
+            services.AddScoped<IGestionDevolucionesUseCase, GestionDevoluciones>();
+            services.AddScoped<IGestionReportesUseCase, GestionReportes>();
 
 
 
@@ -26,18 +25,6 @@ namespace SIGEBI.Application.Dependency
 
             return services;
 
-        }
-
-
-        //Gestion de Reportes
-        private static IServiceCollection AddReportesUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<GenerarReporteInventario>();
-            services.AddScoped<GenerarReportePenalizaciones>();
-            services.AddScoped<GenerarReportePrestamo>();
-            services.AddScoped<GenerarReportesUsoCatalogo>();
-
-            return services;
         }
 
     }

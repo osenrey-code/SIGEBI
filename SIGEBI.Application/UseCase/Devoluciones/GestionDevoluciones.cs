@@ -10,7 +10,7 @@ using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Devoluciones
 {
-    public class GestionDevolucionesUseCase : IGestionDevolucionesUseCase
+    public class GestionDevoluciones : IGestionDevolucionesUseCase
     {
         private const decimal MontoMoraPorDia = 25m;
 
@@ -22,7 +22,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioNotificacion _notificaciones;
 
-        public GestionDevolucionesUseCase(
+        public GestionDevoluciones(
             IRepositorioPrestamo prestamos,
             IRepositorioPenalizacion penalizaciones,
             IUsuario usuarios,

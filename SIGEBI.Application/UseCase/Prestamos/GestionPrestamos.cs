@@ -10,7 +10,7 @@ using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Prestamos
 {
-    public class GestionPrestamosUseCase : IGestionPrestamos
+    public class GestionPrestamos : IGestionPrestamos
     {
         private readonly IUsuario _usuarios;
         private readonly IRepositorioPrestamo _prestamos;
@@ -20,7 +20,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioNotificacion _notificaciones;
 
-        public GestionPrestamosUseCase(
+        public GestionPrestamos(
             IUsuario usuarios,
             IRepositorioPrestamo prestamos,
             IRepositorioPenalizacion penalizaciones,
