@@ -18,7 +18,7 @@ namespace SIGEBI.Application.Dependency
             services.AddPrestamosUseCase();
             services.AddDevolucionesUseCases();
             services.AddReportesUseCases();
-
+            services.AddCatalogoUseCases();
 
 
 
@@ -72,5 +72,18 @@ namespace SIGEBI.Application.Dependency
             return services;
         }
 
+        //Gestion de Recursos
+        private static IServiceCollection AddCatalogoUseCases(this IServiceCollection services)
+        {
+            services.AddScoped<ActualizarRecurso>();
+            services.AddScoped<CambiarEstadoRecurso>();
+            services.AddScoped<ConsultarCatalogo>();
+            services.AddScoped<ConsultarDetalleRecurso>();
+            services.AddScoped<ConsultarHistorialRecurso>();
+            services.AddScoped<EliminarRecurso>();
+            services.AddScoped<RegistrarRecurso>();
+
+            return services;
+        }
     }
 }
