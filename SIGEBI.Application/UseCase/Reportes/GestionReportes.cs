@@ -14,7 +14,7 @@ namespace SIGEBI.Application.UseCase.Reportes
         private readonly ValidadorReportes _validador;
         private readonly IExportadorReportePdf _exportadorPdf;
 
-        public GestionReportesUseCase(
+        public GestionReportes(
             IRepositorioReporte reportes,
             ValidadorReportes validador,
             IExportadorReportePdf exportadorPdf)
