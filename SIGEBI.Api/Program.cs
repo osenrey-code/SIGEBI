@@ -1,3 +1,4 @@
+using SIGEBI.Application.Dependency;
 using SIGEBI.Api.Extensions;
 using SIGEBI.Infrastructure;
 
@@ -14,7 +15,7 @@ namespace SIGEBI.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddApplicationUseCases();
+            builder.Services.AddApplication();
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             var app = builder.Build();
@@ -26,11 +27,8 @@ namespace SIGEBI.Api
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
             app.MapControllers();
-
             app.Run();
         }
     }
