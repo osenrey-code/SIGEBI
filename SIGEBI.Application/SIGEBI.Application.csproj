@@ -14,8 +14,4 @@
     <ProjectReference Include="..\SIGEBI.Domain\SIGEBI.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\Service\" />
-  </ItemGroup>
-
 </Project>

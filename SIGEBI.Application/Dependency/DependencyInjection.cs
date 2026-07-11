@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.Application.Interfaces;
+using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.UseCase;
 using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
@@ -14,8 +15,8 @@ namespace SIGEBI.Application.Dependency
         public static IServiceCollection AddAplication(this IServiceCollection services)
         {
 
-            services.AddUsuariosUseCases();
-            services.AddPrestamosUseCase();
+            services.AddScoped<IGestionUsuariosUseCase, GestionUsuariosUseCase>();
+            services.AddScoped<IGestionPrestamos, GestionPrestamosUseCase>();
             services.AddDevolucionesUseCases();
             services.AddReportesUseCases();
 
@@ -27,30 +28,6 @@ namespace SIGEBI.Application.Dependency
 
         }
 
-
-
-        //Gestion de Prestamos
-        private static IServiceCollection AddPrestamosUseCase(this IServiceCollection services)
-        {
-            services.AddScoped<SolicitarPrestamo>();
-            services.AddScoped<AprobarPrestamo>();
-            services.AddScoped<ConsultarHistorialPrestamos>();
-            services.AddScoped<ConsultarPrestamosActivos>();
-
-            return services;
-        }
-
-        //Gestion de Usuarios 
-        private static IServiceCollection AddUsuariosUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<RegistrarUsuario>();
-            services.AddScoped<ActualizarUsuario>();
-            services.AddScoped<DesactivarUsuario>();
-            services.AddScoped<ActualizarUsuario>();
-            services.AddScoped<ConsultarUsuarios>();
-
-            return services;
-        }
 
         //Gestion de Devolucion
         private static IServiceCollection AddDevolucionesUseCases(this IServiceCollection services)
