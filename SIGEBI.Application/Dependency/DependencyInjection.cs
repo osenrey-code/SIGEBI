@@ -17,7 +17,7 @@ namespace SIGEBI.Application.Dependency
 
             services.AddScoped<IGestionUsuariosUseCase, GestionUsuariosUseCase>();
             services.AddScoped<IGestionPrestamos, GestionPrestamosUseCase>();
-            services.AddDevolucionesUseCases();
+            services.AddScoped<IGestionDevolucionesUseCase, GestionDevolucionesUseCase>();
             services.AddReportesUseCases();
 
 
@@ -28,15 +28,6 @@ namespace SIGEBI.Application.Dependency
 
         }
 
-
-        //Gestion de Devolucion
-        private static IServiceCollection AddDevolucionesUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<RegistrarDevoluciones>();
-            services.AddScoped<ConsultarHistorialDevoluciones>();
-
-            return services;
-        }
 
         //Gestion de Reportes
         private static IServiceCollection AddReportesUseCases(this IServiceCollection services)
