@@ -11,7 +11,16 @@ namespace SIGEBI.Application.Dependency
     {
         public static IServiceCollection AddAplication(this IServiceCollection services)
         {
-           
+
+            //Gestion de Usuarios 
+            services.AddScoped<RegistrarUsuario>();
+            services.AddScoped<ActualizarUsuario>();
+            services.AddScoped<DesactivarUsuario>();
+            services.AddScoped<ActualizarUsuario>();
+            services.AddScoped<ConsultarUsuarios>();
+
+            //Gestion de Prestamos 
+
 
         }
     }
