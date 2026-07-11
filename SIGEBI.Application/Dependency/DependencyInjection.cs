@@ -2,6 +2,7 @@
 using SIGEBI.Application.Interfaces;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.UseCase;
+using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
@@ -18,7 +19,7 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<IGestionPrestamos, GestionPrestamos>();
             services.AddScoped<IGestionDevolucionesUseCase, GestionDevoluciones>();
             services.AddScoped<IGestionReportesUseCase, GestionReportes>();
-
+            services.AddScoped<IGestionCatalogo,GestionCatalogo>();
 
 
 
@@ -27,18 +28,5 @@ namespace SIGEBI.Application.Dependency
 
         }
 
-        //Gestion de Recursos
-        private static IServiceCollection AddCatalogoUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<ActualizarRecurso>();
-            services.AddScoped<CambiarEstadoRecurso>();
-            services.AddScoped<ConsultarCatalogo>();
-            services.AddScoped<ConsultarDetalleRecurso>();
-            services.AddScoped<ConsultarHistorialRecurso>();
-            services.AddScoped<EliminarRecurso>();
-            services.AddScoped<RegistrarRecurso>();
-
-            return services;
-        }
     }
 }
