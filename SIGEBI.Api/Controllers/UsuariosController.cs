@@ -19,7 +19,8 @@ namespace SIGEBI.Api.Controllers
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] RegistrarUsuarioRequest request)
         {
-            var resultado = _gestionUsuarios.RegistrarUsuarioAsync(request);
+            int actorId = 1;
+            var resultado =  await _gestionUsuarios.RegistrarUsuarioAsync(request, actorId);
             return Ok(resultado);
         }
 
@@ -29,7 +30,7 @@ namespace SIGEBI.Api.Controllers
             //Mientras tanto, luego se sacara del jwt
             int actorId = 1;
 
-            var resultado = _gestionUsuarios.ActualizarUsuarioAsync(request, actorId);
+            var resultado = await _gestionUsuarios.ActualizarUsuarioAsync(request, actorId);
             return Ok(resultado);
         }
 
@@ -37,7 +38,7 @@ namespace SIGEBI.Api.Controllers
         public async Task<IActionResult> Desactivar([FromBody] DesactivarUsuarioRequest request)
         {
             int actorId = 1;
-            var resultado = _gestionUsuarios.DesactivarUsuarioAsync(request, actorId);
+            await _gestionUsuarios.DesactivarUsuarioAsync(request, actorId);
 
             return Ok(new
             {
@@ -48,7 +49,7 @@ namespace SIGEBI.Api.Controllers
         [HttpGet("consultar")]
         public async Task<IActionResult> Consultar([FromBody] ConsultarUsuariosRequest request)
         {
-            var resultado = _gestionUsuarios.ConsultarUsuariosAsync(request);
+            var resultado = await _gestionUsuarios.ConsultarUsuariosAsync(request);
             return Ok(resultado);
         }
     }

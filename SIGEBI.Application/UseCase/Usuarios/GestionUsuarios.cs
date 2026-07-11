@@ -28,9 +28,13 @@ namespace SIGEBI.Application.UseCase.Usuarios
             _token = token;
         }
 
-        public async Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request)
+        public async Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int usuarioId)
         {
             Guard.NotNull(request, "Los datos del usuario");
+
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario que realiza la acción es obligatorio.");
+
             Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación del usuario");
             Guard.NotNullOrWhiteSpace(request.NombreCompleto, "El nombre completo del usuario");
             Guard.NotNullOrWhiteSpace(request.Correo, "El correo del usuario");
@@ -41,6 +45,10 @@ namespace SIGEBI.Application.UseCase.Usuarios
             string correo = request.Correo.Trim();
             string tipo = request.Tipo.Trim().ToLower();
 
+            await ValidarActorAdministradorAsync(
+                usuarioId,
+                "Solo un administrador puede registrar usuarios."
+            );
 
             var usuarioExistente = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
                 identificacion
@@ -69,7 +77,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             await _usuarios.AgregarAsync(usuario);
 
             await _auditoria.RegistrarAsync(
-                UsuarioId: usuario.UsuarioId,
+                UsuarioId: usuarioId,
                 Accion: "Registrar Usuario",
                 EntidadAfectada: "Usuarios",
                 detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {identificacion}."
