@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.Application.Interfaces;
+using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.UseCase;
-using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
@@ -14,62 +14,17 @@ namespace SIGEBI.Application.Dependency
         public static IServiceCollection AddAplication(this IServiceCollection services)
         {
 
-            services.AddUsuariosUseCases();
-            services.AddPrestamosUseCase();
-            services.AddDevolucionesUseCases();
-            services.AddReportesUseCases();
-            services.AddCatalogoUseCases();
+            services.AddScoped<IGestionUsuariosUseCase, GestionUsuarios>();
+            services.AddScoped<IGestionPrestamos, GestionPrestamos>();
+            services.AddScoped<IGestionDevolucionesUseCase, GestionDevoluciones>();
+            services.AddScoped<IGestionReportesUseCase, GestionReportes>();
 
 
 
 
-            return services;
-
-        }
-
-
-
-        //Gestion de Prestamos
-        private static IServiceCollection AddPrestamosUseCase(this IServiceCollection services)
-        {
-            services.AddScoped<SolicitarPrestamo>();
-            services.AddScoped<AprobarPrestamo>();
-            services.AddScoped<ConsultarHistorialPrestamos>();
-            services.AddScoped<ConsultarPrestamosActivos>();
 
             return services;
-        }
 
-        //Gestion de Usuarios 
-        private static IServiceCollection AddUsuariosUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<RegistrarUsuario>();
-            services.AddScoped<ActualizarUsuario>();
-            services.AddScoped<DesactivarUsuario>();
-            services.AddScoped<ActualizarUsuario>();
-            services.AddScoped<ConsultarUsuarios>();
-
-            return services;
-        }
-
-        //Gestion de Devolucion
-        private static IServiceCollection AddDevolucionesUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<RegistrarDevoluciones>();
-            services.AddScoped<ConsultarHistorialDevoluciones>();
-
-            return services;
-        }
-
-        //Gestion de Reportes
-        private static IServiceCollection AddReportesUseCases(this IServiceCollection services)
-        {
-            services.AddScoped<GenerarReporteInventario>();
-            services.AddScoped<GenerarReportePenalizaciones>();
-            services.AddScoped<GenerarReportePrestamo>();
-            services.AddScoped<GenerarReportesUsoCatalogo>();
-
-            return services;
         }
 
         //Gestion de Recursos
