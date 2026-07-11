@@ -3,6 +3,7 @@ using SIGEBI.Application.Interfaces;
 using SIGEBI.Application.UseCase;
 using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
+using SIGEBI.Application.UseCase.Penalizaciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
 using SIGEBI.Application.UseCase.Usuarios;
@@ -19,6 +20,7 @@ namespace SIGEBI.Application.Dependency
             services.AddDevolucionesUseCases();
             services.AddReportesUseCases();
             services.AddCatalogoUseCases();
+            services.AddPenalizacionUseCases();
 
 
 
@@ -82,6 +84,16 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<ConsultarHistorialRecurso>();
             services.AddScoped<EliminarRecurso>();
             services.AddScoped<RegistrarRecurso>();
+
+            return services;
+        }
+
+        //Gestion de Penalizaciones
+        private static IServiceCollection AddPenalizacionUseCases(this IServiceCollection services)
+        {
+            services.AddScoped<ConsultarPenalizaciones>();
+            services.AddScoped<ConsultarPenalizacionesActivas>();
+            services.AddScoped<ResolverPenalizacion>();
 
             return services;
         }
