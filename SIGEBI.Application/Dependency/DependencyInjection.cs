@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.Application.Interfaces;
-using SIGEBI.Application.UseCase;
+using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Application.Services;
 using SIGEBI.Application.UseCase.Auditory;
 using SIGEBI.Application.UseCase.Catalogo;
 using SIGEBI.Application.UseCase.Devoluciones;
@@ -8,6 +9,7 @@ using SIGEBI.Application.UseCase.Penalizaciones;
 using SIGEBI.Application.UseCase.Prestamos;
 using SIGEBI.Application.UseCase.Reportes;
 using SIGEBI.Application.UseCase.Usuarios;
+
 
 namespace SIGEBI.Application.Dependency
 {
@@ -23,7 +25,7 @@ namespace SIGEBI.Application.Dependency
             services.AddCatalogoUseCases();
             services.AddPenalizacionUseCases();
             services.AddAuditoriaUseCases();
-
+            services.AddServiciodeAplicacion();
 
 
 
@@ -105,6 +107,15 @@ namespace SIGEBI.Application.Dependency
 
         {
             services.AddScoped<ConsultarLogAuditoria>();
+
+            return services;
+        }
+
+        //Servicios de Aplicacion
+        private static IServiceCollection AddServiciodeAplicacion(this IServiceCollection services)
+        {
+            services.AddScoped<IServicioNotificacion,ServicioNotificacion>();
+            services.AddScoped<IAuditoriaService, AuditoriaService>();
 
             return services;
         }
