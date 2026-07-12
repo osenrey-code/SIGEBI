@@ -1,14 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.DTOs.Request;
-using Microsoft.AspNetCore.Authorization;
 
 
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("api/usuarios")]
-    [Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly IGestionUsuariosUseCase _gestionUsuarios;
@@ -22,30 +20,27 @@ namespace SIGEBI.Api.Controllers
         public async Task<IActionResult> Registrar([FromBody] RegistrarUsuarioRequest request)
         {
             int actorId = 1;
-            await _gestionUsuarios.RegistrarUsuarioAsync(request, actorId);
-            return Ok(new { Mensaje = "Usuario creado correctamente."});
+            var usuario = await _gestionUsuarios.RegistrarUsuarioAsync(request, actorId);
+            return StatusCode(201, usuario);
         }
 
-        [HttpPut("actualizar")]
-        public async Task<IActionResult> Actualizar([FromBody] ActualizarUsuarioRequest request)
+        [HttpPut("{id}/actualizar")]
+        public async Task<IActionResult> Actualizar([FromRoute]int id, [FromBody] ActualizarUsuarioRequest request)
         {
             //Mientras tanto, luego se sacara del jwt
-            int actorId = 2;
+            int actorId = 1;
 
-            var resultado = await _gestionUsuarios.ActualizarUsuarioAsync(request, actorId);
+            var resultado = await _gestionUsuarios.ActualizarUsuarioAsync(request,id, actorId);
             return Ok(resultado);
         }
 
-        [HttpPatch("desactivar")]
-        public async Task<IActionResult> Desactivar([FromBody] DesactivarUsuarioRequest request)
+        [HttpPatch("{id}/desactivar")]
+        public async Task<IActionResult> Desactivar([FromRoute] int id, [FromBody] DesactivarUsuarioRequest request)
         {
             int actorId = 1;
-            await _gestionUsuarios.DesactivarUsuarioAsync(request, actorId);
+            await _gestionUsuarios.DesactivarUsuarioAsync(request, id, actorId);
 
-            return Ok(new
-            {
-                mensaje = "Usuario desactivado correctamente."
-            });
+            return Ok(new{ mensaje = "Usuario desactivado correctamente."});
         }
 
         [HttpGet("consultar")]
@@ -55,11 +50,11 @@ namespace SIGEBI.Api.Controllers
             return Ok(resultado);
         }
 
-        [HttpPatch("activar")]
-        public async Task<IActionResult> Activar([FromBody] ActivarUsuarioRequest request)
+        [HttpPatch("{id}/activar")]
+        public async Task<IActionResult> Activar([FromRoute] int id)
         {
             int actorId = 1;
-            await _gestionUsuarios.ActivarUsuarioAsync(request, actorId);
+            await _gestionUsuarios.ActivarUsuarioAsync(id, actorId);
 
             return Ok(new
             {
@@ -67,10 +62,10 @@ namespace SIGEBI.Api.Controllers
             });
         }
 
-        [HttpPatch("cambiar-password")]
-        public async Task<IActionResult> CambiarPassword([FromBody] CambiarPasswordRequest request)
+        [HttpPatch("{id}/cambiar-password")]
+        public async Task<IActionResult> CambiarPassword([FromRoute] int id, [FromBody] CambiarPasswordRequest request)
         {
-            await _gestionUsuarios.CambiarPasswordAsync(request);
+            await _gestionUsuarios.CambiarPasswordAsync(request, id);
             return Ok(new { Mensaje = "Contraseña actualizada correctamente." });
         }
     }

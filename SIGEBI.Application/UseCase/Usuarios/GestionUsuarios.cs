@@ -87,7 +87,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
         }
 
         public async Task<UsuarioResponse> ActualizarUsuarioAsync(
-            ActualizarUsuarioRequest request,
+            ActualizarUsuarioRequest request, int usuarioId,
             int actorId)
         {
             Guard.NotNull(request, "Los datos del usuario");
@@ -95,10 +95,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             if (actorId <= 0)
                 throw new BusinessException("El usuario que realiza la acción es obligatorio.");
 
-            Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación del usuario");
             Guard.NotNullOrWhiteSpace(request.NombreCompleto, "El nombre completo del usuario");
-
-            string identificacion = request.Identificacion.Trim();
             string nombreCompleto = request.NombreCompleto.Trim();
 
             await ValidarActorAdministradorAsync(
@@ -106,9 +103,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 "Solo un administrador puede actualizar usuarios."
             );
 
-            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
-                identificacion
-            );
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuario is null)
                 throw new BusinessException("No existe un usuario registrado con esta identificación.");
@@ -123,14 +118,14 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: actorId,
                 Accion: "Actualizar Usuario",
                 EntidadAfectada: "Usuarios",
-                detalles: $"Se actualizó el usuario ({identificacion}). Nombre anterior: '{nombreAnterior}', nuevo nombre: '{usuario.NombreCompleto}'."
+                detalles: $"Se actualizó el usuario ({usuario.UsuarioId}). Nombre anterior: '{nombreAnterior}', nuevo nombre: '{usuario.NombreCompleto}'."
             );
 
             return MapearUsuario(usuario);
         }
 
         public async Task DesactivarUsuarioAsync(
-            DesactivarUsuarioRequest request,
+            DesactivarUsuarioRequest request, int usuarioId,
             int actorId)
         {
             Guard.NotNull(request, "Los datos de desactivación");
@@ -138,10 +133,8 @@ namespace SIGEBI.Application.UseCase.Usuarios
             if (actorId <= 0)
                 throw new BusinessException("El usuario que realiza la acción es obligatorio.");
 
-            Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación del usuario");
+            if (usuarioId <= 0) throw new BusinessException("El id es invalido.");
             Guard.NotNullOrWhiteSpace(request.Motivo, "El motivo de desactivación");
-
-            string identificacion = request.Identificacion.Trim();
             string motivo = request.Motivo.Trim();
 
             await ValidarActorAdministradorAsync(
@@ -149,9 +142,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 "Solo un administrador puede desactivar usuarios."
             );
 
-            var usuario = await _usuarios.ObtenerUsuarioConDetallesAsync(
-                identificacion
-            );
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuario is null)
                 throw new BusinessException("No existe un usuario registrado con esta identificación.");
@@ -176,7 +167,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: actorId,
                 Accion: "Desactivar Usuario",
                 EntidadAfectada: "Usuarios",
-                detalles: $"Se desactivó el usuario con identificación {identificacion}. Motivo: '{motivo}'."
+                detalles: $"Se desactivó el usuario con ID #{usuario.UsuarioId}. Motivo: '{motivo}'."
             );
         }
 
@@ -305,11 +296,11 @@ namespace SIGEBI.Application.UseCase.Usuarios
             };
         }
 
-        public async Task ActivarUsuarioAsync(ActivarUsuarioRequest request, int actorId)
+        public async Task ActivarUsuarioAsync(int usuarioId, int actorId)
         {
-            Guard.NotNull(request.UsuarioId, "El usuario que se desea activar ");
+            Guard.NotNull(usuarioId, "El usuario que se desea activar ");
 
-            var usuario = await _usuarios.ObtenerporIdAsync(request.UsuarioId);
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuario is null) throw new BusinessException("El usuario que desea activar no existe.");
             if (usuario.Estado == EstadoUsuario.Activo) throw new BusinessException("El usuario ya se encuentra activo.");
@@ -335,7 +326,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
 
         }
 
-        public async Task CambiarPasswordAsync(CambiarPasswordRequest request)
+        public async Task CambiarPasswordAsync(CambiarPasswordRequest request, int usuarioId)
         {
             Guard.NotNull(request, "Los datos para cambiar la contraseña");
             Guard.NotNullOrWhiteSpace(request.PasswordActual, "La contraseña actual");
@@ -345,7 +336,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             if (request.PasswordNueva != request.ConfirmarPasswordNueva)
                 throw new BusinessException("La nueva contraseña y la confirmación no coinciden.");
 
-            var usuario = await _usuarios.ObtenerporIdAsync(request.UsuarioId);
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuario is null)
                 throw new BusinessException("El usuario no existe.");
@@ -353,7 +344,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             if (usuario.Estado != EstadoUsuario.Activo)
                 throw new BusinessException("La cuenta de usuario no está activa.");
 
-            if (usuario.UsuarioId != request.UsuarioId)
+            if (usuario.UsuarioId != usuarioId)
                 throw new BusinessException("Solo puedes cambiar tu propia contraseña.");
 
             bool passwordActualValida = _password.VerificarPassword(

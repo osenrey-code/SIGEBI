@@ -7,12 +7,12 @@ namespace SIGEBI.Application.Interfaces.Service
     {
         Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int UsuarioId);
 
-        Task<UsuarioResponse> ActualizarUsuarioAsync(ActualizarUsuarioRequest request, int actorId);
+        Task<UsuarioResponse> ActualizarUsuarioAsync(ActualizarUsuarioRequest request, int usuarioId, int actorId);
 
-        Task DesactivarUsuarioAsync(DesactivarUsuarioRequest request,int actorId);
+        Task DesactivarUsuarioAsync(DesactivarUsuarioRequest request, int usuarioId,int actorId);
 
         Task<IEnumerable<UsuarioResponse>> ConsultarUsuariosAsync(ConsultarUsuariosRequest filtros);
-        Task ActivarUsuarioAsync(ActivarUsuarioRequest request, int actorId);
-        Task CambiarPasswordAsync(CambiarPasswordRequest request);
+        Task ActivarUsuarioAsync(int usuarioId, int actorId);
+        Task CambiarPasswordAsync(CambiarPasswordRequest request, int usuarioId);
     }
 }
