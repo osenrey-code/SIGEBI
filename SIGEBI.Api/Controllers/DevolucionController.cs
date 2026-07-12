@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace SIGEBI.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/devolucion")]
     [ApiController]
     public class DevolucionController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace SIGEBI.Api.Controllers
             _devoluciones = devoluciones;
         }
 
-        [HttpPost("registrar/delucion")]
+        [HttpPost("registrar")]
         public async Task<IActionResult> RegistrarDevolucion([FromBody] RegistrarDevolucionRequest request)
         {
             int actorId = 1;
@@ -26,15 +26,12 @@ namespace SIGEBI.Api.Controllers
             return StatusCode(201, devolucion);
         }
 
-        [HttpGet("historial/devoluciones")]
+        [HttpGet("historial")]
         public async Task<IActionResult> HistorialDevoluciones([FromBody] ConsultarHistorialDevolucionesRequest request)
         {
             var historial = await _devoluciones.ConsultarHistorialAsync(request);
             return Ok(historial);
         }
-
-
-
 
     }
 }

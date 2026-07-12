@@ -5,7 +5,7 @@ using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/reportes")]
     [ApiController]
     public class ReporteController : ControllerBase
     {

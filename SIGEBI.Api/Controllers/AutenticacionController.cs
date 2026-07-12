@@ -1,13 +1,11 @@
-using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Mvc;
-using SIGEBI.Application.DTOs.Response;
-using Microsoft.AspNetCore.Identity.Data;
+
 
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/acount")]
     public class AutenticacionController : ControllerBase
     {
         private readonly ILogin _login;
