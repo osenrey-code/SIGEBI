@@ -5,9 +5,6 @@ namespace SIGEBI.Application.DTOs.Request
 {
     public record ActualizarUsuarioRequest
     {
-
-        [Required(ErrorMessage = "La identificación del usuario es obligaoria.")]
-        public int UsuarioId { get; set; }
         [Required(ErrorMessage = "El ID del usuario Matricula/CodiEmpleado es obligatorio.")]
         public string Identificacion { get; set; } = string.Empty;
 
