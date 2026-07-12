@@ -12,6 +12,7 @@ namespace SIGEBI.Application.Interfaces.Service
         Task DesactivarUsuarioAsync(DesactivarUsuarioRequest request,int actorId);
 
         Task<IEnumerable<UsuarioResponse>> ConsultarUsuariosAsync(ConsultarUsuariosRequest filtros);
-
+        Task ActivarUsuarioAsync(ActivarUsuarioRequest request, int actorId);
+        Task CambiarPasswordAsync(CambiarPasswordRequest request);
     }
 }

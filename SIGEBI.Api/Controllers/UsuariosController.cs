@@ -20,8 +20,8 @@ namespace SIGEBI.Api.Controllers
         public async Task<IActionResult> Registrar([FromBody] RegistrarUsuarioRequest request)
         {
             int actorId = 1;
-            var resultado =  await _gestionUsuarios.RegistrarUsuarioAsync(request, actorId);
-            return Ok(resultado);
+            await _gestionUsuarios.RegistrarUsuarioAsync(request, actorId);
+            return Ok(new { Mensaje = "Usuario creado correctamente."});
         }
 
         [HttpPut("actualizar")]
@@ -51,6 +51,25 @@ namespace SIGEBI.Api.Controllers
         {
             var resultado = await _gestionUsuarios.ConsultarUsuariosAsync(request);
             return Ok(resultado);
+        }
+
+        [HttpPatch("activar")]
+        public async Task<IActionResult> Activar([FromBody] ActivarUsuarioRequest request)
+        {
+            int actorId = 1;
+            await _gestionUsuarios.ActivarUsuarioAsync(request, actorId);
+
+            return Ok(new
+            {
+                mensaje = "Usuario activado correctamente."
+            });
+        }
+
+        [HttpPatch("cambiar-password")]
+        public async Task<IActionResult> CambiarPassword([FromBody] CambiarPasswordRequest request)
+        {
+            await _gestionUsuarios.CambiarPasswordAsync(request);
+            return Ok(new { Mensaje = "Contraseña actualizada correctamente." });
         }
     }
 }

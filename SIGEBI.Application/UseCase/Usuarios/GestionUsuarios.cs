@@ -304,5 +304,78 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 _ => string.Empty
             };
         }
+
+        public async Task ActivarUsuarioAsync(ActivarUsuarioRequest request, int actorId)
+        {
+            Guard.NotNull(request.UsuarioId, "El usuario que se desea activar ");
+
+            var usuario = await _usuarios.ObtenerporIdAsync(request.UsuarioId);
+
+            if (usuario is null) throw new BusinessException("El usuario que desea activar no existe.");
+            if (usuario.Estado == EstadoUsuario.Activo) throw new BusinessException("El usuario ya se encuentra activo.");
+
+            await ValidarActorAdministradorAsync(
+               actorId,
+               "Solo un administrador puede desactivar usuarios."
+           );
+
+            if (usuario.UsuarioId == actorId)
+                throw new BusinessException("Un administrador no puede desactivarse a sí mismo.");
+
+            usuario.Estado = EstadoUsuario.Activo;
+
+            await _usuarios.ActualizarAsync(usuario);
+
+            await _auditoria.RegistrarAsync(
+                UsuarioId: actorId,
+                Accion: "Activar Usuario",
+                EntidadAfectada: "Usuarios",
+                detalles: $"Se Activo el usuario con id '#{usuario.UsuarioId})'."
+            );
+
+        }
+
+        public async Task CambiarPasswordAsync(CambiarPasswordRequest request)
+        {
+            Guard.NotNull(request, "Los datos para cambiar la contraseña");
+            Guard.NotNullOrWhiteSpace(request.PasswordActual, "La contraseña actual");
+            Guard.NotNullOrWhiteSpace(request.PasswordNueva, "La nueva contraseña");
+            Guard.NotNullOrWhiteSpace(request.ConfirmarPasswordNueva, "La confirmación de contraseña");
+
+            if (request.PasswordNueva != request.ConfirmarPasswordNueva)
+                throw new BusinessException("La nueva contraseña y la confirmación no coinciden.");
+
+            var usuario = await _usuarios.ObtenerporIdAsync(request.UsuarioId);
+
+            if (usuario is null)
+                throw new BusinessException("El usuario no existe.");
+
+            if (usuario.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("La cuenta de usuario no está activa.");
+
+            if (usuario.UsuarioId != request.UsuarioId)
+                throw new BusinessException("Solo puedes cambiar tu propia contraseña.");
+
+            bool passwordActualValida = _password.VerificarPassword(
+                request.PasswordActual,
+                usuario.PassWord
+            );
+
+            if (!passwordActualValida)
+                throw new BusinessException("La contraseña actual es incorrecta.");
+
+            string nuevoPasswordHash = _password.GenerarHash(request.PasswordNueva);
+
+            usuario.CambiarPassword(nuevoPasswordHash);
+
+            await _usuarios.ActualizarAsync(usuario);
+
+            await _auditoria.RegistrarAsync(
+                UsuarioId: usuario.UsuarioId,
+                Accion: "Cambio de contraseña",
+                EntidadAfectada: "Usuarios",
+                detalles: $"El usuario con id #{usuario.UsuarioId} cambió su contraseña."
+            );
+        }
     }
 }
