@@ -28,7 +28,7 @@ namespace SIGEBI.Api.Controllers
         public async Task<IActionResult> Actualizar([FromBody] ActualizarUsuarioRequest request)
         {
             //Mientras tanto, luego se sacara del jwt
-            int actorId = 1;
+            int actorId = 2;
 
             var resultado = await _gestionUsuarios.ActualizarUsuarioAsync(request, actorId);
             return Ok(resultado);
