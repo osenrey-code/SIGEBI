@@ -1,11 +1,13 @@
 ﻿using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.DTOs.Request;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PrestamoController : ControllerBase
     {
         private readonly IGestionPrestamos _prestamos;
@@ -23,7 +25,7 @@ namespace SIGEBI.Api.Controllers
             return Ok(new { Mensaje = "Solictud realizada correctamente." });
         }
 
-        [HttpPost("aprobarPrestamo")]
+        [HttpPost("aprobar/{id}")]
         public async Task<IActionResult> AprobarPrestamo([FromBody] AprobarSolicitudRequest request)
         {
             int usuarioId = 1;
