@@ -4,8 +4,6 @@
     {
         string GenerarHash(string password);
 
-        bool VerificarPassword(
-            string password,
-            string passwordHash);
+        bool VerificarPassword(string password, string passwordHash);
     }
 }

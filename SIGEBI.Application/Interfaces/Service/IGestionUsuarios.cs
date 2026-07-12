@@ -13,6 +13,5 @@ namespace SIGEBI.Application.Interfaces.Service
 
         Task<IEnumerable<UsuarioResponse>> ConsultarUsuariosAsync(ConsultarUsuariosRequest filtros);
 
-        Task<LoginResponse> AutenticarUsuarioAsync(LoginRequest request);
     }
 }

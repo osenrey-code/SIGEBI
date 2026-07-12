@@ -1,4 +1,8 @@
+using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Mvc;
+using SIGEBI.Application.DTOs.Response;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace SIGEBI.Api.Controllers
 {
@@ -6,10 +10,18 @@ namespace SIGEBI.Api.Controllers
     [Route("[controller]")]
     public class AutenticacionController : ControllerBase
     {
-        [HttpGet("estado")]
-        public IActionResult Estado()
+        private readonly ILogin _login;
+
+        public AutenticacionController(ILogin login)
         {
-            return Ok(new { mensaje = "Controlador de autenticación conectado." });
+            _login = login;
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Autenticar([FromBody] SIGEBI.Application.DTOs.Request.LoginRequest request)
+        {
+            var Token = await _login.AutenticarAsync(request);
+            return Ok(Token);
         }
     }
 }

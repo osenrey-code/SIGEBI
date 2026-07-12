@@ -24,6 +24,7 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<IGestionCatalogo,GestionCatalogo>();
             services.AddScoped<IGestionPenalizaciones, GestionPenalizaciones>();
             services.AddScoped<IGestionCategorias, GestionCategorias>();
+            services.AddScoped<ILogin, Login>();
 
             services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
             services.AddScoped<IAuditoriaService, AuditoriaService>();
@@ -32,8 +33,5 @@ namespace SIGEBI.Application.Dependency
             return services;
 
         }
-
-        
-
     }
 }
