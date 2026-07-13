@@ -1,15 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using SIGEBI.Application.Interfaces.Service;
+using SIGEBI.Application.DTOs.Request;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/prestamos")]
     public class PrestamoController : ControllerBase
     {
-        [HttpGet("estado")]
-        public IActionResult GetResultado()
+        private readonly IGestionPrestamos _prestamos;
+
+        public PrestamoController(IGestionPrestamos prestamos)
         {
-            return Ok(new { mensaje = "!EL controlador de Préstamo esta conectado a SIGEBI." });
+            _prestamos = prestamos;
+        }
+
+        [HttpPost("solicitar")]
+        public async Task<IActionResult> SolicitarPrestamo([FromBody] RegistrarSolicitudRequest request)
+        {
+            int usuarioId = 5;
+            var prestamo = await _prestamos.SolicitarPrestamoAsync(request, usuarioId);
+            return Ok(prestamo);
+        }
+
+        [HttpPost("aprobar")]
+        public async Task<IActionResult> AprobarPrestamo([FromBody] AprobarSolicitudRequest request)
+        {
+            int usuarioId = 1;
+            await _prestamos.AprobarPrestamoAsync(request, usuarioId);
+            return Ok(new { Mensaje = "Prestamo aprobado de manera exitosa." });
+        }
+
+        [HttpGet("historial")]
+        public async Task<IActionResult> HistorialPrestamo([FromQuery] ConsultarHistorialPrestamosRequest request)
+        {
+            var historial = await _prestamos.ConsultarHistorialAsync(request);
+            return Ok(historial);
+        }
+
+        [HttpGet("consultar/activos")]
+        public async Task<IActionResult> ConsultarActivos([FromQuery] ConsultarPrestamosActivosRequest request)
+        {
+            var activos = await _prestamos.ConsultarPrestamosActivosAsync(request);
+            return Ok(activos);
         }
     }
 }

@@ -63,8 +63,8 @@ namespace SIGEBI.Infrastructure.Repositories
             return await _dbSet
       
          .Include(u => u.Prestamos)
-         .Include(u => u.penalizciones) 
-         .Include(u => u.notificaciones)
+         .Include(u => u.Penalizciones) 
+         .Include(u => u.Notificaciones)
 
          .FirstOrDefaultAsync(u =>
              (u is Estudiante && ((Estudiante)u).Matricula == Identificacion) ||
