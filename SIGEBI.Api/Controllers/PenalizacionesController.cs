@@ -16,10 +16,7 @@ namespace SIGEBI.Api.Controllers
             _gestionPenalizaciones = gestionPenalizaciones;
         }
 
-        // GET: api/penalizaciones
-        // GET: api/penalizaciones?usuarioId=2
-        // GET: api/penalizaciones?prestamoId=5&estado=Activa
-        [HttpGet]
+        [HttpGet("consultar")]
         public async Task<IActionResult> ConsultarPenalizaciones(
             [FromQuery] ConsultarPenalizacionesRequest request)
         {
@@ -35,7 +32,7 @@ namespace SIGEBI.Api.Controllers
         }
 
         // GET: api/penalizaciones/activas?usuarioId=2
-        [HttpGet("activas")]
+        [HttpGet("consultar/activas")]
         public async Task<IActionResult> ConsultarPenalizacionesActivas(
             [FromQuery] ConsultarPenalizacionesActivasRequest request)
         {

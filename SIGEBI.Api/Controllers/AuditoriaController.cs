@@ -16,16 +16,12 @@ namespace SIGEBI.Api.Controllers
             _consultarLogAuditoria = consultarLogAuditoria;
         }
 
-        // GET: api/auditoria
-        // GET: api/auditoria?usuarioId=2
-        // GET: api/auditoria?accion=Registrar Usuario
-        // GET: api/auditoria?entidadAfectada=Usuarios
-        [HttpGet]
+
+        [HttpGet("consultar")]
         public async Task<IActionResult> ConsultarRegistros(
             [FromQuery] ConsultarLogAuditoriaRequest request)
         {
             int usuarioEjecutorId = 1;
-
             var registros = await _consultarLogAuditoria
                 .EjecutarAsync(
                     request,

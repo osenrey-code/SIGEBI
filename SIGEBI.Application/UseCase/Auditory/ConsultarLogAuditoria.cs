@@ -12,9 +12,7 @@ namespace SIGEBI.Application.UseCase.Auditory
         private readonly IRepositorioAuditoria _auditoria;
         private readonly IUsuario _usuarios;
 
-        public ConsultarLogAuditoria(
-            IRepositorioAuditoria auditoria,
-            IUsuario usuarios)
+        public ConsultarLogAuditoria(IRepositorioAuditoria auditoria, IUsuario usuarios)
         {
             _auditoria = auditoria;
             _usuarios = usuarios;

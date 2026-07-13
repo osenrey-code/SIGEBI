@@ -27,7 +27,7 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpGet("historial")]
-        public async Task<IActionResult> HistorialDevoluciones([FromBody] ConsultarHistorialDevolucionesRequest request)
+        public async Task<IActionResult> HistorialDevoluciones([FromQuery] ConsultarHistorialDevolucionesRequest request)
         {
             var historial = await _devoluciones.ConsultarHistorialAsync(request);
             return Ok(historial);

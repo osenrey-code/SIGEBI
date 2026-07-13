@@ -106,7 +106,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
 
             if (usuario is null)
-                throw new BusinessException("No existe un usuario registrado con esta identificación.");
+                throw new BusinessException("No existe un usuario registrado con este ID.");
 
             string nombreAnterior = usuario.NombreCompleto;
 

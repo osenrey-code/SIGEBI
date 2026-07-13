@@ -7,7 +7,6 @@ namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("api/prestamos")]
-    [Authorize]
     public class PrestamoController : ControllerBase
     {
         private readonly IGestionPrestamos _prestamos;
@@ -20,12 +19,12 @@ namespace SIGEBI.Api.Controllers
         [HttpPost("solicitar")]
         public async Task<IActionResult> SolicitarPrestamo([FromBody] RegistrarSolicitudRequest request)
         {
-            int usuarioId = 2;
-            await _prestamos.SolicitarPrestamoAsync(request, usuarioId);
-            return Ok(new { Mensaje = "Solictud realizada correctamente." });
+            int usuarioId = 5;
+            var prestamo = await _prestamos.SolicitarPrestamoAsync(request, usuarioId);
+            return Ok(prestamo);
         }
 
-        [HttpPost("aprobar/{id}")]
+        [HttpPost("aprobar")]
         public async Task<IActionResult> AprobarPrestamo([FromBody] AprobarSolicitudRequest request)
         {
             int usuarioId = 1;
