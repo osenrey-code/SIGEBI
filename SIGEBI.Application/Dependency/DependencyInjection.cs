@@ -26,7 +26,7 @@ namespace SIGEBI.Application.Dependency
             services.AddScoped<IGestionPenalizaciones, GestionPenalizaciones>();
             services.AddScoped<IGestionCategorias, GestionCategorias>();
             services.AddScoped<ILogin, Login>();
-
+            services.AddScoped<ILogAuditoria, ConsultarLogAuditoria>();
             services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
             services.AddScoped<IAuditoriaService, AuditoriaService>();
             services.AddScoped<ValidadorReportes>();

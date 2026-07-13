@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.UseCase.Auditory;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Api.Controllers
 {
@@ -8,12 +8,11 @@ namespace SIGEBI.Api.Controllers
     [Route("api/auditoria")]
     public class AuditoriaController : ControllerBase
     {
-        private readonly ConsultarLogAuditoria _consultarLogAuditoria;
+        private readonly ILogAuditoria _log;
 
-        public AuditoriaController(
-            ConsultarLogAuditoria consultarLogAuditoria)
+        public AuditoriaController(ILogAuditoria log)
         {
-            _consultarLogAuditoria = consultarLogAuditoria;
+            _log = log;
         }
 
 
@@ -22,13 +21,8 @@ namespace SIGEBI.Api.Controllers
             [FromQuery] ConsultarLogAuditoriaRequest request)
         {
             int usuarioEjecutorId = 1;
-            var registros = await _consultarLogAuditoria
-                .EjecutarAsync(
-                    request,
-                    usuarioEjecutorId
-                );
-
-            return Ok(registros);
+            var registro = _log.ConsultarAuditoriaLog(request, usuarioEjecutorId);
+            return Ok(registro);
         }
     }
 }

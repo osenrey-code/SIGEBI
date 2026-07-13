@@ -1,13 +1,14 @@
 ﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.Application.UseCase.Auditory
 {
-    public class ConsultarLogAuditoria
+    public class ConsultarLogAuditoria : ILogAuditoria
     {
         private readonly IRepositorioAuditoria _auditoria;
         private readonly IUsuario _usuarios;
@@ -18,7 +19,7 @@ namespace SIGEBI.Application.UseCase.Auditory
             _usuarios = usuarios;
         }
 
-        public async Task<IEnumerable<LogAuditoriaResponse>> EjecutarAsync(
+        public async Task<IEnumerable<LogAuditoriaResponse>> ConsultarAuditoriaLog(
             ConsultarLogAuditoriaRequest request, int usuarioId)
         {
             if (usuarioId <= 0)
