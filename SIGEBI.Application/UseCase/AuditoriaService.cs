@@ -30,7 +30,6 @@ namespace SIGEBI.Application.UseCase
             );
 
             await _auditoria.AgregarAsync(registro);
-            await _db.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<LogAuditoriaResponse>> ListarHistorialAsync(

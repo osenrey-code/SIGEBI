@@ -55,7 +55,6 @@ namespace SIGEBI.Application.UseCase
             notificacion.MarcarComoLeida();
 
             await _repoNotificacion.ActualizarAsync(notificacion);
-            await _db.SaveChangesAsync();
         }
 
         public async Task EnviarNotificacionAsync(
