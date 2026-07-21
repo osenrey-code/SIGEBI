@@ -7,7 +7,8 @@ namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("api/prestamos")]
-    public class PrestamoController : ControllerBase
+    [Authorize]
+    public class PrestamoController : BaseApiController
     {
         private readonly IGestionPrestamos _prestamos;
 
@@ -17,22 +18,25 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpPost("solicitar")]
+        [Authorize(Roles = "Docente,Estudiante")]
         public async Task<IActionResult> SolicitarPrestamo([FromBody] RegistrarSolicitudRequest request)
         {
-            int usuarioId = 5;
+            int usuarioId = ObtenerUsuarioId();
             var prestamo = await _prestamos.SolicitarPrestamoAsync(request, usuarioId);
             return Ok(prestamo);
         }
 
         [HttpPost("aprobar")]
+        [Authorize(Roles = "Administrador,Bibliotecario")]
         public async Task<IActionResult> AprobarPrestamo([FromBody] AprobarSolicitudRequest request)
         {
-            int usuarioId = 1;
+            int usuarioId = ObtenerUsuarioId();
             await _prestamos.AprobarPrestamoAsync(request, usuarioId);
             return Ok(new { Mensaje = "Prestamo aprobado de manera exitosa." });
         }
 
         [HttpGet("historial")]
+        [Authorize(Roles = "Docente,Administrador,Auditor")]
         public async Task<IActionResult> HistorialPrestamo([FromQuery] ConsultarHistorialPrestamosRequest request)
         {
             var historial = await _prestamos.ConsultarHistorialAsync(request);
@@ -40,6 +44,7 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpGet("consultar/activos")]
+        [Authorize(Roles = "Bibliotecario,Administrador,Estudiante,Docente")]
         public async Task<IActionResult> ConsultarActivos([FromQuery] ConsultarPrestamosActivosRequest request)
         {
             var activos = await _prestamos.ConsultarPrestamosActivosAsync(request);

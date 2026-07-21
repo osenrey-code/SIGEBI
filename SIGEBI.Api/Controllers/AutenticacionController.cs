@@ -1,11 +1,13 @@
-using SIGEBI.Application.Interfaces.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SIGEBI.Application.Interfaces.Service;
 
 
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
-    [Route("api/acount")]
+    [Route("api/account")]
+   
     public class AutenticacionController : ControllerBase
     {
         private readonly ILogin _login;
@@ -15,6 +17,7 @@ namespace SIGEBI.Api.Controllers
             _login = login;
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Autenticar([FromBody] SIGEBI.Application.DTOs.Request.LoginRequest request)
         {

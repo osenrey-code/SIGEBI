@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
-
+using Microsoft.AspNetCore.Authorization;
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("api/catalogo")]
-    public class CatalogoController : ControllerBase
+    [Authorize]
+    public class CatalogoController : BaseApiController
     {
         private readonly IGestionCatalogo _gestionCatalogo;
 
@@ -17,10 +18,11 @@ namespace SIGEBI.Api.Controllers
 
         // POST: api/catalogo/registrar
         [HttpPost("registrar")]
+        [Authorize(Roles = "Administrador,Bibliotecario")]
         public async Task<IActionResult> RegistrarRecurso(
             [FromBody] RegistrarRecursoRequest request)
         {
-            int usuarioEjecutorId = 1;
+            int usuarioEjecutorId = ObtenerUsuarioId();
 
             var recurso = await _gestionCatalogo.RegistrarRecursoAsync(
                 request,
@@ -40,10 +42,11 @@ namespace SIGEBI.Api.Controllers
 
         // PUT: api/catalogo/actualizar
         [HttpPut("actualizar")]
+        [Authorize(Roles = "Administrador,Bibliotecario")]
         public async Task<IActionResult> ActualizarRecurso(
             [FromBody] ActualizarRecursoRequest request)
         {
-            int usuarioEjecutorId = 1;
+            int usuarioEjecutorId = ObtenerUsuarioId();
 
             var recurso = await _gestionCatalogo.ActualizarRecursoAsync(
                 request,
@@ -59,10 +62,11 @@ namespace SIGEBI.Api.Controllers
 
         // PATCH: api/catalogo/cambiar-estado
         [HttpPatch("cambiar-estado")]
+        [Authorize(Roles = "Administrador,Bibliotecario")]
         public async Task<IActionResult> CambiarEstadoRecurso(
             [FromBody] CambiarEstadoRecursoRequest request)
         {
-            int usuarioEjecutorId = 1;
+            int usuarioEjecutorId = ObtenerUsuarioId();
 
             var recurso = await _gestionCatalogo.CambiarEstadoRecursoAsync(
                 request,
@@ -78,6 +82,7 @@ namespace SIGEBI.Api.Controllers
 
         // GET: api/catalogo/consultar?titulo=...&autor=...&categoria=...
         [HttpGet("consultar")]
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
         public async Task<IActionResult> ConsultarCatalogo(
             [FromQuery] ConsultarCatalogoRequest request)
         {
@@ -90,6 +95,7 @@ namespace SIGEBI.Api.Controllers
 
         // GET: api/catalogo/todos
         [HttpGet("todos")]
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
         public async Task<IActionResult> ConsultarTodos()
         {
             var recursos = await _gestionCatalogo.ConsultarTodosAsync();
@@ -99,6 +105,7 @@ namespace SIGEBI.Api.Controllers
 
         // GET: api/catalogo/5
         [HttpGet("{id:int}")]
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
         public async Task<IActionResult> ConsultarDetalle(int id)
         {
             var request = new ConsultarDetalleRecursoRequest
@@ -114,6 +121,7 @@ namespace SIGEBI.Api.Controllers
 
         // GET: api/catalogo/5/historial
         [HttpGet("{id:int}/historial")]
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor")]
         public async Task<IActionResult> ConsultarHistorial(int id)
         {
             var request = new ConsultarHistorialRecursoRequest
@@ -129,11 +137,12 @@ namespace SIGEBI.Api.Controllers
 
         // DELETE: api/catalogo/5?motivo=Recurso deteriorado
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> EliminarRecurso(
             int id,
             [FromQuery] string? motivo)
         {
-            int usuarioEjecutorId = 1;
+            int usuarioEjecutorId = ObtenerUsuarioId();
 
             var request = new EliminarRecursoRequest
             {

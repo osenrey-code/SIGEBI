@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("api/categorias")]
-    public class CategoriasController : ControllerBase
+    [Authorize]
+    public class CategoriasController : BaseApiController
     {
         private readonly IGestionCategorias _gestionCategorias;
 
@@ -17,10 +19,11 @@ namespace SIGEBI.Api.Controllers
 
         // POST: api/categorias/registrar
         [HttpPost("registrar")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> RegistrarCategoria(
             [FromBody] CategoriaRequest request)
         {
-            int actorId = 1;
+            int actorId = ObtenerUsuarioId();
 
             var categoria = await _gestionCategorias
                 .RegistrarCategoriaAsync(request, actorId);
@@ -34,6 +37,7 @@ namespace SIGEBI.Api.Controllers
 
         // GET: api/categorias
         [HttpGet]
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
         public async Task<IActionResult> ConsultarCategorias()
         {
             var categorias = await _gestionCategorias

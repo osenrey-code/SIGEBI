@@ -1,15 +1,15 @@
-﻿using SIGEBI.Application.DTOs;
-using SIGEBI.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.DTOs.Request;
-using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace SIGEBI.Api.Controllers
 {
     [Route("api/devolucion")]
     [ApiController]
-    public class DevolucionController : ControllerBase
+    [Authorize]
+    public class DevolucionController : BaseApiController
     {
         private readonly IGestionDevolucionesUseCase _devoluciones;
 
@@ -19,14 +19,16 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpPost("registrar")]
+        [Authorize(Roles = "Bibliotecario")]
         public async Task<IActionResult> RegistrarDevolucion([FromBody] RegistrarDevolucionRequest request)
         {
-            int actorId = 1;
+            int actorId = ObtenerUsuarioId();
             var devolucion = await _devoluciones.RegistrarDevolucionAsync(request, actorId);
             return StatusCode(201, devolucion);
         }
 
         [HttpGet("historial")]
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor")]
         public async Task<IActionResult> HistorialDevoluciones([FromQuery] ConsultarHistorialDevolucionesRequest request)
         {
             var historial = await _devoluciones.ConsultarHistorialAsync(request);
