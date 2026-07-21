@@ -28,7 +28,6 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task AgregarAsync(Auditoria entidad)
         {
             await _dbSet.AddAsync(entidad);
-            await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Auditoria>> ObtenerPorEjecutorAsync(int usuarioId)

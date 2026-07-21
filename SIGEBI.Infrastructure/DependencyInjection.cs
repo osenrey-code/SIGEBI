@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
 using SIGEBI.Infrastructure.Services;
 using QuestPDF.Infrastructure;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Infrastructure
 {
@@ -41,6 +41,8 @@ namespace SIGEBI.Infrastructure
             services.AddScoped<IStorageService, LocalStorageService>();
             QuestPDF.Settings.License = LicenseType.Community;
             services.AddScoped<IExportadorReportePdf, ExportadorReportePdf>();
+
+            services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<SIGEBIDbContext>());
 
             return services;
         }

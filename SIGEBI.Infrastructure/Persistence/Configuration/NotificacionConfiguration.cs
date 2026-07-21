@@ -34,7 +34,7 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .IsRequired();
 
             builder.HasOne(n => n.Usuario)
-                .WithMany()
+                .WithMany(u => u.Notificaciones)
                 .HasForeignKey(n => n.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
