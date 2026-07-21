@@ -17,16 +17,15 @@ namespace SIGEBI.Infrastructure.Repositories
             _dbSet = context.Set<Usuario>();
         }
 
-        public async Task ActualizarAsync(Usuario entidad)
+        public Task ActualizarAsync(Usuario entidad)
         {
             _dbSet.Update(entidad);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public async Task AgregarAsync(Usuario entidad)
         {
             await _dbSet.AddAsync(entidad);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DesactivarUsuarioAsync(string IdUsuario)
@@ -37,8 +36,6 @@ namespace SIGEBI.Infrastructure.Repositories
             {
                 usuario.Estado = EstadoUsuario.Inactivo;
                 _dbSet.Update(usuario);
-
-                await _context.SaveChangesAsync();
             }
         }
 

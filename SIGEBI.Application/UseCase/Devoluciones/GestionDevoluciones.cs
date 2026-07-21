@@ -20,6 +20,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
         private readonly IRepositorioDevolucion _devoluciones;
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioNotificacion _notificaciones;
+        private readonly IApplicationDbContext _db;
 
         public GestionDevoluciones(
             IRepositorioPrestamo prestamos,
@@ -28,7 +29,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             IRepositorioDevolucion devoluciones,
             IEjemplarRepository ejemplares,
             IAuditoriaService auditoria,
-            IServicioNotificacion notificaciones)
+            IServicioNotificacion notificaciones, IApplicationDbContext db)
         {
             _prestamos = prestamos;
             _penalizaciones = penalizaciones;
@@ -37,6 +38,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
             _ejemplares = ejemplares;
             _auditoria = auditoria;
             _notificaciones = notificaciones;
+            _db = db;
         }
 
         public async Task<DevolucionResponse> RegistrarDevolucionAsync(
@@ -169,6 +171,8 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 detalles: $"Se registró la devolución del préstamo #{prestamo.PrestamoId}. Usuario ID {prestamo.UsuarioId}. Ejemplar ID {prestamo.EjemplarId}. Condición: {condicion}. Días de retraso: {diasRetraso}. Penalización generada: {penalizacionGenerada}. Monto: {montoPenalizacion}."
             );
 
+            await _db.SaveChangesAsync();
+
             return new DevolucionResponse
             {
                 PrestamoId = prestamo.PrestamoId,
@@ -212,7 +216,6 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 request.FechaInicio,
                 request.FechaFin
             );
-
             return resultados
                 .Select(MapearDevolucion)
                 .ToList();

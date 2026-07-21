@@ -14,15 +14,18 @@ namespace SIGEBI.Application.UseCase.Catalogo
         private readonly IRepositorioCategoria _categorias;
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
+        private readonly IApplicationDbContext _db;
 
         public GestionCategorias(
             IRepositorioCategoria categorias,
             IUsuario usuarios,
-            IAuditoriaService auditoria)
+            IAuditoriaService auditoria,
+            IApplicationDbContext db)
         {
             _categorias = categorias;
             _usuarios = usuarios;
             _auditoria = auditoria;
+            _db = db;
         }
 
         public async Task<CategoriaResponse> RegistrarCategoriaAsync(
@@ -71,6 +74,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 EntidadAfectada: "Categorías",
                 detalles: $"Se registró la categoría '{categoria.Nombre}'."
             );
+
+            await _db.SaveChangesAsync();
 
             return MapearCategoria(categoria);
         }

@@ -42,6 +42,8 @@ namespace SIGEBI.Infrastructure
             QuestPDF.Settings.License = LicenseType.Community;
             services.AddScoped<IExportadorReportePdf, ExportadorReportePdf>();
 
+            services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<SIGEBIDbContext>());
+
             return services;
         }
     }

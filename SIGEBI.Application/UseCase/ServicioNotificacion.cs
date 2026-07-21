@@ -11,13 +11,15 @@ namespace SIGEBI.Application.UseCase
     {
         private readonly IRepositorioNotificacion _repoNotificacion;
         private readonly IRepositorioPrestamo _repoPrestamo;
+        private readonly IApplicationDbContext _db;
 
         public ServicioNotificacion(
             IRepositorioNotificacion repoNotificacion,
-            IRepositorioPrestamo repoPrestamo)
+            IRepositorioPrestamo repoPrestamo, IApplicationDbContext db)
         {
             _repoNotificacion = repoNotificacion;
             _repoPrestamo = repoPrestamo;
+            _db = db;
         }
 
         public async Task<IEnumerable<NotificacionResponse>> ObtenerPendientesAsync(
@@ -53,6 +55,7 @@ namespace SIGEBI.Application.UseCase
             notificacion.MarcarComoLeida();
 
             await _repoNotificacion.ActualizarAsync(notificacion);
+            await _db.SaveChangesAsync();
         }
 
         public async Task EnviarNotificacionAsync(
@@ -73,6 +76,7 @@ namespace SIGEBI.Application.UseCase
             );
 
             await _repoNotificacion.AgregarAsync(notificacion);
+            await _db.SaveChangesAsync();
         }
 
         public async Task GenerarNotificacionesDeVencimientoAsync(

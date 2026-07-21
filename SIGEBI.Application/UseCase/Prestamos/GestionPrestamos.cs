@@ -18,6 +18,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
         private readonly IEjemplarRepository _ejemplares;
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioNotificacion _notificaciones;
+        private readonly IApplicationDbContext _db;
 
         public GestionPrestamos(
             IUsuario usuarios,
@@ -26,7 +27,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
             ISolicitudRepository solicitudes,
             IEjemplarRepository ejemplares,
             IAuditoriaService auditoria,
-            IServicioNotificacion notificaciones)
+            IServicioNotificacion notificaciones,
+            IApplicationDbContext db)
         {
             _usuarios = usuarios;
             _prestamos = prestamos;
@@ -35,6 +37,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             _ejemplares = ejemplares;
             _auditoria = auditoria;
             _notificaciones = notificaciones;
+            _db = db;
         }
 
         public async Task<SolicitudResponse> SolicitarPrestamoAsync(
@@ -159,6 +162,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 EntidadAfectada: "Solicitudes",
                 detalles: $"El usuario '{usuario.NombreCompleto}' solicitó el ejemplar ID {ejemplar.EjemplarId}. Préstamos activos actuales: {prestamosActivos}. Límite permitido: {limitePermitido}."
             );
+
+            await _db.SaveChangesAsync();
 
             return new SolicitudResponse
             {
@@ -347,6 +352,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 detalles: $"Se aprobó la solicitud ID {solicitud.SolicitudId}. Se registró el préstamo ID {nuevoPrestamo.PrestamoId} para el usuario ID {usuarioSolicitante.UsuarioId}. Ejemplar ID {solicitud.EjemplarId}. Fecha límite: {nuevoPrestamo.FechaLimite:dd/MM/yyyy}."
             );
 
+            await _db.SaveChangesAsync();
             return new PrestamoResponse
             {
                 PrestamoId = nuevoPrestamo.PrestamoId,
@@ -489,6 +495,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 EntidadAfectada: "Solicitudes",
                 detalles: $"La solicitud ID {solicitud.SolicitudId} fue rechazada automáticamente. Motivo: {motivo}"
             );
+
+            await _db.SaveChangesAsync();
         }
     }
 }

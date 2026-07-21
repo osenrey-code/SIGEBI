@@ -15,17 +15,20 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioNotificacion _notificaciones;
+        private readonly IApplicationDbContext _db;
 
         public GestionPenalizaciones(
             IRepositorioPenalizacion penalizaciones,
             IUsuario usuarios,
             IAuditoriaService auditoria,
-            IServicioNotificacion notificaciones)
+            IServicioNotificacion notificaciones,
+            IApplicationDbContext db)
         {
             _penalizaciones = penalizaciones;
             _usuarios = usuarios;
             _auditoria = auditoria;
             _notificaciones = notificaciones;
+            _db = db;
         }
 
         public async Task<IEnumerable<PenalizacionResponse>> ConsultarPenalizacionesAsync(
@@ -146,6 +149,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 detalles: $"Se resolvió la penalización ID {penalizacion.PenalizacionId} del usuario ID {penalizacion.UsuarioId}. Motivo: {motivoResolucion}."
             );
 
+            await _db.SaveChangesAsync();
             return MapearPenalizacion(
                 penalizacion
             );

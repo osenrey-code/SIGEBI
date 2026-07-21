@@ -15,17 +15,20 @@ namespace SIGEBI.Application.UseCase.Usuarios
         private readonly IAuditoriaService _auditoria;
         private readonly IServicioPassword _password;
         private readonly IServicioToken _token;
+        private readonly IApplicationDbContext _db;
 
         public GestionUsuarios(
             IUsuario usuarios,
             IAuditoriaService auditoria,
             IServicioPassword password,
-            IServicioToken token)
+            IServicioToken token,
+            IApplicationDbContext db)
         {
             _usuarios = usuarios;
             _auditoria = auditoria;
             _password = password;
             _token = token;
+            _db = db;
         }
 
         public async Task<UsuarioResponse> RegistrarUsuarioAsync(RegistrarUsuarioRequest request, int usuarioId)
@@ -83,6 +86,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {identificacion}."
             );
 
+            await _db.SaveChangesAsync();
             return MapearUsuario(usuario);
         }
 
@@ -121,6 +125,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 detalles: $"Se actualizó el usuario ({usuario.UsuarioId}). Nombre anterior: '{nombreAnterior}', nuevo nombre: '{usuario.NombreCompleto}'."
             );
 
+            await _db.SaveChangesAsync();
             return MapearUsuario(usuario);
         }
 
@@ -169,6 +174,8 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 EntidadAfectada: "Usuarios",
                 detalles: $"Se desactivó el usuario con ID #{usuario.UsuarioId}. Motivo: '{motivo}'."
             );
+
+            await _db.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<UsuarioResponse>> ConsultarUsuariosAsync(
@@ -298,7 +305,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
 
         public async Task ActivarUsuarioAsync(int usuarioId, int actorId)
         {
-            Guard.NotNull(usuarioId, "El usuario que se desea activar ");
+            if (usuarioId <= 0) throw new BusinessException("El usuario que se desea activar es obligatorio.");
 
             var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
 
@@ -323,6 +330,8 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 EntidadAfectada: "Usuarios",
                 detalles: $"Se Activo el usuario con id '#{usuario.UsuarioId})'."
             );
+
+            await _db.SaveChangesAsync();
 
         }
 
@@ -367,6 +376,8 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 EntidadAfectada: "Usuarios",
                 detalles: $"El usuario con id #{usuario.UsuarioId} cambió su contraseña."
             );
+
+            await _db.SaveChangesAsync();
         }
     }
 }

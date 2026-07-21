@@ -17,6 +17,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
         private readonly IRepositorioAuditoria _auditoriaRepositorio;
         private readonly IUsuario _usuarios;
         private readonly IAuditoriaService _auditoria;
+        private readonly IApplicationDbContext _db;
 
         public GestionCatalogo(
             IRepositorioRecurso recursos,
@@ -24,7 +25,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
             IRepositorioPrestamo prestamos,
             IRepositorioAuditoria auditoriaRepositorio,
             IUsuario usuarios,
-            IAuditoriaService auditoria)
+            IAuditoriaService auditoria,
+            IApplicationDbContext db)
         {
             _recursos = recursos;
             _categorias = categorias;
@@ -32,6 +34,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
             _auditoriaRepositorio = auditoriaRepositorio;
             _usuarios = usuarios;
             _auditoria = auditoria;
+            _db = db;
         }
 
         public async Task<RecursoResponse> RegistrarRecursoAsync(
@@ -103,6 +106,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 detalles: $"Se registró el recurso '{recurso.Titulo}' con ISBN {recurso.ISBN} y {request.CantidadEjemplares} ejemplares."
             );
 
+            await _db.SaveChangesAsync();
+
             return MapearRecurso(recurso, categoria.Nombre);
         }
 
@@ -172,6 +177,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 detalles: $"Se actualizó el recurso ID {recurso.RecursoBibliograficoId}. Título anterior: '{tituloAnterior}', nuevo título: '{recurso.Titulo}'."
             );
 
+            await _db.SaveChangesAsync();
             return MapearRecurso(recurso, categoria.Nombre);
         }
 
@@ -248,6 +254,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 EntidadAfectada: "RecursosBibliograficos",
                 detalles: $"Se cambió el ejemplar ID {ejemplar.EjemplarId} del recurso ID {recurso.RecursoBibliograficoId} de {estadoAnterior} a {ejemplar.Estado}."
             );
+
+            await _db.SaveChangesAsync();
 
             return MapearRecurso(recurso);
         }
@@ -399,6 +407,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 EntidadAfectada: "RecursosBibliograficos",
                 detalles: $"Se eliminó el recurso '{titulo}' con ISBN {isbn}. Motivo: '{motivo}'."
             );
+
+            await _db.SaveChangesAsync();
         }
 
         private async Task<Usuario> ValidarBibliotecarioOAdministradorAsync(

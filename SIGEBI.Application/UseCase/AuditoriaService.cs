@@ -8,10 +8,12 @@ namespace SIGEBI.Application.UseCase
     public class AuditoriaService : IAuditoriaService
     {
         private readonly IRepositorioAuditoria _auditoria;
+        private readonly IApplicationDbContext _db;
 
-        public AuditoriaService(IRepositorioAuditoria auditoria)
+        public AuditoriaService(IRepositorioAuditoria auditoria, IApplicationDbContext db)
         {
             _auditoria = auditoria;
+            _db = db;
         }
 
         public async Task RegistrarAsync(
@@ -28,6 +30,7 @@ namespace SIGEBI.Application.UseCase
             );
 
             await _auditoria.AgregarAsync(registro);
+            await _db.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<LogAuditoriaResponse>> ListarHistorialAsync(
