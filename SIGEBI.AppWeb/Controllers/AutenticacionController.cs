@@ -6,7 +6,6 @@ using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 
 

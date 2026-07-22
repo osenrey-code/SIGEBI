@@ -1,4 +1,5 @@
-﻿using SIGEBI.Application.DTOs.Request;
+﻿using SIGEBI.Application.Common;
+using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Application.Interfaces.Service;
@@ -185,21 +186,22 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 throw new BusinessException("Los filtros de consulta son obligatorios.");
 
             string? nombre = string.IsNullOrWhiteSpace(filtros.nombre)
-                ? null
-                : filtros.nombre.Trim();
+                ? null: filtros.nombre.Trim();
 
             string? tipoUsuario = string.IsNullOrWhiteSpace(filtros.TipoUsuario)
-                ? null
-                : filtros.TipoUsuario.Trim();
+                ? null: filtros.TipoUsuario.Trim();
 
             string? estado = string.IsNullOrWhiteSpace(filtros.Estado)
-                ? null
-                : filtros.Estado.Trim();
+                ? null: filtros.Estado.Trim();
+
+            string? identificacion = string.IsNullOrEmpty(filtros.Identificacion)
+                ? null : filtros.Identificacion.Trim();
 
             var listaUsuarios = await _usuarios.ConsultarPorFiltrosAsync(
                 nombre,
                 tipoUsuario,
-                estado
+                estado,
+                identificacion
             );
 
             if (listaUsuarios is null)
@@ -379,5 +381,28 @@ namespace SIGEBI.Application.UseCase.Usuarios
 
             await _db.SaveChangesAsync();
         }
+
+        public async Task<UsuarioResponse> BuscarPorIdentificacionAsync(string identificacion)
+        {
+            Guard.NotNullOrWhiteSpace(identificacion, "La identificacion ");
+            var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(identificacion);
+
+            if (usuario is null) throw new BusinessException("Usuario no encontrado");
+            return MapearUsuario(usuario);
+            
+        }
+
+        public async Task<UsuarioResponse> BuscarPorIdAsync(int usuarioId)
+        {
+            if (usuarioId <= 0) throw new BusinessException("El ID del usuario es obligatorio.");
+
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
+            if (usuario is null) throw new BusinessException("Usuario no encontrado");
+
+            return MapearUsuario(usuario);
+            
+        }
+
+        
     }
 }

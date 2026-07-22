@@ -1,0 +1,58 @@
+﻿@model SIGEBI.AppWeb.Models.Usuarios.DesactivarUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Desactivar Usuario";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-header bg-danger text-white p-4 rounded-top-3">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-person-x-fill me-2"></i>Desactivar Usuario</h4>
+                    <small class="text-white-50">Confirme la suspensión del acceso para este usuario</small>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning border-0 d-flex align-items-center mb-4">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
+                        <div>
+                            <strong>¿Está seguro de desactivar a este usuario?</strong>
+                            <div class="small text-muted">El usuario no podrá acceder al sistema ni realizar préstamos mientras esté inactivo.</div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Desactivar" method="post">
+                        <input type="hidden" asp-for="UsuarioId" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small mb-3"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">IDENTIFICACIÓN</label>
+                            <p class="fs-5 fw-semibold mb-0">@Model.Identificacion</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">NOMBRE COMPLETO</label>
+                            <p class="fs-5 fw-semibold mb-0">@Model.NombreCompleto</p>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="mb-4">
+                            <label asp-for="Motivo" class="form-label fw-bold">Motivo de la Desactivación</label>
+                            <textarea asp-for="Motivo" class="form-control" rows="3" placeholder="Escriba la razón de la desactivación..."></textarea>
+                            <span asp-validation-for="Motivo" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg fw-medium">Cancelar</a>
+                            <button type="submit" class="btn btn-danger btn-lg fw-bold px-4">
+                                Confirmar Desactivación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

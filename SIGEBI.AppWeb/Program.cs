@@ -20,11 +20,10 @@ namespace SIGEBI.AppWeb
                 .AddCookie(options =>
                 {
                     options.LoginPath = "/Autenticacion/Login";
-                    options.AccessDeniedPath = "/Autenticacion/AccesDenied";
+                    options.AccessDeniedPath = "/Autenticacion/AccessDenied";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                     options.SlidingExpiration = true;
                 });
-            builder.Services.AddAuthentication();
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())

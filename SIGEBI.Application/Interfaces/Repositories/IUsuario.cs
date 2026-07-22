@@ -14,6 +14,6 @@ namespace SIGEBI.Application.Interfaces.Repositories
         Task<Usuario?> ObtenerUsuarioPorIdentificacionAsync(string Identificacion);
         Task<bool> ExisteCorreoAsync(string correo);
         Task<Usuario?> ObtenerUsuarioConDetallesAsync(string Identifiacion);
-        Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado);
+        Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado, string? identificacion);
     }
 }

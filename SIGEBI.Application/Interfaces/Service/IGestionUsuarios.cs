@@ -14,5 +14,7 @@ namespace SIGEBI.Application.Interfaces.Service
         Task<IEnumerable<UsuarioResponse>> ConsultarUsuariosAsync(ConsultarUsuariosRequest filtros);
         Task ActivarUsuarioAsync(int usuarioId, int actorId);
         Task CambiarPasswordAsync(CambiarPasswordRequest request, int usuarioId);
+        Task<UsuarioResponse> BuscarPorIdAsync(int usuarioId);
+        Task<UsuarioResponse> BuscarPorIdentificacionAsync(string identificacion);
     }
 }

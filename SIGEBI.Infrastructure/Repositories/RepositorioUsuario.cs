@@ -83,7 +83,7 @@ namespace SIGEBI.Infrastructure.Repositories
             );
         }
 
-        public async Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado)
+        public async Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado, string? identificacion)
         {
             IQueryable<Usuario> query = _dbSet.AsQueryable();
 
@@ -112,6 +112,20 @@ namespace SIGEBI.Infrastructure.Repositories
                     _ => query // Si envían un tipo no válido, no filtramos por tipo
                 };
             }
+
+           
+            if (!string.IsNullOrWhiteSpace(identificacion))
+            {
+                identificacion = identificacion.Trim();
+
+                query = query.Where(u =>
+                 (u is Estudiante && ((Estudiante)u).Matricula.Contains(identificacion)) ||
+                 (u is Docente && ((Docente)u).CodigoEmpleado.Contains(identificacion)) ||
+                 (u is Administrador && ((Administrador)u).CodigoEmpleado.Contains(identificacion)) ||
+                 (u is Bibliotecario && ((Bibliotecario)u).CodigoEmpleado.Contains(identificacion)) ||
+                 (u is Auditor && ((Auditor)u).CodigoEmpleado.Contains(identificacion)));
+            }
+            
             return await query.ToListAsync();
         }
 
