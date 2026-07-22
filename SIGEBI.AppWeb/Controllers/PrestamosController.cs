@@ -1,6 +1,6 @@
 ﻿namespace SIGEBI.AppWeb.Controllers
 {
-    public class AutenticacionUIController
+    public class PrestamosController
     {
     }
 }

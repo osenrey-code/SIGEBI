@@ -1,6 +1,4 @@
-﻿
-
-using SIGEBI.Domain.Common;
+﻿using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Domain.Entities

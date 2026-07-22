@@ -1,6 +1,6 @@
-namespace SIGEBI.AppWeb.Models
+namespace SIGEBI.AppWeb.Models.Usuarios
 {
-    public class PrestamoViewModel
+    public class RegistrarUsuarioViewModel
     {
         public string? RequestId { get; set; }
 

@@ -2,7 +2,6 @@ using SIGEBI.Application.Dependency;
 using SIGEBI.Api.Extensions;
 using Microsoft.OpenApi.Models;
 using SIGEBI.Api.Middleware;
-using SIGEBI.Application.Dependency;
 using SIGEBI.Infrastructure;
 using SIGEBI.Infrastructure.Persistence;
 

@@ -4,11 +4,11 @@ using System.Diagnostics;
 
 namespace SIGEBI.AppWeb.Controllers
 {
-    public class HomeController : Controller
+    public class DevolucionesController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<DevolucionesController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public DevolucionesController(ILogger<DevolucionesController> logger)
         {
             _logger = logger;
         }
@@ -26,7 +26,7 @@ namespace SIGEBI.AppWeb.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new PrestamoViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new RegistrarUsuarioViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }
