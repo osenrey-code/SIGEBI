@@ -498,5 +498,57 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             await _db.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<SolicitudResponse>> ConsultarTodasAsync()
+        {
+            var solicitudes = await _solicitudes.ObtenerTodasAsync();
+
+            return solicitudes
+                .Select(s => new SolicitudResponse
+                {
+                    SolicitudId = s.SolicitudId,
+                    TituloRecurso = s.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
+                    IdentificadorEjemplar = s.Ejemplar?.Identificador ?? "N/A",
+                    FechaSolicitud = s.FechaSolicitud,
+                    Estado = s.Estado.ToString()
+                }).ToList();
+        }
+
+        public async Task<IEnumerable<SolicitudResponse>> ConsultarSolicitudesPendientesAsync()
+        {
+            var pendientes = await _solicitudes.ObtenerPendientesAsync();
+
+            return pendientes
+                .Select(s => new SolicitudResponse
+                {
+                    SolicitudId = s.SolicitudId,
+                    TituloRecurso = s.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
+                    IdentificadorEjemplar = s.Ejemplar?.Identificador ?? "N/A",
+                    FechaSolicitud = s.FechaSolicitud,
+                    Estado = s.Estado.ToString()
+                })
+                .ToList();
+
+        }
+
+        public async Task<SolicitudResponse?> ObtenerPorIdConDetallesAsync(int id)
+        {
+            if (id <= 0)
+                throw new BusinessException("El identificador debe ser mayor a cero.");
+
+            var solicitud = await _solicitudes.ObtenerConDetallesAsync(id);
+
+            if (solicitud is null)
+                return null;
+
+            return new SolicitudResponse
+            {
+                SolicitudId = solicitud.SolicitudId,
+                TituloRecurso = solicitud.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
+                IdentificadorEjemplar = solicitud.Ejemplar?.Identificador ?? "N/A",
+                FechaSolicitud = solicitud.FechaSolicitud,
+                Estado = solicitud.Estado.ToString()
+            };
+        }
     }
 }

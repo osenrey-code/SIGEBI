@@ -92,6 +92,14 @@
                                     </a>
                                 </li>
 
+                                <!-- Nuevo módulo de Penalizaciones -->
+                                <li class="nav-item">
+                                    <a class="nav-link @(controladorActual.Equals("Penalizaciones", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                                       asp-controller="Penalizaciones" asp-action="Index">
+                                        <i class="bi bi-exclamation-octagon me-1"></i> Penalizaciones
+                                    </a>
+                                </li>
+
                                 <li class="nav-item">
                                     <a class="nav-link @(controladorActual.Equals("Reportes", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
                                        asp-controller="Reportes" asp-action="Index">
@@ -184,30 +192,30 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const botonTema = document.getElementById("btnSwitchTheme");
-                const iconoTema = document.getElementById("themeIcon");
+        document.addEventListener("DOMContentLoaded", () => {
+        const botonTema = document.getElementById("btnSwitchTheme");
+        const iconoTema = document.getElementById("themeIcon");
 
-                const actualizarTema = (tema) => {
-                    document.documentElement.setAttribute("data-bs-theme", tema);
-                    localStorage.setItem("sigebi_theme", tema);
+        const actualizarTema = (tema) => {
+        document.documentElement.setAttribute("data-bs-theme", tema);
+        localStorage.setItem("sigebi_theme", tema);
 
-                    const oscuro = tema === "dark";
+        const oscuro = tema === "dark";
 
-                    iconoTema.className = oscuro
-                        ? "bi bi-sun-fill text-warning"
-                        : "bi bi-moon-stars-fill";
+        iconoTema.className = oscuro
+        ? "bi bi-sun-fill text-warning"
+        : "bi bi-moon-stars-fill";
 
-                    botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
-                };
+        botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
+        };
 
-                actualizarTema(document.documentElement.getAttribute("data-bs-theme"));
+        actualizarTema(document.documentElement.getAttribute("data-bs-theme"));
 
-                botonTema.addEventListener("click", () => {
-                    const temaActual = document.documentElement.getAttribute("data-bs-theme");
-                    actualizarTema(temaActual === "dark" ? "light" : "dark");
-                });
-            });
+        botonTema.addEventListener("click", () => {
+        const temaActual = document.documentElement.getAttribute("data-bs-theme");
+        actualizarTema(temaActual === "dark" ? "light" : "dark");
+        });
+        });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

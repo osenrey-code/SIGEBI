@@ -45,6 +45,7 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             return await _context.Solicitudes
                 .AsNoTracking()
+                .Include(s => s.SolicitudId)
                 .Include(s => s.Usuario)
                 .Include(s => s.Ejemplar)
                     .ThenInclude(e => e!.RecursoBibliografico)
