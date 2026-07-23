@@ -1,0 +1,80 @@
+﻿@model SIGEBI.Application.DTOs.Request.RegistrarRecursoRequest
+@{
+    ViewData["Title"] = "Nuevo Recurso Bibliográfico";
+}
+
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Catálogo</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-book-half me-2"></i>Registrar Recurso</h1>
+            <p class="hero-description mb-0">Completa el formulario para agregar un nuevo libro al catálogo y subir su portada.</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-light text-white fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i> Volver al Listado
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="content-card card shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4 p-lg-5">
+        <form asp-action="Crear" method="post" enctype="multipart/form-data">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label asp-for="Titulo" class="form-label fw-bold text-body-emphasis">Título del Recurso</label>
+                    <input asp-for="Titulo" class="form-control form-control-lg" placeholder="Ej. Arquitectura Limpia" required />
+                    <span asp-validation-for="Titulo" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Autor" class="form-label fw-bold text-body-emphasis">Autor</label>
+                    <input asp-for="Autor" class="form-control form-control-lg" placeholder="Ej. Robert C. Martin" required />
+                    <span asp-validation-for="Autor" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="ISBN" class="form-label fw-bold text-body-emphasis">ISBN</label>
+                    <input asp-for="ISBN" class="form-control form-control-lg" placeholder="Ej. 978-0132350884" required />
+                    <span asp-validation-for="ISBN" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="CategoriaId" class="form-label fw-bold text-body-emphasis">ID Categoría</label>
+                    <input asp-for="CategoriaId" type="number" class="form-control form-control-lg" placeholder="Ej. 1" required />
+                    <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="AnioPublicado" class="form-label fw-bold text-body-emphasis">Año de Publicación</label>
+                    <input asp-for="AnioPublicado" type="number" class="form-control form-control-lg" placeholder="Ej. 2023" required />
+                    <span asp-validation-for="AnioPublicado" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="CantidadEjemplares" class="form-label fw-bold text-body-emphasis">Cantidad de Ejemplares a Ingresar</label>
+                    <input asp-for="CantidadEjemplares" type="number" min="1" class="form-control form-control-lg" value="1" required />
+                    <span asp-validation-for="CantidadEjemplares" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-8">
+                    <label for="imagenPortada" class="form-label fw-bold text-body-emphasis">Portada del Libro (Imagen)</label>
+                    <input type="file" id="imagenPortada" name="imagenPortada" class="form-control form-control-lg" accept="image/png, image/jpeg, image/jpg, image/webp" />
+                    <div class="form-text text-body-secondary">Formatos permitidos: JPG, PNG, WEBP.</div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 mt-5 border-top pt-4">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg fw-semibold px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary btn-lg fw-semibold px-5">Guardar Recurso</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

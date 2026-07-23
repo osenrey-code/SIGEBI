@@ -1,0 +1,81 @@
+﻿@model SIGEBI.Application.DTOs.Request.ActualizarRecursoRequest
+@{
+    ViewData["Title"] = "Editar Recurso";
+}
+
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Catálogo</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-pencil-square me-2"></i>Editar Recurso</h1>
+            <p class="hero-description mb-0">Modifica la información del libro o actualiza su portada.</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-light text-white fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i> Volver al Listado
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="content-card card shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4 p-lg-5">
+        <form asp-action="Editar" method="post" enctype="multipart/form-data">
+            <!-- Campos ocultos necesarios para que el Controlador sepa qué recurso actualizar -->
+            <input type="hidden" asp-for="RecursoBibliograficoId" />
+            <input type="hidden" asp-for="ImagenUrl" />
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label asp-for="Titulo" class="form-label fw-bold text-body-emphasis">Título del Recurso</label>
+                    <input asp-for="Titulo" class="form-control form-control-lg" required />
+                    <span asp-validation-for="Titulo" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Autor" class="form-label fw-bold text-body-emphasis">Autor</label>
+                    <input asp-for="Autor" class="form-control form-control-lg" required />
+                    <span asp-validation-for="Autor" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CategoriaId" class="form-label fw-bold text-body-emphasis">ID Categoría</label>
+                    <input asp-for="CategoriaId" type="number" class="form-control form-control-lg" required />
+                    <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="AnioPublicado" class="form-label fw-bold text-body-emphasis">Año de Publicación</label>
+                    <input asp-for="AnioPublicado" type="number" class="form-control form-control-lg" required />
+                    <span asp-validation-for="AnioPublicado" class="text-danger"></span>
+                </div>
+
+                <!-- CAMPO DE IMAGEN OPCIONAL -->
+                <div class="col-md-12">
+                    <label for="nuevaImagen" class="form-label fw-bold text-body-emphasis">Actualizar Portada (Opcional)</label>
+                    <div class="d-flex align-items-center gap-3">
+                        @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+                        {
+                            <img src="@Model.ImagenUrl" alt="Portada actual" class="img-thumbnail rounded" style="width: 60px; height: 85px; object-fit: cover;" />
+                        }
+                        <div class="flex-grow-1">
+                            <input type="file" id="nuevaImagen" name="nuevaImagen" class="form-control form-control-lg" accept="image/png, image/jpeg, image/jpg, image/webp" />
+                            <div class="form-text text-body-secondary">Sube una imagen solo si deseas reemplazar la actual. Formatos: JPG, PNG, WEBP.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 mt-5 border-top pt-4">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg fw-semibold px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary btn-lg fw-semibold px-5">Actualizar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
