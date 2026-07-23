@@ -1,0 +1,91 @@
+﻿@model IEnumerable<SIGEBI.Application.DTOs.Response.DevolucionResponse>
+@{
+    ViewData["Title"] = "Historial de Devoluciones";
+}
+
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Devoluciones</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-arrow-return-left me-2"></i>Historial de Devoluciones</h1>
+            <p class="hero-description mb-0">Consulta el registro de todos los recursos bibliográficos que han sido retornados a la biblioteca.</p>
+        </div>
+        <div>
+            <a asp-action="Registrar" class="btn btn-light text-primary fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-plus-lg"></i> Registrar Devolución
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="content-card card shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover users-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>PRÉSTAMO ID</th>
+                    <th>RECURSO</th>
+                    <th>FECHA DEVOLUCIÓN</th>
+                    <th>CONDICIÓN</th>
+                    <th class="text-center">PENALIZACIÓN</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td data-label="PRÉSTAMO ID" class="fw-bold text-body-secondary">#@item.PrestamoId</td>
+                            <td data-label="RECURSO" class="fw-bold text-body-emphasis">@item.TituloRecurso</td>
+                            <td data-label="FECHA DEVOLUCIÓN" class="text-body-secondary">@item.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td data-label="CONDICIÓN" class="text-body-secondary">
+                                @if (item.Condicion.Equals("Dañado", StringComparison.OrdinalIgnoreCase) || item.Condicion.Equals("Extraviado", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle me-1"></i> @item.Condicion</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i> @item.Condicion</span>
+                                }
+                            </td>
+                            <td data-label="PENALIZACIÓN" class="text-center">
+                                @if (item.PenalizacionGenerada)
+                                {
+                                    <span class="badge bg-danger px-3 py-2 rounded-pill">
+                                        Sí (RD$ @item.MontoPenalizacion.ToString("N2"))
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-3 py-2 rounded-pill">No</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-body-secondary">No se han registrado devoluciones.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

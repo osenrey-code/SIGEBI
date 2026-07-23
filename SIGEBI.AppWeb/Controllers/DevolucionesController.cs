@@ -16,7 +16,6 @@ namespace SIGEBI.AppWeb.Controllers
             _devoluciones = devoluciones;
         }
 
-        // VER HISTORIAL DE DEVOLUCIONES
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -33,14 +32,12 @@ namespace SIGEBI.AppWeb.Controllers
             }
         }
 
-        // MOSTRAR FORMULARIO PARA REGISTRAR DEVOLUCIÓN
         [HttpGet]
         public IActionResult Registrar()
         {
             return View();
         }
 
-        // PROCESAR LA DEVOLUCIÓN
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Registrar(RegistrarDevolucionRequest request)
@@ -55,7 +52,6 @@ namespace SIGEBI.AppWeb.Controllers
                 int bibliotecarioId = ObtenerUsuarioId();
                 var resultado = await _devoluciones.RegistrarDevolucionAsync(request, bibliotecarioId);
 
-                // El mensaje de éxito ya incluye si se generó penalización o no
                 TempData["Success"] = resultado.Mensaje;
                 return RedirectToAction(nameof(Index));
             }
