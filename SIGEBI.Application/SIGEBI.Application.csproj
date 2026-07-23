@@ -14,4 +14,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\RecursosBibliograficos\" />
+  </ItemGroup>
+
 </Project>
