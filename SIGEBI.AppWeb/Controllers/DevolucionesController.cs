@@ -1,64 +1,116 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.Interfaces.Service;
+using SIGEBI.AppWeb.Models.Devoluciones;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.AppWeb.Controllers
 {
-    [Authorize(Roles = "Administrador,Bibliotecario")]
+
+    [Authorize(Roles = "Administrador,Auditor,Bibliotecario")]
     public class DevolucionesController : BaseController
     {
-        private readonly IGestionDevolucionesUseCase _devoluciones;
+        private readonly IGestionDevolucionesUseCase _gestionDevoluciones;
+        private readonly ILogger<DevolucionesController> _logger;
 
-        public DevolucionesController(IGestionDevolucionesUseCase devoluciones)
+        public DevolucionesController(
+            IGestionDevolucionesUseCase gestionDevoluciones,
+            ILogger<DevolucionesController> logger)
         {
-            _devoluciones = devoluciones;
+            _gestionDevoluciones = gestionDevoluciones;
+            _logger = logger;
         }
 
+ 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromQuery] HistorialDevolucionesViewModel modelo)
         {
             try
             {
-                var request = new ConsultarHistorialDevolucionesRequest();
-                var historial = await _devoluciones.ConsultarHistorialAsync(request);
-                return View(historial);
+                var request = new ConsultarHistorialDevolucionesRequest
+                {
+                    UsuarioId = modelo.UsuarioId,
+                    RecursoBibliograficoId = modelo.RecursoBibliograficoId,
+                    EjemplarId = modelo.EjemplarId,
+                    FechaInicio = modelo.FechaInicio,
+                    FechaFin = modelo.FechaFin
+                };
+
+                modelo.Devoluciones = await _gestionDevoluciones.ConsultarHistorialAsync(request);
+                return View(modelo);
             }
-            catch (System.Exception ex)
+            catch (BusinessException ex)
             {
-                TempData["Error"] = "Error al cargar el historial: " + ex.Message;
-                return View(new List<SIGEBI.Application.DTOs.Response.DevolucionResponse>());
+                TempData["Error"] = ex.Message;
+                modelo.Devoluciones = new List<Application.DTOs.Response.DevolucionResponse>();
+                return View(modelo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al consultar el historial de devoluciones.");
+                TempData["Error"] = "Ocurrió un error al cargar el historial de devoluciones.";
+                modelo.Devoluciones = new List<Application.DTOs.Response.DevolucionResponse>();
+                return View(modelo);
             }
         }
 
+        [Authorize(Roles = "Bibliotecario")]
         [HttpGet]
-        public IActionResult Registrar()
+        public IActionResult Registrar(int prestamoId)
         {
-            return View();
+            if (prestamoId <= 0)
+            {
+                TempData["Error"] = "Debe especificar un ID de préstamo válido para registrar la devolución.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var modelo = new RegistrarDevolucionViewModel
+            {
+                PrestamoId = prestamoId
+            };
+
+            return View(modelo);
         }
 
+
+        [Authorize(Roles = "Bibliotecario")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Registrar(RegistrarDevolucionRequest request)
+        public async Task<IActionResult> Registrar(RegistrarDevolucionViewModel modelo)
         {
             if (!ModelState.IsValid)
             {
-                return View(request);
+                return View(modelo);
             }
 
             try
             {
+                var request = new RegistrarDevolucionRequest
+                {
+                    PrestamoId = modelo.PrestamoId,
+                    Condicion = modelo.Condicion,
+                    Observacion = modelo.Observacion
+                };
+
+                // Obtenemos el ID del usuario logueado usando el método base del sistema
                 int bibliotecarioId = ObtenerUsuarioId();
-                var resultado = await _devoluciones.RegistrarDevolucionAsync(request, bibliotecarioId);
+
+                var resultado = await _gestionDevoluciones.RegistrarDevolucionAsync(request, bibliotecarioId);
 
                 TempData["Success"] = resultado.Mensaje;
                 return RedirectToAction(nameof(Index));
             }
-            catch (System.Exception ex)
+            catch (BusinessException ex)
             {
-                TempData["Error"] = ex.Message;
-                return View(request);
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(modelo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar la devolución para el préstamo ID {PrestamoId}.", modelo.PrestamoId);
+                TempData["Error"] = "Ocurrió un error inesperado al procesar la devolución en el sistema.";
+                return View(modelo);
             }
         }
     }

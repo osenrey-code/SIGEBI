@@ -1,0 +1,121 @@
+﻿@model SIGEBI.AppWeb.Models.Reportes.ReportePrestamoViewModel
+
+@{
+    ViewData["Title"] = "Reporte de Préstamos";
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Reportes</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-journal-check me-2"></i>Reporte de Préstamos</h1>
+            <p class="hero-description mb-0">Análisis histórico de préstamos, devoluciones puntuales y vencimientos.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="PrestamosPdf" asp-route-fechaInicio="@Model.FechaInicio.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FechaFin.ToString("yyyy-MM-dd")" class="btn btn-danger fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Exportar PDF
+            </a>
+            <a asp-action="Index" class="btn btn-light fw-semibold px-3 py-2 rounded-3 shadow-sm">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- FORMULARIO DE FILTRO POR FECHAS -->
+<div class="content-card card shadow-sm rounded-4 border-0 p-4 mb-4">
+    <form method="get" asp-action="Prestamos" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label fw-semibold small text-body-secondary">Fecha Inicio</label>
+            <input type="date" name="fechaInicio" value="@Model.FechaInicio.ToString("yyyy-MM-dd")" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold small text-body-secondary">Fecha Fin</label>
+            <input type="date" name="fechaFin" value="@Model.FechaFin.ToString("yyyy-MM-dd")" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary fw-bold w-100 rounded-3 shadow-sm">
+                <i class="bi bi-filter me-2"></i> Filtrar Reporte
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TARJETAS DE RESUMEN (KPIs) -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4">
+            <div class="text-muted small fw-semibold mb-1">TOTAL PRÉSTAMOS</div>
+            <h3 class="fw-bold text-body-emphasis mb-0">@Model.Reporte.TotalPrestamos</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4">
+            <div class="text-muted small fw-semibold mb-1">DEVUELTOS A TIEMPO</div>
+            <h3 class="fw-bold text-success mb-0">@Model.Reporte.PrestamosDevueltosATiempo</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4">
+            <div class="text-muted small fw-semibold mb-1">VENCIDOS</div>
+            <h3 class="fw-bold text-danger mb-0">@Model.Reporte.PrestamosVencidos</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4">
+            <div class="text-muted small fw-semibold mb-1">TASA DE PUNTUALIDAD</div>
+            <h3 class="fw-bold text-primary mb-0">@Model.Reporte.TasaDevolucionPuntual.ToString("N2")%</h3>
+        </div>
+    </div>
+</div>
+
+<!-- TABLA DE DETALLE -->
+<div class="content-card card shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="p-4 border-bottom">
+        <h5 class="fw-bold mb-0 text-body-emphasis">Historial de Préstamos en el Período</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover users-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>RECURSO</th>
+                    <th>EJEMPLAR</th>
+                    <th>FECHA PRÉSTAMO</th>
+                    <th>FECHA LÍMITE</th>
+                    <th>FECHA DEVOLUCIÓN</th>
+                    <th class="text-center">ESTADO</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Reporte.Prestamos == null || !Model.Reporte.Prestamos.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-body-secondary">
+                            <i class="bi bi-folder2-open display-6 d-block mb-2"></i>
+                            No hay registros de préstamos para el rango de fechas seleccionado.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Reporte.Prestamos)
+                    {
+                        <tr>
+                            <td data-label="Recurso" class="fw-bold text-body-emphasis">@item.TituloRecurso</td>
+                            <td data-label="Ejemplar" class="text-body-secondary">@item.IdentificadorEjemplar</td>
+                            <td data-label="Fecha Préstamo" class="text-body-secondary">@item.FechaPrestamo.ToString("dd/MM/yyyy")</td>
+                            <td data-label="Fecha Límite" class="text-body-secondary">@item.FechaLimite.ToString("dd/MM/yyyy")</td>
+                            <td data-label="Fecha Devolución" class="text-body-secondary">
+                                @(item.FechaDevolucion.HasValue ? item.FechaDevolucion.Value.ToString("dd/MM/yyyy") : "Pendiente")
+                            </td>
+                            <td data-label="Estado" class="text-center">
+                                <span class="badge" style="background-color: #e2f0d9; color: #274e13; font-weight: 600;">@item.Estado</span>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

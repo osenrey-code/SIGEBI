@@ -20,7 +20,7 @@ namespace SIGEBI.Application.Interfaces.Service
         );
 
         Task<IEnumerable<PrestamoResponse>> ConsultarPrestamosActivosAsync(
-            ConsultarPrestamosActivosRequest request
+            ConsultarPrestamosActivosRequest request, int usuarioId
         );
 
         Task<IEnumerable<SolicitudResponse>> ConsultarTodasAsync();

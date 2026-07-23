@@ -1,0 +1,82 @@
+﻿@model SIGEBI.Application.DTOs.Response.SolicitudResponse
+
+@{
+    ViewData["Title"] = "Detalles de la Solicitud";
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Solicitudes</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Detalle de Solicitud</h1>
+            <p class="hero-description mb-0">Información completa y estado actual de la petición bibliotecaria.</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-light fw-semibold px-4 rounded-3">
+                <i class="bi bi-arrow-left me-2"></i> Volver al Listado
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4 p-lg-5">
+
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                <div>
+                    <span class="d-block text-muted small fw-bold text-uppercase mb-1">Identificador</span>
+                    <h3 class="fw-bold mb-0 text-body-emphasis">#@Model.SolicitudId</h3>
+                </div>
+                <div>
+                    @if (Model.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="status-badge" style="color: #664400; background: #fff0ba;">
+                            <i class="bi bi-clock-fill me-1"></i> Pendiente
+                        </span>
+                    }
+                    else if (Model.Estado.Equals("Aprobado", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="status-badge status-active">
+                            <i class="bi bi-check-circle-fill me-1"></i> Aprobado
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="status-badge status-inactive">
+                            <i class="bi bi-x-circle-fill me-1"></i> @Model.Estado
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <span class="d-block text-muted small fw-bold text-uppercase mb-1">Recurso Bibliográfico</span>
+                <h5 class="fw-semibold text-body-emphasis">@Model.TituloRecurso</h5>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6">
+                    <div class="p-3 bg-body-tertiary rounded-3">
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Código de Ejemplar</span>
+                        <span class="fw-semibold fs-6">@Model.IdentificadorEjemplar</span>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-3 bg-body-tertiary rounded-3">
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Fecha de Solicitud</span>
+                        <span class="fw-semibold fs-6">@Model.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-2">
+                <a asp-action="Index" class="btn btn-secondary px-4 fw-bold rounded-3">
+                    Cerrar
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -403,6 +403,43 @@ namespace SIGEBI.Application.UseCase.Usuarios
             
         }
 
-        
+        public async Task CambiarPasswordAdminAsync(int usuarioId, string nuevaPassword, int actorId)
+        {
+            if (usuarioId <= 0)
+                throw new BusinessException("El ID del usuario es obligatorio.");
+
+            if (actorId <= 0)
+                throw new BusinessException("El usuario que realiza la acción es obligatorio.");
+
+            Guard.NotNullOrWhiteSpace(nuevaPassword, "La nueva contraseña");
+
+            await ValidarActorAdministradorAsync(
+                actorId,
+                "Solo un administrador puede restablecer la contraseña de otros usuarios."
+            );
+
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
+
+            if (usuario is null)
+                throw new BusinessException("El usuario especificado no existe.");
+
+            if (usuario.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("No se puede restablecer la contraseña de un usuario inactivo.");
+
+            string nuevoPasswordHash = _password.GenerarHash(nuevaPassword.Trim());
+
+            usuario.CambiarPassword(nuevoPasswordHash);
+
+            await _usuarios.ActualizarAsync(usuario);
+
+            await _auditoria.RegistrarAsync(
+                UsuarioId: actorId,
+                Accion: "Restablecer contraseña por Admin",
+                EntidadAfectada: "Usuarios",
+                detalles: $"El administrador con ID #{actorId} restableció la contraseña del usuario con ID #{usuario.UsuarioId}."
+            );
+
+            await _db.SaveChangesAsync();
+        }
     }
 }

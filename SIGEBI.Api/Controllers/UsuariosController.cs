@@ -68,12 +68,21 @@ namespace SIGEBI.Api.Controllers
             });
         }
 
-        [HttpPatch("{id}/cambiar-password")]
-        [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> CambiarPassword([FromRoute] int id, [FromBody] CambiarPasswordRequest request)
+        [HttpPatch("cambiar-mi-password")]
+        public async Task<IActionResult> CambiarMiPassword([FromBody] CambiarPasswordRequest request)
         {
-            await _gestionUsuarios.CambiarPasswordAsync(request, id);
-            return Ok(new { Mensaje = "Contraseña actualizada correctamente." });
+            int usuarioId = ObtenerUsuarioId();
+            await _gestionUsuarios.CambiarPasswordAsync(request, usuarioId);
+            return Ok(new { mensaje = "Tu contraseña ha sido actualizada correctamente." });
+        }
+
+        [HttpPatch("{id:int}/resetear-password-admin")]
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> ResetearPasswordAdmin([FromRoute] int id, [FromBody] ResetearPasswordAdminApiRequest request)
+        {
+            int actorId = ObtenerUsuarioId();
+            await _gestionUsuarios.CambiarPasswordAdminAsync(id, request.NuevaPassword, actorId);
+            return Ok(new { mensaje = "La contraseña del usuario ha sido restablecida exitosamente." });
         }
     }
 }

@@ -1,28 +1,21 @@
-﻿@model SIGEBI.AppWeb.Models.Prestamos.PrestamoIndexViewModel
+﻿@model SIGEBI.AppWeb.Models.Prestamos.PrestamoFiltroViewModel
 
 @{
-    ViewData["Title"] = "Gestión de Préstamos";
+    ViewData["Title"] = "Préstamos Activos";
     var esGestor = User.IsInRole("Administrador") || User.IsInRole("Bibliotecario");
     var esBibliotecario = User.IsInRole("Bibliotecario");
 }
 
 <!-- HERO SECTION -->
 <div class="page-hero p-4 p-lg-5 mb-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-            <span class="hero-badge">Módulo de Préstamos</span>
-            <h1 class="fw-bold mb-2"><i class="bi bi-arrow-left-right me-2"></i>Gestión de Solicitudes y Préstamos</h1>
-            <p class="hero-description mb-0">Visualiza las solicitudes pendientes, aprueba préstamos y controla las entregas activas.</p>
-        </div>
-        <div>
-            <a asp-action="Solicitar" class="btn btn-light text-primary fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
-                <i class="bi bi-plus-lg"></i> Solicitar Préstamo
-            </a>
-        </div>
+    <div>
+        <span class="hero-badge">Módulo de Préstamos</span>
+        <h1 class="fw-bold mb-2"><i class="bi bi-journal-check me-2"></i>Préstamos Activos</h1>
+        <p class="hero-description mb-0">Controla los ejemplares entregados actualmente y verifica fechas de devolución.</p>
     </div>
 </div>
 
-<!-- ALERTAS DE NOTIFICACIÓN -->
+<!-- ALERTAS -->
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
@@ -38,7 +31,36 @@
     </div>
 }
 
-<!-- TABLA DE DATOS RESPONSIVE -->
+<!-- FORMULARIO DE FILTROS -->
+<div class="content-card card shadow-sm rounded-4 border-0 p-4 mb-4">
+    <form method="get" asp-action="Activos" class="row g-3 align-items-end">
+        @if (esGestor)
+        {
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small text-body-secondary">Identificación de Usuario</label>
+                <input type="text" name="identificacion" value="@Model.Identificacion" class="form-control" placeholder="Matrícula o Cédula..." />
+            </div>
+        }
+        <div class="col-md-@(esGestor ? "3" : "5")">
+            <label class="form-label fw-semibold small text-body-secondary">ID Recurso</label>
+            <input type="number" name="recursoId" value="@Model.RecursoBibliograficoId" class="form-control" placeholder="Ej. 1" />
+        </div>
+        <div class="col-md-@(esGestor ? "3" : "5")">
+            <label class="form-label fw-semibold small text-body-secondary">ID Ejemplar</label>
+            <input type="number" name="ejemplarId" value="@Model.EjemplarId" class="form-control" placeholder="Ej. 2" />
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100 fw-semibold shadow-sm" title="Filtrar">
+                <i class="bi bi-search"></i>
+            </button>
+            <a asp-action="Activos" class="btn btn-outline-secondary w-100 fw-semibold" title="Limpiar filtros">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- TABLA DE PRÉSTAMOS ACTIVOS -->
 <div class="content-card card shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="table-responsive">
         <table class="table table-hover users-table align-middle mb-0">
@@ -49,7 +71,7 @@
                     <th>FECHA INICIO</th>
                     <th>FECHA LÍMITE</th>
                     <th class="text-center">ESTADO</th>
-                    @if (esGestor)
+                    @if (esBibliotecario)
                     {
                         <th class="text-end">ACCIONES</th>
                     }
@@ -59,9 +81,9 @@
                 @if (Model.Prestamos == null || !Model.Prestamos.Any())
                 {
                     <tr>
-                        <td colspan="@(esGestor ? 6 : 5)" class="text-center py-5 text-body-secondary">
+                        <td colspan="@(esBibliotecario ? 6 : 5)" class="text-center py-5 text-body-secondary">
                             <i class="bi bi-folder2-open display-6 d-block mb-2"></i>
-                            No hay solicitudes ni préstamos registrados en este momento.
+                            No hay préstamos activos registrados con los filtros especificados.
                         </td>
                     </tr>
                 }
@@ -72,23 +94,13 @@
                         <tr>
                             <td data-label="Recurso" class="fw-bold text-body-emphasis">@item.TituloRecurso</td>
                             <td data-label="Ejemplar" class="text-body-secondary">@item.IdentificadorEjemplar</td>
-                            <td data-label="Fecha Inicio" class="text-body-secondary">
-                                @(item.FechaInicio == default ? "Pendiente" : item.FechaInicio.ToString("dd/MM/yyyy"))
-                            </td>
-                            <td data-label="Fecha Límite" class="text-body-secondary">
-                                @(item.FechaLimite == default ? "Pendiente" : item.FechaLimite.ToString("dd/MM/yyyy"))
-                            </td>
+                            <td data-label="Fecha Inicio" class="text-body-secondary">@item.FechaInicio.ToString("dd/MM/yyyy")</td>
+                            <td data-label="Fecha Límite" class="text-body-secondary">@item.FechaLimite.ToString("dd/MM/yyyy")</td>
                             <td data-label="Estado" class="text-center">
                                 @if (item.EstaVencido)
                                 {
                                     <span class="status-badge status-inactive">
                                         <i class="bi bi-exclamation-circle-fill"></i> Vencido
-                                    </span>
-                                }
-                                else if (item.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="status-badge" style="color: #664400; background: #fff0ba;">
-                                        <i class="bi bi-clock-fill"></i> Pendiente
                                     </span>
                                 }
                                 else
@@ -98,40 +110,16 @@
                                     </span>
                                 }
                             </td>
-                            @if (esGestor)
+                            @if (esBibliotecario)
                             {
                                 <td data-label="Acciones" class="actions-cell text-end">
-                                    @if (item.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <form asp-action="Aprobar" asp-route-id="@item.PrestamoId" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-success fw-semibold" title="Aprobar Solicitud">
-                                                <i class="bi bi-check-lg me-1"></i> Aprobar
-                                            </button>
-                                        </form>
-                                    }
-                                    else if (item.Estado.Equals("Activo", StringComparison.OrdinalIgnoreCase) || item.EstaVencido)
-                                    {
-                                        @if (esBibliotecario)
-                                        {
-                                            <!-- Botón exclusivo del Bibliotecario que activa la ventana modal de devolución -->
-                                            <button type="button" class="btn btn-sm btn-success fw-semibold text-white px-3 shadow-sm"
-                                                    style="background-color: #14733c;"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#modalDevolucion"
-                                                    data-prestamo-id="@item.PrestamoId">
-                                                <i class="bi bi-box-arrow-in-down me-1"></i> Devolver
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-body-secondary small">Solo lectura</span>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <span class="text-body-secondary small">N/D</span>
-                                    }
+                                    <button type="button" class="btn btn-sm btn-success fw-semibold text-white px-3 shadow-sm"
+                                            style="background-color: #14733c;"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalDevolucion"
+                                            data-prestamo-id="@item.PrestamoId">
+                                        <i class="bi bi-box-arrow-in-down me-1"></i> Devolver
+                                    </button>
                                 </td>
                             }
                         </tr>
@@ -142,10 +130,10 @@
     </div>
 </div>
 
-<!-- MODAL DE REGISTRO DE DEVOLUCIÓN -->
+<!-- MODAL DE REGISTRO DE DEVOLUCIÓN (INTEGRADO CON CONTENT-CARD) -->
 <div class="modal fade" id="modalDevolucion" tabindex="-1" aria-labelledby="modalDevolucionLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-content content-card card rounded-4 border-0 shadow">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold text-body-emphasis" id="modalDevolucionLabel">
                     <i class="bi bi-box-arrow-in-down text-success me-2"></i>Registrar Recepción de Ejemplar
@@ -177,8 +165,8 @@
                 </div>
 
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light fw-semibold px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 text-white" style="background-color: #14733c;">
+                    <button type="button" class="btn btn-outline-secondary fw-semibold px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 text-white shadow-sm" style="background-color: #14733c;">
                         <i class="bi bi-check-circle me-1"></i> Confirmar Devolución
                     </button>
                 </div>

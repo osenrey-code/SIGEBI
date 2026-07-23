@@ -12,6 +12,7 @@
 
 <div class="d-flex flex-column gap-4">
 
+    <!-- HERO SECTION -->
     <section class="page-hero p-4 p-lg-5">
         <div class="position-relative z-1">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
@@ -37,6 +38,7 @@
         </div>
     </section>
 
+    <!-- ALERTAS -->
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-0" role="alert">
@@ -53,6 +55,7 @@
         </div>
     }
 
+    <!-- MÉTRICAS DE USUARIOS -->
     <section class="row g-3">
         <div class="col-md-4">
             <div class="metric-card p-3 h-100 d-flex align-items-center gap-3">
@@ -94,6 +97,7 @@
         </div>
     </section>
 
+    <!-- BUSCADOR -->
     <section class="content-card p-3 p-lg-4">
         <form method="get" asp-action="Index" role="search">
             <label for="identificacionBusqueda" class="form-label fw-semibold">
@@ -132,6 +136,7 @@
         </form>
     </section>
 
+    <!-- TABLA DIRECTORIO DE USUARIOS -->
     <section class="content-card overflow-hidden">
         <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom content-card-header">
             <div>
@@ -228,6 +233,19 @@
                                     @if (User.IsInRole("Administrador"))
                                     {
                                         <div class="d-inline-flex gap-1">
+                                            <!-- BOTÓN RESTABLECER CONTRASEÑA -->
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-warning"
+                                                    title="Restablecer Contraseña"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalResetPassword"
+                                                    data-usuario-id="@u.UsuarioId"
+                                                    data-usuario-nombre="@u.NombreCompleto"
+                                                    aria-label="Restablecer contraseña a @u.NombreCompleto">
+                                                <i class="bi bi-key-fill"></i>
+                                            </button>
+
+                                            <!-- BOTÓN EDITAR -->
                                             <a asp-action="Editar"
                                                asp-route-id="@u.UsuarioId"
                                                class="btn btn-sm btn-outline-primary"
@@ -236,6 +254,7 @@
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
 
+                                            <!-- BOTÓN DESACTIVAR / ACTIVAR -->
                                             @if (estaActivo)
                                             {
                                                 <a asp-action="Desactivar"
@@ -290,3 +309,58 @@
         </div>
     </section>
 </div>
+
+<!-- MODAL RESTABLECER CONTRASEÑA (ADMINISTRADOR) -->
+<div class="modal fade" id="modalResetPassword" tabindex="-1" aria-labelledby="modalResetPasswordLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content content-card card rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-body-emphasis" id="modalResetPasswordLabel">
+                    <i class="bi bi-key-fill text-warning me-2"></i>Restablecer Contraseña
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <form asp-controller="Usuarios" asp-action="ResetearPasswordAdmin" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="ResetUsuarioId" name="usuarioId" />
+
+                <div class="modal-body py-4">
+                    <p class="text-body-secondary small mb-3">
+                        Estás restableciendo la contraseña del usuario <strong id="ResetUsuarioNombre" class="text-body-emphasis"></strong>.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-body-secondary">Nueva Contraseña <span class="text-danger">*</span></label>
+                        <input type="password" name="nuevaPassword" class="form-control rounded-3" required minlength="6" placeholder="Mínimo 6 caracteres" />
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-outline-secondary fw-semibold px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning fw-bold px-4 py-2 rounded-3 text-dark shadow-sm">
+                        <i class="bi bi-check-circle me-1"></i> Guardar Nueva Clave
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const modalResetPassword = document.getElementById('modalResetPassword');
+            if (modalResetPassword) {
+                modalResetPassword.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const usuarioId = button.getAttribute('data-usuario-id');
+                    const usuarioNombre = button.getAttribute('data-usuario-nombre');
+
+                    modalResetPassword.querySelector('#ResetUsuarioId').value = usuarioId;
+                    modalResetPassword.querySelector('#ResetUsuarioNombre').textContent = usuarioNombre;
+                });
+            }
+        });
+    </script>
+}

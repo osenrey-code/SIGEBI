@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SIGEBI.AppWeb.Models.Prestamos
+namespace SIGEBI.AppWeb.Models.Solicitudes
 {
     public class RegistrarSolicitudViewModel
     {

@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System.Linq;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.AppWeb.Models.Prestamos;
@@ -11,28 +9,42 @@ namespace SIGEBI.AppWeb.Controllers
     [Authorize]
     public class PrestamosController : BaseController
     {
-        private readonly IGestionPrestamos _prestamos;
+        private readonly IGestionPrestamos _gestionPrestamos;
+        private readonly ILogger<PrestamosController> _logger;
 
-        public PrestamosController(IGestionPrestamos prestamos)
+        public PrestamosController(IGestionPrestamos gestionPrestamos, ILogger<PrestamosController> logger)
         {
-            _prestamos = prestamos;
+            _gestionPrestamos = gestionPrestamos;
+            _logger = logger;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string identificacionBusqueda = "")
+        public IActionResult Index()
+        {
+            return RedirectToAction(nameof(Activos));
+        }
+
+        [Authorize(Roles = "Administrador,Bibliotecario,Docente,Estudiante")]
+        [HttpGet]
+        public async Task<IActionResult> Activos(string? identificacion, int? recursoId, int? ejemplarId)
         {
             try
             {
                 var request = new ConsultarPrestamosActivosRequest
                 {
-                    Identificacion = identificacionBusqueda
+                    Identificacion = identificacion,
+                    RecursoBibliograficoId = recursoId,
+                    EjemplarId = ejemplarId
                 };
 
-                var activos = await _prestamos.ConsultarPrestamosActivosAsync(request);
+                var respuesta = await _gestionPrestamos.ConsultarPrestamosActivosAsync(request, ObtenerUsuarioId());
 
-                var modelo = new PrestamoIndexViewModel
+                var modelo = new PrestamoFiltroViewModel
                 {
-                    Prestamos = activos.Select(p => new PrestamoItemViewModel
+                    Identificacion = identificacion,
+                    RecursoBibliograficoId = recursoId,
+                    EjemplarId = ejemplarId,
+                    Prestamos = respuesta.Select(p => new PrestamoItemViewModel
                     {
                         PrestamoId = p.PrestamoId,
                         TituloRecurso = p.TituloRecurso,
@@ -46,48 +58,53 @@ namespace SIGEBI.AppWeb.Controllers
 
                 return View(modelo);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
-                return View(new PrestamoIndexViewModel());
+                _logger.LogError(ex, "Error al consultar los préstamos activos.");
+                TempData["Error"] = "No se pudieron cargar los préstamos activos.";
+                return View(new PrestamoFiltroViewModel());
             }
         }
 
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor")]
         [HttpGet]
-        [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> Solicitudes()
+        public async Task<IActionResult> Historial(string? identificacion, int? recursoId, int? ejemplarId)
         {
             try
             {
-                var pendientes = await _prestamos.ConsultarSolicitudesPendientesAsync();
-                return View(pendientes);
-            }
-            catch (System.Exception ex)
-            {
-                TempData["Error"] = "No se pudieron cargar las solicitudes: " + ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
-        }
+                var request = new ConsultarHistorialPrestamosRequest
+                {
+                    Identificacion = identificacion,
+                    RecursoBibliograficoId = recursoId,
+                    EjemplarId = ejemplarId
+                };
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> Aprobar(int solicitudId)
-        {
-            try
-            {
-                var request = new AprobarSolicitudRequest { SolicitudId = solicitudId };
-                int usuarioId = ObtenerUsuarioId();
+                var respuesta = await _gestionPrestamos.ConsultarHistorialAsync(request);
 
-                await _prestamos.AprobarPrestamoAsync(request, usuarioId);
+                var modelo = new PrestamoFiltroViewModel
+                {
+                    Identificacion = identificacion,
+                    RecursoBibliograficoId = recursoId,
+                    EjemplarId = ejemplarId,
+                    Prestamos = respuesta.Select(p => new PrestamoItemViewModel
+                    {
+                        PrestamoId = p.PrestamoId,
+                        TituloRecurso = p.TituloRecurso,
+                        IdentificadorEjemplar = p.IdentificadorEjemplar,
+                        FechaInicio = p.FechaInicio,
+                        FechaLimite = p.FechaLimite,
+                        Estado = p.Estado,
+                        EstaVencido = p.EstaVencido
+                    }).ToList()
+                };
 
-                TempData["Success"] = "Préstamo aprobado correctamente.";
-                return RedirectToAction(nameof(Solicitudes));
+                return View(modelo);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
-                return RedirectToAction(nameof(Solicitudes));
+                _logger.LogError(ex, "Error al consultar el historial de préstamos.");
+                TempData["Error"] = "No se pudo cargar el historial de préstamos.";
+                return View(new PrestamoFiltroViewModel());
             }
         }
     }

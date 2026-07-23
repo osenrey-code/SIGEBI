@@ -1,14 +1,16 @@
-﻿@model SIGEBI.Application.DTOs.Request.RegistrarDevolucionRequest
+﻿@model SIGEBI.AppWeb.Models.Devoluciones.RegistrarDevolucionViewModel
+
 @{
     ViewData["Title"] = "Registrar Devolución";
 }
 
+<!-- HERO SECTION -->
 <div class="page-hero p-4 p-lg-5 mb-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
             <span class="hero-badge">Módulo de Devoluciones</span>
-            <h1 class="fw-bold mb-2"><i class="bi bi-box-arrow-in-right me-2"></i>Registrar Devolución</h1>
-            <p class="hero-description mb-0">Ingresa los datos para retornar un recurso prestado a la biblioteca.</p>
+        <h1 class="fw-bold mb-2"><i class="bi bi-box-arrow-in-down me-2"></i>Registrar Recepción de Ejemplar</h1>
+        <p class="hero-description mb-0">Indique la condición física del material devuelto para completar el préstamo #@Model.PrestamoId.</p>
         </div>
         <div>
             <a asp-action="Index" class="btn btn-outline-light text-white fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
@@ -18,39 +20,46 @@
     </div>
 </div>
 
-<div class="content-card card shadow-sm rounded-4 mb-4">
-    <div class="card-body p-4 p-lg-5">
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4 p-lg-5 mb-4 bg-white">
+
         <form asp-action="Registrar" method="post">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <label asp-for="PrestamoId" class="form-label fw-bold text-body-emphasis">ID del Préstamo</label>
-                    <input asp-for="PrestamoId" type="number" class="form-control form-control-lg" placeholder="Ej. 1042" required />
-                    <span asp-validation-for="PrestamoId" class="text-danger"></span>
-                </div>
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="PrestamoId" />
 
-                <div class="col-md-6">
-                    <label asp-for="Condicion" class="form-label fw-bold text-body-emphasis">Condición de Entrega</label>
-                    <select asp-for="Condicion" class="form-select form-select-lg" required>
-                        <option value="">Seleccione una condición...</option>
-                        <option value="Bueno">Bueno (Sin daños)</option>
-                        <option value="Dañado">Dañado (Requiere revisión)</option>
-                        <option value="Extraviado">Extraviado (No devuelto físicamente)</option>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-4" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Condicion" class="form-label fw-semibold text-dark">Condición del Ejemplar <span class="text-danger">*</span></label>
+                    <select asp-for="Condicion" class="form-select rounded-3 text-dark bg-light">
+                        <option value="Bueno">Bueno (Sin daños aparentes)</option>
+                        <option value="Dañado">Dañado (Requiere revisión o reparación)</option>
+                        <option value="Extraviado">Extraviado (No devuelto / Perdido)</option>
                     </select>
-                    <span asp-validation-for="Condicion" class="text-danger"></span>
+                    <span asp-validation-for="Condicion" class="text-danger small"></span>
+                    <div class="form-text small text-muted mt-1">
+                        Nota: Si selecciona "Dañado" o "Extraviado", el sistema retirará automáticamente el ejemplar del inventario activo.
+                    </div>
                 </div>
 
-                <div class="col-md-12">
-                    <label asp-for="Observacion" class="form-label fw-bold text-body-emphasis">Observaciones Adicionales (Opcional)</label>
-                    <textarea asp-for="Observacion" class="form-control form-control-lg" rows="3" placeholder="Detalles sobre el estado del libro o cualquier nota relevante..."></textarea>
-                    <span asp-validation-for="Observacion" class="text-danger"></span>
-                </div>
+                <div class="mb-4">
+                    <label asp-for="Observacion" class="form-label fw-semibold text-dark">Observaciones Adicionales</label>
+                    <textarea asp-for="Observacion" rows="3" class="form-control rounded-3 text-dark bg-light" placeholder="Detalles sobre el estado físico u observaciones del bibliotecario..."></textarea>
+                    <span asp-validation-for="Observacion" class="text-danger small"></span>
             </div>
 
-            <div class="d-flex justify-content-end gap-3 mt-5 border-top pt-4">
-                <a asp-action="Index" class="btn btn-outline-secondary btn-lg fw-semibold px-4">Cancelar</a>
-                <button type="submit" class="btn btn-primary btn-lg fw-semibold px-5">Procesar Devolución</button>
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-light fw-semibold px-4 py-2 rounded-3 shadow-sm text-dark">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 text-white shadow-sm" style="background-color: #14733c;">
+                        <i class="bi bi-check-circle me-2"></i> Confirmar Devolución
+                    </button>
             </div>
         </form>
+
+        </div>
     </div>
 </div>
 
