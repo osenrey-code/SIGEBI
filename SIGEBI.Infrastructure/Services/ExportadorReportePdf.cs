@@ -13,12 +13,13 @@ namespace SIGEBI.Infrastructure.Services
 {
     public class ExportadorReportePdf : IExportadorReportePdf
     {
-        private const string ColorPrimario = "#1E3A8A";
-        private const string ColorSecundario = "#2563EB";
-        private const string ColorFondo = "#F8FAFC";
-        private const string ColorBorde = "#CBD5E1";
-        private const string ColorTexto = "#0F172A";
-        private const string ColorTextoClaro = "#64748B";
+        private const string ColorPrimario = "#0F172A";      // Slate 900 (Moderno y profesional)
+        private const string ColorSecundario = "#2563EB";    // Blue 600 (Acento vibrante)
+        private const string ColorFondo = "#F8FAFC";         // Slate 50 (Fondo sutil para tarjetas)
+        private const string ColorBorde = "#E2E8F0";         // Slate 200 (Bordes limpios)
+        private const string ColorTexto = "#334155";         // Slate 700 (Texto legible)
+        private const string ColorTextoOscuro = "#0F172A";   // Slate 900 (Títulos)
+        private const string ColorTextoClaro = "#64748B";    // Slate 500 (Metadatos)
         private const string ColorBlanco = "#FFFFFF";
 
         public byte[] GenerarReportePrestamosPdf(
@@ -35,38 +36,39 @@ namespace SIGEBI.Infrastructure.Services
                         CrearEncabezado(
                             container,
                             "REPORTE DE PRÉSTAMOS",
-                            "Resumen general de préstamos registrados en el sistema"
+                            "Resumen general y métricas de préstamos registrados en el sistema"
                         )
                     );
 
                     page.Content().PaddingVertical(15).Column(column =>
                     {
-                        column.Spacing(15);
+                        column.Spacing(12);
 
-                        column.Item().Element(container => CrearFechaGeneracion(container));
-
-                        column.Item().Element(container =>
-                            CrearRangoFechas(container, rango)
-                        );
+                        column.Item().Row(row =>
+                        {
+                            row.Spacing(10);
+                            row.RelativeItem().Element(container => CrearFechaGeneracion(container));
+                            row.RelativeItem().Element(container => CrearRangoFechas(container, rango));
+                        });
 
                         column.Item().Row(row =>
                         {
                             row.Spacing(10);
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Total préstamos", reporte.TotalPrestamos.ToString()));
+                                CrearTarjetaResumen(container, "Total préstamos", reporte.TotalPrestamos.ToString(), Colors.Blue.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Devueltos a tiempo", reporte.PrestamosDevueltosATiempo.ToString()));
+                                CrearTarjetaResumen(container, "A tiempo", reporte.PrestamosDevueltosATiempo.ToString(), Colors.Green.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Vencidos", reporte.PrestamosVencidos.ToString()));
+                                CrearTarjetaResumen(container, "Vencidos", reporte.PrestamosVencidos.ToString(), Colors.Red.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Puntualidad", $"{reporte.TasaDevolucionPuntual:N2}%"));
+                                CrearTarjetaResumen(container, "Puntualidad", $"{reporte.TasaDevolucionPuntual:N2}%", Colors.Indigo.Darken2));
                         });
 
-                        column.Item().Element(container =>
+                        column.Item().PaddingTop(5).Element(container =>
                             CrearTituloSeccion(container, "Detalle de préstamos"));
 
                         if (reporte.Prestamos == null || !reporte.Prestamos.Any())
@@ -79,12 +81,12 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(55);
+                                    columns.ConstantColumn(45);
                                     columns.RelativeColumn(2);
-                                    columns.RelativeColumn();
-                                    columns.ConstantColumn(80);
-                                    columns.ConstantColumn(80);
-                                    columns.ConstantColumn(80);
+                                    columns.RelativeColumn(1);
+                                    columns.ConstantColumn(75);
+                                    columns.ConstantColumn(75);
+                                    columns.ConstantColumn(75);
                                 });
 
                                 table.Header(header =>
@@ -127,13 +129,13 @@ namespace SIGEBI.Infrastructure.Services
                         CrearEncabezado(
                             container,
                             "REPORTE DE INVENTARIO",
-                            "Estado general de los recursos físicos registrados"
+                            "Estado general y disponibilidad de los recursos físicos en existencia"
                         )
                     );
 
                     page.Content().PaddingVertical(15).Column(column =>
                     {
-                        column.Spacing(15);
+                        column.Spacing(12);
 
                         column.Item().Element(container => CrearFechaGeneracion(container));
 
@@ -142,19 +144,19 @@ namespace SIGEBI.Infrastructure.Services
                             row.Spacing(10);
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Total recursos", reporte.TotalRecursos.ToString()));
+                                CrearTarjetaResumen(container, "Recursos", reporte.TotalRecursos.ToString(), Colors.Blue.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Total ejemplares", reporte.TotalEjemplares.ToString()));
+                                CrearTarjetaResumen(container, "Ejemplares", reporte.TotalEjemplares.ToString(), Colors.Grey.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Disponibles", reporte.EjemplaresDisponibles.ToString()));
+                                CrearTarjetaResumen(container, "Disponibles", reporte.EjemplaresDisponibles.ToString(), Colors.Green.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Fuera servicio", reporte.EjemplaresFueraDeServicio.ToString()));
+                                CrearTarjetaResumen(container, "Fuera servicio", reporte.EjemplaresFueraDeServicio.ToString(), Colors.Red.Darken2));
                         });
 
-                        column.Item().Element(container =>
+                        column.Item().PaddingTop(5).Element(container =>
                             CrearTituloSeccion(container, "Detalle de inventario"));
 
                         if (reporte.Recursos == null || !reporte.Recursos.Any())
@@ -167,12 +169,12 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(55);
+                                    columns.ConstantColumn(45);
                                     columns.RelativeColumn(2);
-                                    columns.RelativeColumn();
-                                    columns.ConstantColumn(55);
-                                    columns.ConstantColumn(55);
-                                    columns.ConstantColumn(55);
+                                    columns.RelativeColumn(1);
+                                    columns.ConstantColumn(50);
+                                    columns.ConstantColumn(50);
+                                    columns.ConstantColumn(50);
                                     columns.ConstantColumn(55);
                                 });
 
@@ -184,7 +186,7 @@ namespace SIGEBI.Infrastructure.Services
                                     CrearCeldaEncabezado(header, "Total");
                                     CrearCeldaEncabezado(header, "Disp.");
                                     CrearCeldaEncabezado(header, "Prest.");
-                                    CrearCeldaEncabezado(header, "F. Serv.");
+                                    CrearCeldaEncabezado(header, "F.Serv.");
                                 });
 
                                 foreach (var recurso in reporte.Recursos)
@@ -220,38 +222,39 @@ namespace SIGEBI.Infrastructure.Services
                         CrearEncabezado(
                             container,
                             "REPORTE DE USO DEL CATÁLOGO",
-                            "Recursos más solicitados y demanda por categoría"
+                            "Análisis de recursos más solicitados y demanda por categoría"
                         )
                     );
 
                     page.Content().PaddingVertical(15).Column(column =>
                     {
-                        column.Spacing(15);
+                        column.Spacing(12);
 
-                        column.Item().Element(container => CrearFechaGeneracion(container));
-
-                        column.Item().Element(container =>
-                            CrearRangoFechas(container, rango)
-                        );
+                        column.Item().Row(row =>
+                        {
+                            row.Spacing(10);
+                            row.RelativeItem().Element(container => CrearFechaGeneracion(container));
+                            row.RelativeItem().Element(container => CrearRangoFechas(container, rango));
+                        });
 
                         column.Item().Row(row =>
                         {
                             row.Spacing(10);
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Total solicitudes", reporte.TotalSolicitudes.ToString()));
+                                CrearTarjetaResumen(container, "Solicitudes", reporte.TotalSolicitudes.ToString(), Colors.Blue.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Recursos solicitados", reporte.RecursosMasSolicitados.Count.ToString()));
+                                CrearTarjetaResumen(container, "Top recursos", reporte.RecursosMasSolicitados.Count.ToString(), Colors.Indigo.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Categorías", reporte.DemandaPorCategoria.Count.ToString()));
+                                CrearTarjetaResumen(container, "Categorías", reporte.DemandaPorCategoria.Count.ToString(), Colors.Teal.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Disponibilidad", $"{reporte.DisponibilidadPromedio:N2}%"));
+                                CrearTarjetaResumen(container, "Disponibilidad", $"{reporte.DisponibilidadPromedio:N2}%", Colors.Green.Darken2));
                         });
 
-                        column.Item().Element(container =>
+                        column.Item().PaddingTop(5).Element(container =>
                             CrearTituloSeccion(container, "Recursos más solicitados"));
 
                         if (reporte.RecursosMasSolicitados == null || !reporte.RecursosMasSolicitados.Any())
@@ -264,14 +267,14 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(80);
+                                    columns.ConstantColumn(70);
                                     columns.RelativeColumn();
-                                    columns.ConstantColumn(100);
+                                    columns.ConstantColumn(90);
                                 });
 
                                 table.Header(header =>
                                 {
-                                    CrearCeldaEncabezado(header, "Recurso ID");
+                                    CrearCeldaEncabezado(header, "ID Recurso");
                                     CrearCeldaEncabezado(header, "Título");
                                     CrearCeldaEncabezado(header, "Solicitudes");
                                 });
@@ -299,7 +302,7 @@ namespace SIGEBI.Infrastructure.Services
                                 table.ColumnsDefinition(columns =>
                                 {
                                     columns.RelativeColumn();
-                                    columns.ConstantColumn(120);
+                                    columns.ConstantColumn(100);
                                 });
 
                                 table.Header(header =>
@@ -336,38 +339,39 @@ namespace SIGEBI.Infrastructure.Services
                         CrearEncabezado(
                             container,
                             "REPORTE DE PENALIZACIONES",
-                            "Resumen de penalizaciones emitidas en el sistema"
+                            "Resumen de sanciones, moras y distribución por tipo de usuario"
                         )
                     );
 
                     page.Content().PaddingVertical(15).Column(column =>
                     {
-                        column.Spacing(15);
+                        column.Spacing(12);
 
-                        column.Item().Element(container => CrearFechaGeneracion(container));
-
-                        column.Item().Element(container =>
-                            CrearRangoFechas(container, rango)
-                        );
+                        column.Item().Row(row =>
+                        {
+                            row.Spacing(10);
+                            row.RelativeItem().Element(container => CrearFechaGeneracion(container));
+                            row.RelativeItem().Element(container => CrearRangoFechas(container, rango));
+                        });
 
                         column.Item().Row(row =>
                         {
                             row.Spacing(10);
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Total", reporte.TotalPenalizaciones.ToString()));
+                                CrearTarjetaResumen(container, "Total", reporte.TotalPenalizaciones.ToString(), Colors.Red.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Activas", reporte.PenalizacionesActivas.ToString()));
+                                CrearTarjetaResumen(container, "Activas", reporte.PenalizacionesActivas.ToString(), Colors.Orange.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Resueltas", reporte.PenalizacionesResueltas.ToString()));
+                                CrearTarjetaResumen(container, "Resueltas", reporte.PenalizacionesResueltas.ToString(), Colors.Green.Darken2));
 
                             row.RelativeItem().Element(container =>
-                                CrearTarjetaResumen(container, "Monto total", FormatearMonto(reporte.MontoTotalMora)));
+                                CrearTarjetaResumen(container, "Monto total", FormatearMonto(reporte.MontoTotalMora), Colors.Red.Darken4));
                         });
 
-                        column.Item().Element(container =>
+                        column.Item().PaddingTop(5).Element(container =>
                             CrearTituloSeccion(container, "Penalizaciones por tipo de usuario"));
 
                         if (reporte.PorTipoUsuario == null || !reporte.PorTipoUsuario.Any())
@@ -381,10 +385,10 @@ namespace SIGEBI.Infrastructure.Services
                                 table.ColumnsDefinition(columns =>
                                 {
                                     columns.RelativeColumn();
-                                    columns.ConstantColumn(80);
-                                    columns.ConstantColumn(80);
-                                    columns.ConstantColumn(80);
-                                    columns.ConstantColumn(90);
+                                    columns.ConstantColumn(75);
+                                    columns.ConstantColumn(75);
+                                    columns.ConstantColumn(75);
+                                    columns.ConstantColumn(95);
                                 });
 
                                 table.Header(header =>
@@ -420,12 +424,12 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(55);
+                                    columns.ConstantColumn(40);
                                     columns.ConstantColumn(65);
                                     columns.RelativeColumn();
-                                    columns.ConstantColumn(55);
-                                    columns.ConstantColumn(85);
-                                    columns.ConstantColumn(75);
+                                    columns.ConstantColumn(45);
+                                    columns.ConstantColumn(80);
+                                    columns.ConstantColumn(70);
                                 });
 
                                 table.Header(header =>
@@ -442,7 +446,7 @@ namespace SIGEBI.Infrastructure.Services
                                 {
                                     CrearCeldaTexto(table, penalizacion.PenalizacionId.ToString());
                                     CrearCeldaTexto(table, penalizacion.UsuarioId.ToString());
-                                    CrearCeldaTexto(table, RecortarTexto(penalizacion.Motivo, 80));
+                                    CrearCeldaTexto(table, RecortarTexto(penalizacion.Motivo, 60));
                                     CrearCeldaTexto(table, penalizacion.DiasRetraso.ToString());
                                     CrearCeldaTexto(table, FormatearMonto(penalizacion.MontoMora));
                                     CrearCeldaTexto(table, penalizacion.Estado);
@@ -459,9 +463,9 @@ namespace SIGEBI.Infrastructure.Services
         private static void ConfigurarPagina(PageDescriptor page)
         {
             page.Size(PageSizes.A4);
-            page.Margin(30);
+            page.Margin(25);
             page.PageColor(ColorBlanco);
-            page.DefaultTextStyle(text => text.FontSize(10).FontColor(ColorTexto));
+            page.DefaultTextStyle(text => text.FontSize(9).FontColor(ColorTexto));
         }
 
         private static void CrearEncabezado(
@@ -471,27 +475,29 @@ namespace SIGEBI.Infrastructure.Services
         {
             container
                 .Background(ColorPrimario)
-                .Padding(18)
+                .Padding(16)
                 .Column(column =>
                 {
-                    column.Spacing(4);
+                    column.Spacing(6);
 
-                    column.Item()
-                        .Text("SIGEBI")
-                        .FontSize(26)
-                        .Bold()
-                        .FontColor(ColorBlanco);
+                    column.Item().Row(row =>
+                    {
+                        row.RelativeItem().Column(col =>
+                        {
+                            col.Item().Text("SIGEBI").FontSize(22).Bold().FontColor(ColorBlanco);
+                            col.Item().Text(titulo).FontSize(13).SemiBold().FontColor("#38BDF8");
+                        });
 
-                    column.Item()
-                        .Text(titulo)
-                        .FontSize(16)
-                        .SemiBold()
-                        .FontColor(ColorBlanco);
+                        row.ConstantItem(120).AlignRight().AlignMiddle().Column(col =>
+                        {
+                            col.Item().Background("#1E293B").Padding(6).AlignCenter().Text("SISTEMA BIBLIOTECARIO")
+                                .FontSize(7).Bold().FontColor("#94A3B8");
+                        });
+                    });
 
-                    column.Item()
-                        .Text(subtitulo)
-                        .FontSize(10)
-                        .FontColor("#DBEAFE");
+                    column.Item().PaddingTop(2).Text(subtitulo)
+                        .FontSize(9)
+                        .FontColor("#CBD5E1");
                 });
         }
 
@@ -501,20 +507,17 @@ namespace SIGEBI.Infrastructure.Services
                 .Background(ColorFondo)
                 .Border(1)
                 .BorderColor(ColorBorde)
-                .Padding(10)
+                .Padding(8)
                 .Row(row =>
                 {
-                    row.RelativeItem()
-                        .Text("Documento generado automáticamente por el Sistema de Gestión Bibliotecaria")
-                        .FontSize(9)
+                    row.RelativeItem().Text("Generado por el Sistema de Gestión Bibliotecaria")
+                        .FontSize(8)
                         .FontColor(ColorTextoClaro);
 
-                    row.ConstantItem(160)
-                        .AlignRight()
-                        .Text($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}")
-                        .FontSize(9)
+                    row.ConstantItem(130).AlignRight().Text($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}")
+                        .FontSize(8)
                         .SemiBold()
-                        .FontColor(ColorTexto);
+                        .FontColor(ColorTextoOscuro);
                 });
         }
 
@@ -526,37 +529,39 @@ namespace SIGEBI.Infrastructure.Services
                 .Background(ColorFondo)
                 .Border(1)
                 .BorderColor(ColorBorde)
-                .Padding(10)
-                .Text($"Periodo: {FormatearFecha(rango.FechaInicio)} - {FormatearFecha(rango.FechaFin)}")
-                .FontSize(9)
+                .Padding(8)
+                .Text($"Periodo evaluado: {FormatearFecha(rango.FechaInicio)} - {FormatearFecha(rango.FechaFin)}")
+                .FontSize(8)
                 .SemiBold()
-                .FontColor(ColorTexto);
+                .FontColor(ColorTextoOscuro);
         }
 
         private static void CrearTarjetaResumen(
             QPdfContainer container,
             string titulo,
-            string valor)
+            string valor,
+            string colorValor)
         {
             container
                 .Background(ColorFondo)
                 .Border(1)
                 .BorderColor(ColorBorde)
-                .Padding(12)
+                .Padding(10)
                 .Column(column =>
                 {
-                    column.Spacing(5);
+                    column.Spacing(3);
 
                     column.Item()
-                        .Text(titulo)
-                        .FontSize(9)
+                        .Text(titulo.ToUpperInvariant())
+                        .FontSize(7)
+                        .Bold()
                         .FontColor(ColorTextoClaro);
 
                     column.Item()
                         .Text(valor)
-                        .FontSize(15)
+                        .FontSize(13)
                         .Bold()
-                        .FontColor(ColorPrimario);
+                        .FontColor(colorValor);
                 });
         }
 
@@ -565,12 +570,12 @@ namespace SIGEBI.Infrastructure.Services
             string titulo)
         {
             container
-                .PaddingTop(5)
-                .PaddingBottom(5)
-                .BorderBottom(1)
-                .BorderColor(ColorBorde)
+                .PaddingTop(8)
+                .PaddingBottom(4)
+                .BorderBottom(1.5f)
+                .BorderColor(ColorSecundario)
                 .Text(titulo)
-                .FontSize(13)
+                .FontSize(11)
                 .Bold()
                 .FontColor(ColorPrimario);
         }
@@ -578,36 +583,36 @@ namespace SIGEBI.Infrastructure.Services
         private static void CrearMensajeSinDatos(QPdfContainer container)
         {
             container
-                .Background("#FEF3C7")
+                .Background("#FFFBEB")
                 .Border(1)
-                .BorderColor("#F59E0B")
-                .Padding(12)
-                .Text("No hay datos disponibles para este reporte.")
-                .FontSize(10)
+                .BorderColor("#FCD34D")
+                .Padding(10)
+                .Text("No hay registros disponibles para mostrar en este reporte.")
+                .FontSize(9)
                 .FontColor("#92400E");
         }
 
         private static void CrearPiePagina(QPdfContainer container)
         {
             container
+                .PaddingTop(10)
                 .BorderTop(1)
                 .BorderColor(ColorBorde)
-                .PaddingTop(8)
                 .Row(row =>
                 {
                     row.RelativeItem()
-                        .Text("SIGEBI - Sistema de Gestión Bibliotecaria")
-                        .FontSize(9)
+                        .Text("SIGEBI - Plataforma de Gestión Bibliotecaria")
+                        .FontSize(8)
                         .FontColor(ColorTextoClaro);
 
                     row.ConstantItem(120)
                         .AlignRight()
                         .Text(text =>
                         {
-                            text.Span("Página ").FontSize(9).FontColor(ColorTextoClaro);
-                            text.CurrentPageNumber().FontSize(9).FontColor(ColorTextoClaro);
-                            text.Span(" de ").FontSize(9).FontColor(ColorTextoClaro);
-                            text.TotalPages().FontSize(9).FontColor(ColorTextoClaro);
+                            text.Span("Página ").FontSize(8).FontColor(ColorTextoClaro);
+                            text.CurrentPageNumber().FontSize(8).Bold().FontColor(ColorTextoOscuro);
+                            text.Span(" de ").FontSize(8).FontColor(ColorTextoClaro);
+                            text.TotalPages().FontSize(8).Bold().FontColor(ColorTextoOscuro);
                         });
                 });
         }
@@ -617,13 +622,13 @@ namespace SIGEBI.Infrastructure.Services
             string texto)
         {
             header.Cell()
-                .Background(ColorSecundario)
+                .Background(ColorPrimario)
                 .Border(1)
-                .BorderColor(ColorSecundario)
-                .PaddingVertical(7)
-                .PaddingHorizontal(5)
+                .BorderColor(ColorPrimario)
+                .PaddingVertical(6)
+                .PaddingHorizontal(4)
                 .Text(texto)
-                .FontSize(9)
+                .FontSize(8)
                 .Bold()
                 .FontColor(ColorBlanco);
         }
@@ -635,10 +640,10 @@ namespace SIGEBI.Infrastructure.Services
             table.Cell()
                 .BorderBottom(1)
                 .BorderColor(ColorBorde)
-                .PaddingVertical(6)
-                .PaddingHorizontal(5)
+                .PaddingVertical(5)
+                .PaddingHorizontal(4)
                 .Text(string.IsNullOrWhiteSpace(texto) ? "N/A" : texto)
-                .FontSize(9)
+                .FontSize(8.5f)
                 .FontColor(ColorTexto);
         }
 

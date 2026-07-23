@@ -195,8 +195,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
             if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
                 throw new BusinessException("El usuario ejecutor no está activo.");
 
-            if (usuarioEjecutor is not Bibliotecario && usuarioEjecutor is not Administrador)
-                throw new BusinessException("Solo un bibliotecario o administrador puede aprobar préstamos.");
+            if (usuarioEjecutor is not Bibliotecario )
+                throw new BusinessException("Solo un bibliotecario puede aprobar préstamos.");
 
             var solicitud = await _solicitudes.ObtenerConDetallesAsync(request.SolicitudId);
 
@@ -417,24 +417,42 @@ namespace SIGEBI.Application.UseCase.Prestamos
         }
 
         public async Task<IEnumerable<PrestamoResponse>> ConsultarPrestamosActivosAsync(
-            ConsultarPrestamosActivosRequest request)
+            ConsultarPrestamosActivosRequest request, int usuarioId)
         {
             Guard.NotNull(request, "Los filtros de préstamos activos");
 
-            int? usuarioId = null;
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario actual es obligatorio.");
 
-            if (!string.IsNullOrWhiteSpace(request.Identificacion))
+            var usuarioActual = await _usuarios.ObtenerporIdAsync(usuarioId);
+
+            if (usuarioActual is null)
+                throw new BusinessException("Usuario actual no encontrado en el sistema.");
+
+            bool esGestor = usuarioActual is Administrador || usuarioActual is Bibliotecario;
+            int? usuarioFiltroId = null;
+
+           
+            if (!esGestor)
             {
-                string identificacion = request.Identificacion.Trim();
+                usuarioFiltroId = usuarioActual.UsuarioId;
+            }
+            else
+            {
+               
+                if (!string.IsNullOrWhiteSpace(request.Identificacion))
+                {
+                    string identificacion = request.Identificacion.Trim();
 
-                var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
-                    identificacion
-                );
+                    var usuarioFiltro = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
+                        identificacion
+                    );
 
-                if (usuario is null)
-                    throw new BusinessException("Usuario no encontrado en el sistema.");
+                    if (usuarioFiltro is null)
+                        throw new BusinessException("Usuario no encontrado en el sistema.");
 
-                usuarioId = usuario.UsuarioId;
+                    usuarioFiltroId = usuarioFiltro.UsuarioId;
+                }
             }
 
             if (request.RecursoBibliograficoId.HasValue &&
@@ -450,7 +468,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
             }
 
             var prestamosActivos = await _prestamos.ConsultarActivosAsync(
-                usuarioId,
+                usuarioFiltroId,
                 request.RecursoBibliograficoId,
                 request.EjemplarId
             );

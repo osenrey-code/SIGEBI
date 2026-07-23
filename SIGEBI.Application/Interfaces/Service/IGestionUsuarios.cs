@@ -16,5 +16,6 @@ namespace SIGEBI.Application.Interfaces.Service
         Task CambiarPasswordAsync(CambiarPasswordRequest request, int usuarioId);
         Task<UsuarioResponse> BuscarPorIdAsync(int usuarioId);
         Task<UsuarioResponse> BuscarPorIdentificacionAsync(string identificacion);
+        Task CambiarPasswordAdminAsync(int usuarioId, string nuevaPassword, int actorId);
     }
 }

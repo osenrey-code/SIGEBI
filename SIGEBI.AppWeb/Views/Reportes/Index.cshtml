@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Panel de Reportes";
+    var esBibliotecario = User.IsInRole("Bibliotecario");
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div>
+        <span class="hero-badge">Módulo de Reportes</span>
+        <h1 class="fw-bold mb-2"><i class="bi bi-graph-up-arrow me-2"></i>Centro de Reportes y Estadísticas</h1>
+        <p class="hero-description mb-0">Selecciona el informe que deseas consultar o exportar en formato PDF.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- REPORTE DE INVENTARIO ( Visible para todos ) -->
+    <div class="col-md-6 col-xl-3">
+        <div class="content-card card shadow-sm rounded-4 border-0 h-100 p-4 d-flex flex-column">
+            <div class="mb-3 text-primary">
+                <i class="bi bi-boxes display-5"></i>
+            </div>
+            <h4 class="fw-bold text-body-emphasis mb-2">Inventario</h4>
+            <p class="text-body-secondary small mb-4">Consulta el estado global y detallado de los recursos y ejemplares en existencia.</p>
+            <div class="mt-auto">
+                <a asp-action="Inventario" class="btn btn-primary w-100 fw-bold rounded-3 shadow-sm">
+                    <i class="bi bi-eye me-2"></i> Ver Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (!esBibliotecario)
+    {
+        <!-- REPORTE DE PRÉSTAMOS -->
+        <div class="col-md-6 col-xl-3">
+            <div class="content-card card shadow-sm rounded-4 border-0 h-100 p-4 d-flex flex-column">
+                <div class="mb-3 text-success">
+                    <i class="bi bi-journal-check display-5"></i>
+                </div>
+                <h4 class="fw-bold text-body-emphasis mb-2">Préstamos</h4>
+                <p class="text-body-secondary small mb-4">Analiza el volumen de préstamos, devoluciones puntuales y vencimientos por rango de fechas.</p>
+                <div class="mt-auto">
+                    <a asp-action="Prestamos" class="btn btn-success w-100 fw-bold rounded-3 shadow-sm text-white" style="background-color: #14733c;">
+                        <i class="bi bi-eye me-2"></i> Ver Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTE DE PENALIZACIONES -->
+        <div class="col-md-6 col-xl-3">
+            <div class="content-card card shadow-sm rounded-4 border-0 h-100 p-4 d-flex flex-column">
+                <div class="mb-3 text-danger">
+                    <i class="bi bi-exclamation-triangle display-5"></i>
+                </div>
+                <h4 class="fw-bold text-body-emphasis mb-2">Penalizaciones</h4>
+                <p class="text-body-secondary small mb-4">Revisa las sanciones generadas, montos de mora y distribución por tipo de usuario.</p>
+                <div class="mt-auto">
+                    <a asp-action="Penalizaciones" class="btn btn-danger w-100 fw-bold rounded-3 shadow-sm">
+                        <i class="bi bi-eye me-2"></i> Ver Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTE DE USO DE CATÁLOGO -->
+        <div class="col-md-6 col-xl-3">
+            <div class="content-card card shadow-sm rounded-4 border-0 h-100 p-4 d-flex flex-column">
+                <div class="mb-3 text-warning">
+                    <i class="bi bi-bar-chart-line display-5"></i>
+                </div>
+                <h4 class="fw-bold text-body-emphasis mb-2">Uso de Catálogo</h4>
+                <p class="text-body-secondary small mb-4">Identifica los recursos más solicitados y la demanda por categoría en la biblioteca.</p>
+                <div class="mt-auto">
+                    <a asp-action="UsoCatalogo" class="btn btn-warning w-100 fw-bold rounded-3 shadow-sm text-dark">
+                        <i class="bi bi-eye me-2"></i> Ver Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

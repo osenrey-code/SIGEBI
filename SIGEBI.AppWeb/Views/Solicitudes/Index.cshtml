@@ -1,0 +1,119 @@
+﻿@model SIGEBI.AppWeb.Models.Solicitudes.SolicitudIndexViewModel
+
+@{
+    ViewData["Title"] = "Gestión de Solicitudes";
+    var esBibliotecario = User.IsInRole("Bibliotecario");
+    // Definimos qué roles pueden crear una nueva solicitud
+    var puedeCrearSolicitud = User.IsInRole("Estudiante") || User.IsInRole("Docente");
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Solicitudes</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-journal-text me-2"></i>Listado de Solicitudes</h1>
+            <p class="hero-description mb-0">Consulta el estado de las peticiones de recursos bibliográficos en el sistema.</p>
+        </div>
+
+        <!-- El botón solo se muestra si el usuario es Estudiante o Docente -->
+        @if (puedeCrearSolicitud)
+        {
+            <div>
+                <a asp-action="Solicitar" class="btn btn-light text-primary fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-plus-lg"></i> Nueva Solicitud
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ALERTAS -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- TABLA RESPONSIVE -->
+<div class="content-card card shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover users-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>RECURSO</th>
+                    <th>EJEMPLAR</th>
+                    <th>FECHA SOLICITUD</th>
+                    <th class="text-center">ESTADO</th>
+                    <th class="text-end">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Solicitudes == null || !Model.Solicitudes.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-body-secondary">
+                            <i class="bi bi-folder2-open display-6 d-block mb-2"></i>
+                            No hay solicitudes registradas en este momento.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Solicitudes)
+                    {
+                        <tr>
+                            <td data-label="Recurso" class="fw-bold text-body-emphasis">@item.TituloRecurso</td>
+                            <td data-label="Ejemplar" class="text-body-secondary">@item.IdentificadorEjemplar</td>
+                            <td data-label="Fecha" class="text-body-secondary">@item.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td data-label="Estado" class="text-center">
+                                @if (item.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="status-badge" style="color: #664400; background: #fff0ba;">
+                                        <i class="bi bi-clock-fill"></i> Pendiente
+                                    </span>
+                                }
+                                else if (item.Estado.Equals("Aprobado", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="status-badge status-active">
+                                        <i class="bi bi-check-circle-fill"></i> Aprobado
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-inactive">
+                                        <i class="bi bi-x-circle-fill"></i> @item.Estado
+                                    </span>
+                                }
+                            </td>
+                            <td data-label="Acciones" class="actions-cell text-end">
+                                <a asp-action="Detalles" asp-route-id="@item.SolicitudId" class="btn btn-sm btn-outline-secondary fw-semibold me-1" title="Ver Detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                @if (esBibliotecario && item.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <form asp-action="Aprobar" asp-route-id="@item.SolicitudId" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-success fw-semibold" title="Aprobar Solicitud">
+                                            <i class="bi bi-check-lg me-1"></i> Aprobar
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,130 @@
+﻿@model SIGEBI.AppWeb.Models.Devoluciones.HistorialDevolucionesViewModel
+
+@{
+    ViewData["Title"] = "Historial de Devoluciones";
+    var esBibliotecario = User.IsInRole("Bibliotecario");
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Devoluciones</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-arrow-counterclockwise me-2"></i>Historial de Devoluciones</h1>
+            <p class="hero-description mb-0">Consulta las devoluciones registradas y el estado de entrega de los ejemplares en el sistema.</p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (esBibliotecario)
+            {
+                <a asp-controller="Prestamos" asp-action="Index" class="btn btn-success fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2 text-white" style="background-color: #14733c;">
+                    <i class="bi bi-box-arrow-in-down"></i> Registrar Devolución
+                </a>
+            }
+            <a asp-controller="Prestamos" asp-action="Index" class="btn btn-light fw-semibold px-3 py-2 rounded-3 shadow-sm">
+                <i class="bi bi-arrow-left"></i> Volver a Préstamos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ALERTAS -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- FILTROS DE BÚSQUEDA Y CONSULTA -->
+<div class="content-card card shadow-sm rounded-4 border-0 p-4 mb-4">
+    <form method="get" asp-action="Index" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold small text-body-secondary">Usuario ID</label>
+            <input type="number" asp-for="UsuarioId" class="form-control rounded-3" placeholder="Ej. 5" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold small text-body-secondary">Fecha Inicio</label>
+            <input type="date" asp-for="FechaInicio" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold small text-body-secondary">Fecha Fin</label>
+            <input type="date" asp-for="FechaFin" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary fw-bold w-100 rounded-3 shadow-sm">
+                <i class="bi bi-search me-2"></i> Consultar Historial
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TABLA DE RESULTADOS -->
+<div class="content-card card shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover users-table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>PRÉSTAMO #</th>
+                    <th>RECURSO</th>
+                    <th>FECHA DEVOLUCIÓN</th>
+                    <th class="text-center">DÍAS RETRASO</th>
+                    <th class="text-center">CONDICIÓN</th>
+                    <th class="text-end">MORA / PENALIZACIÓN</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Devoluciones == null || !Model.Devoluciones.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-body-secondary">
+                            <i class="bi bi-folder2-open display-6 d-block mb-2"></i>
+                            No hay devoluciones registradas con los filtros seleccionados.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Devoluciones)
+                    {
+                        <tr>
+                            <td data-label="Préstamo #" class="fw-bold text-body-emphasis">#@item.PrestamoId</td>
+                            <td data-label="Recurso" class="fw-semibold text-body-emphasis">@item.TituloRecurso</td>
+                            <td data-label="Fecha Devolución" class="text-body-secondary">@item.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td data-label="Días Retraso" class="text-center">
+                                @if (item.DiasRetraso > 0)
+                                {
+                                    <span class="badge bg-danger-subtle text-danger fw-bold">@item.DiasRetraso días</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success-subtle text-success fw-bold">A tiempo</span>
+                                }
+                            </td>
+                            <td data-label="Condición" class="text-center">
+                                <span class="badge bg-secondary">@item.Condicion</span>
+                            </td>
+                            <td data-label="Mora" class="text-end fw-bold text-danger">
+                                @if (item.PenalizacionGenerada)
+                                {
+                                    <span>RD$ @item.MontoPenalizacion.ToString("N2")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success">Sin mora</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

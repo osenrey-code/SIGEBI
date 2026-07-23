@@ -1,0 +1,136 @@
+﻿@model SIGEBI.AppWeb.Models.Reportes.ReporteUsoCatalogoViewModel
+
+@{
+    ViewData["Title"] = "Reporte de Uso de Catálogo";
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Reportes</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-bar-chart-line me-2"></i>Uso de Catálogo</h1>
+            <p class="hero-description mb-0">Estadísticas sobre los recursos más demandados y categorías preferidas.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="UsoCatalogoPdf" asp-route-fechaInicio="@Model.FechaInicio.ToString("yyyy-MM-dd")" asp-route-fechaFin="@Model.FechaFin.ToString("yyyy-MM-dd")" class="btn btn-danger fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Exportar PDF
+            </a>
+            <a asp-action="Index" class="btn btn-light fw-semibold px-3 py-2 rounded-3 shadow-sm">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- FILTRO POR FECHAS -->
+<div class="content-card card shadow-sm rounded-4 border-0 p-4 mb-4">
+    <form method="get" asp-action="UsoCatalogo" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label fw-semibold small text-body-secondary">Fecha Inicio</label>
+            <input type="date" name="fechaInicio" value="@Model.FechaInicio.ToString("yyyy-MM-dd")" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold small text-body-secondary">Fecha Fin</label>
+            <input type="date" name="fechaFin" value="@Model.FechaFin.ToString("yyyy-MM-dd")" class="form-control rounded-3" />
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary fw-bold w-100 rounded-3 shadow-sm">
+                <i class="bi bi-filter me-2"></i> Filtrar Reporte
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TARJETAS DE RESUMEN (KPIs) -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4">
+            <div class="text-muted small fw-semibold mb-1">TOTAL SOLICITUDES</div>
+            <h3 class="fw-bold text-body-emphasis mb-0">@Model.Reporte.TotalSolicitudes</h3>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4">
+            <div class="text-muted small fw-semibold mb-1">DISPONIBILIDAD PROMEDIO</div>
+            <h3 class="fw-bold text-success mb-0">@Model.Reporte.DisponibilidadPromedio.ToString("N2")%</h3>
+        </div>
+    </div>
+</div>
+
+<!-- DOS COLUMNAS: RECURSOS MÁS SOLICITADOS Y DEMANDA POR CATEGORÍA -->
+<div class="row g-4 mb-4">
+    <!-- RECURSOS MÁS SOLICITADOS -->
+    <div class="col-lg-6">
+        <div class="content-card card shadow-sm rounded-4 overflow-hidden h-100">
+            <div class="p-4 border-bottom">
+                <h5 class="fw-bold mb-0 text-body-emphasis"><i class="bi bi-trophy text-warning me-2"></i>Recursos Más Solicitados</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover users-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>TÍTULO</th>
+                            <th class="text-center">SOLICITUDES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Reporte.RecursosMasSolicitados == null || !Model.Reporte.RecursosMasSolicitados.Any())
+                        {
+                            <tr>
+                                <td colspan="2" class="text-center py-4 text-body-secondary">No hay datos de recursos solicitados.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var rec in Model.Reporte.RecursosMasSolicitados)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-body-emphasis">@rec.Titulo</td>
+                                    <td class="text-center"><span class="badge bg-primary">@rec.CantidadSolicitudes</span></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEMANDA POR CATEGORÍA -->
+    <div class="col-lg-6">
+        <div class="content-card card shadow-sm rounded-4 overflow-hidden h-100">
+            <div class="p-4 border-bottom">
+                <h5 class="fw-bold mb-0 text-body-emphasis"><i class="bi bi-tags text-info me-2"></i>Demanda por Categoría</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover users-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>CATEGORÍA</th>
+                            <th class="text-center">CANTIDAD SOLICITADA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Reporte.DemandaPorCategoria == null || !Model.Reporte.DemandaPorCategoria.Any())
+                        {
+                            <tr>
+                                <td colspan="2" class="text-center py-4 text-body-secondary">No hay datos de demanda por categoría.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var cat in Model.Reporte.DemandaPorCategoria)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-body-emphasis">@cat.Categoria</td>
+                                    <td class="text-center"><span class="badge" style="background-color: #fff0ba; color: #664400; font-weight: 600;">@cat.CantidadSolicitada</span></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
