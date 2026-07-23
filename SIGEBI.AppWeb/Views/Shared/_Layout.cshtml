@@ -70,8 +70,8 @@
                         @if (autenticado)
                         {
                             <li class="nav-item">
-                                <a class="nav-link @(controladorActual.Equals("Catalogo", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
-                                   asp-controller="Catalogo" asp-action="Index">
+                                <a class="nav-link @(controladorActual.Equals("RecursoBibliografico", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                                   asp-controller="RecursoBibliografico" asp-action="Index">
                                     <i class="bi bi-bookshelf me-1"></i> Catálogo
                                 </a>
                             </li>
@@ -92,7 +92,6 @@
                                     </a>
                                 </li>
 
-                                <!-- Nuevo módulo de Penalizaciones -->
                                 <li class="nav-item">
                                     <a class="nav-link @(controladorActual.Equals("Penalizaciones", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
                                        asp-controller="Penalizaciones" asp-action="Index">
