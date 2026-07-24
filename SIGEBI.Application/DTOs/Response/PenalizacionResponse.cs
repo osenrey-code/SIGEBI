@@ -5,6 +5,7 @@ public class PenalizacionResponse
     public int PenalizacionId { get; set; }
 
     public int UsuarioId { get; set; }
+    public string IdentificacionUsuario { get; set; } = string.Empty;
 
     public int PrestamoId { get; set; }
 

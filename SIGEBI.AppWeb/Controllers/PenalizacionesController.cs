@@ -2,83 +2,95 @@
 using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+using SIGEBI.AppWeb.Models.Penalizaciones;
+using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.AppWeb.Controllers
 {
-    public class PenalizacionesController : Controller
+    [Authorize]
+    public class PenalizacionesController : BaseController
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IGestionPenalizaciones _gestionPenalizaciones; 
+        private readonly IGestionPenalizaciones _gestionPenalizaciones;
+        private readonly ILogger<PenalizacionesController> _logger;
 
-        public PenalizacionesController(IHttpClientFactory httpClientFactory, IGestionPenalizaciones gestionPenalizaciones)
+        public PenalizacionesController(
+            IGestionPenalizaciones gestionPenalizaciones,
+            ILogger<PenalizacionesController> logger)
         {
-            _httpClientFactory = httpClientFactory;
             _gestionPenalizaciones = gestionPenalizaciones;
+            _logger = logger;
         }
 
-        private int ObtenerUsuarioId()
-        {
-            var idClaim = User.FindFirst("UsuarioId") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (idClaim != null && int.TryParse(idClaim.Value, out int id))
-            {
-                return id;
-            }
-            return 1; 
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> Resolver(int penalizacionId, string motivoResolucion)
+        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
+        [HttpGet]
+        public async Task<IActionResult> Index(int? usuarioId, int? prestamoId, string? estado)
         {
             try
             {
-                var cliente = _httpClientFactory.CreateClient("API");
-                var token = User.FindFirst("Token")?.Value;
+                var esLector = User.IsInRole("Estudiante") || User.IsInRole("Docente");
 
-                if (!string.IsNullOrEmpty(token))
+                // Si es estudiante o docente, forzamos la consulta a su propio UsuarioId
+                var usuarioIdFiltro = esLector ? ObtenerUsuarioId() : usuarioId;
+
+                var request = new ConsultarPenalizacionesRequest
                 {
-                    cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
+                    UsuarioId = usuarioIdFiltro,
+                    PrestamoId = prestamoId,
+                    Estado = estado
+                };
 
+                var respuesta = await _gestionPenalizaciones.ConsultarPenalizacionesAsync(request, ObtenerUsuarioId());
+
+                var modelo = new PenalizacionFiltroViewModel
+                {
+                    UsuarioId = usuarioIdFiltro,
+                    PrestamoId = prestamoId,
+                    Estado = estado,
+                    Penalizaciones = respuesta.ToList()
+                };
+
+                return View(modelo);
+            }
+            catch (BusinessException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return View(new PenalizacionFiltroViewModel());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al consultar las penalizaciones.");
+                TempData["Error"] = "No se pudieron cargar las penalizaciones.";
+                return View(new PenalizacionFiltroViewModel());
+            }
+        }
+
+        [Authorize(Roles = "Administrador,Bibliotecario")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Resolver(int penalizacionId, string motivo)
+        {
+            try
+            {
                 var request = new ResolverPenalizacionRequest
                 {
                     PenalizacionId = penalizacionId,
-                    MotivoResolucion = motivoResolucion
+                    MotivoResolucion = motivo
                 };
 
-                int usuarioId = ObtenerUsuarioId();
+                await _gestionPenalizaciones.ResolverPenalizacionAsync(request, ObtenerUsuarioId());
 
-                var jsonContent = new StringContent(
-                    JsonSerializer.Serialize(request),
-                    Encoding.UTF8,
-                    "application/json"
-                );
-
-                var respuesta = await cliente.PostAsync($"api/penalizaciones/resolver/{penalizacionId}", jsonContent);
-
-                if (respuesta.IsSuccessStatusCode)
-                {
-                    TempData["Success"] = "Penalización resuelta correctamente.";
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    var errorContenido = await respuesta.Content.ReadAsStringAsync();
-                    if (string.IsNullOrWhiteSpace(errorContenido))
-                    {
-                        errorContenido = respuesta.StatusCode.ToString();
-                    }
-                    TempData["Error"] = $"Error de API: {errorContenido}";
-                    return RedirectToAction(nameof(Index));
-                }
+                TempData["Success"] = $"La penalización #{penalizacionId} ha sido resuelta exitosamente.";
+                return RedirectToAction(nameof(Index));
             }
-            catch (System.Exception ex)
+            catch (BusinessException ex)
             {
                 TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al resolver la penalización {Id}", penalizacionId);
+                TempData["Error"] = "Ocurrió un error al procesar la resolución de la penalización.";
                 return RedirectToAction(nameof(Index));
             }
         }

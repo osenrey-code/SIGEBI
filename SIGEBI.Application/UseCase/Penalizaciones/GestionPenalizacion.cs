@@ -207,10 +207,18 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         private static PenalizacionResponse MapearPenalizacion(
             Penalizacion penalizacion)
         {
+            string identificacionLector = penalizacion.Usuario switch
+            {
+                Estudiante estudiante => estudiante.Matricula,
+                Docente docente => docente.CodigoEmpleado,
+                _ => penalizacion.UsuarioId.ToString() // Fallback al ID si no está cargada la entidad Usuario
+            };
+
             return new PenalizacionResponse
             {
                 PenalizacionId = penalizacion.PenalizacionId,
                 UsuarioId = penalizacion.UsuarioId,
+                IdentificacionUsuario = identificacionLector,   
                 PrestamoId = penalizacion.PrestamoId,
                 DiasRetraso = penalizacion.DiasRetraso,
                 MontoMora = penalizacion.MontoMora,

@@ -1,14 +1,21 @@
-﻿@model IEnumerable<SIGEBI.Application.DTOs.Response.PenalizacionResponse>
+﻿@using System.Security.Claims
+@model SIGEBI.AppWeb.Models.Penalizaciones.PenalizacionFiltroViewModel
+
 @{
     ViewData["Title"] = "Gestión de Penalizaciones";
+
+    var esAdministrador = User.IsInRole("Administrador");
+    var esBibliotecario = User.IsInRole("Bibliotecario");
+    var esLector = User.IsInRole("Estudiante") || User.IsInRole("Docente");
+    var puedeResolver = esAdministrador || esBibliotecario;
 }
 
 <div class="page-hero p-4 p-lg-5 mb-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <span class="hero-badge">Módulo de Penalizaciones</span>
-            <h1 class="fw-bold mb-2"><i class="bi bi-exclamation-octagon-fill me-2"></i>Gestión de Multas</h1>
-            <p class="hero-description mb-0">Control y resolución de penalizaciones generadas por retrasos en devoluciones.</p>
+            <span class="hero-badge">Módulo de Sanciones</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-exclamation-octagon-fill me-2"></i>Gestión de Penalizaciones</h1>
+            <p class="hero-description mb-0">Consulta de moras, penalizaciones activas y registro de resoluciones.</p>
         </div>
     </div>
 </div>
@@ -28,84 +35,212 @@
     </div>
 }
 
+<!-- Buscador y Filtros -->
+<div class="content-card card shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            @if (!esLector)
+            {
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-person-vcard text-body-secondary"></i></span>
+                        <input type="text" name="usuarioId" class="form-control border-start-0" placeholder="Matrícula / Código / ID..." value="@Model.UsuarioId" />
+                    </div>
+                </div>
+            }
+            <div class="@(esLector ? "col-md-6" : "col-md-3")">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-journal-bookmark text-body-secondary"></i></span>
+                    <input type="number" name="prestamoId" class="form-control border-start-0" placeholder="ID de Préstamo..." value="@Model.PrestamoId" />
+                </div>
+            </div>
+            <div class="@(esLector ? "col-md-4" : "col-md-3")">
+                <select name="estado" class="form-select">
+                    <option value="">-- Todos los Estados --</option>
+                    <option value="Activa" selected="@(Model.Estado == "Activa")">Activas</option>
+                    <option value="Resuelta" selected="@(Model.Estado == "Resuelta")">Resueltas</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100 fw-semibold" title="Limpiar Filtros">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de Penalizaciones -->
 <div class="content-card card shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="table-responsive">
-        <table class="table table-hover users-table align-middle mb-0">
+        <table class="table table-hover align-middle mb-0">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>USUARIO ID</th>
-                    <th>DÍAS RETRASO</th>
-                    <th>MONTO MORA</th>
+                    <th class="ps-4"># ID</th>
+                    @if (!esLector)
+                    {
+                        <th>MATRÍCULA / CÓDIGO</th>
+                    }
+                    <th>PRÉSTAMO ID</th>
+                    <th class="text-center">DÍAS RETRASO</th>
+                    <th class="text-end">MONTO MORA</th>
                     <th>MOTIVO</th>
                     <th class="text-center">ESTADO</th>
-                    <th class="text-end">ACCIÓN</th>
+                    <th>FECHA GENERACIÓN</th>
+                    @if (puedeResolver)
+                    {
+                        <th class="text-end pe-4">ACCIONES</th>
+                    }
                 </tr>
             </thead>
             <tbody>
-                @if (Model != null && Model.Any())
+                @if (Model.Penalizaciones != null && Model.Penalizaciones.Any())
                 {
-                    @foreach (var item in Model)
+                    @foreach (var item in Model.Penalizaciones)
                     {
-                        <tr>
-                            <td data-label="ID" class="fw-bold text-body-secondary">#@item.PenalizacionId</td>
-                            <td data-label="USUARIO ID" class="text-body-secondary">@item.UsuarioId</td>
-                            <td data-label="DÍAS RETRASO" class="text-body-secondary">@item.DiasRetraso días</td>
-                            <td data-label="MONTO MORA" class="fw-bold text-danger">RD$ @item.MontoMora.ToString("N2")</td>
-                            <td data-label="MOTIVO" class="text-body-secondary">@item.Motivo</td>
-                            <td data-label="ESTADO" class="text-center">
-                                @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-danger px-3 py-2 rounded-pill">Activa</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-success px-3 py-2 rounded-pill">Resuelta</span>
-                                }
-                            </td>
-                            <td data-label="ACCIÓN" class="actions-cell">
-                                @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase) && (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario")))
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold shadow-sm rounded-3 px-3 py-1" data-bs-toggle="modal" data-bs-target="#resolverModal-@item.PenalizacionId">
-                                        Resolver
-                                    </button>
+                        var esActiva = item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase);
+                        var identificacion = !string.IsNullOrWhiteSpace(item.IdentificacionUsuario)
+                            ? item.IdentificacionUsuario
+                            : $"ID: {item.UsuarioId}";
 
-                                    <!-- Modal para resolver -->
-                                    <div class="modal fade" id="resolverModal-@item.PenalizacionId" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content rounded-4 border-0 shadow">
-                                                <form asp-action="Resolver" method="post">
-                                                    <div class="modal-header border-0 pb-0">
-                                                        <h5 class="modal-title fw-bold">Resolver Penalización #@item.PenalizacionId</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <input type="hidden" name="penalizacionId" value="@item.PenalizacionId" />
-                                                        <div class="mb-3 text-start">
-                                                            <label class="form-label fw-bold">Motivo de Resolución</label>
-                                                            <textarea name="motivoResolucion" class="form-control" rows="3" placeholder="Ej. Pago realizado en caja..." required></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer border-0 pt-0">
-                                                        <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-primary rounded-3 px-4">Confirmar Resolución</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                        <tr>
+                            <td class="ps-4 fw-bold font-monospace">#@item.PenalizacionId</td>
+
+                            @if (!esLector)
+                            {
+                                <td class="fw-semibold font-monospace">@identificacion</td>
+                            }
+
+                            <td class="font-monospace">#@item.PrestamoId</td>
+
+                            <td class="text-center">
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">
+                                    @item.DiasRetraso días
+                                </span>
                             </td>
+
+                            <td class="text-end fw-bold text-body-emphasis">
+                                RD$ @item.MontoMora.ToString("N2")
+                            </td>
+
+                            <td class="small text-body-secondary" style="max-width: 200px;">
+                                @item.Motivo
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge @(esActiva ? "bg-danger text-white" : "bg-success-subtle text-success border border-success-subtle") px-3 py-1.5 rounded-pill fw-semibold">
+                                    <i class="bi @(esActiva ? "bi-exclamation-circle-fill" : "bi-check-circle-fill") me-1"></i>
+                                    @item.Estado
+                                </span>
+                            </td>
+
+                            <td class="small text-body-secondary">
+                                @item.FechaGeneracion.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+
+                            @if (puedeResolver)
+                            {
+                                <td class="text-end pe-4">
+                                    @if (esActiva)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-success rounded-2 px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm"
+                                                onclick="prepararResolucion(@item.PenalizacionId, '@identificacion', '@item.MontoMora.ToString("N2")')"
+                                                title="Resolver Penalización">
+                                            <i class="bi bi-check2-circle"></i> Resolver
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-2 px-2 py-1 opacity-50" disabled title="Ya resuelta">
+                                            <i class="bi bi-check-all"></i> Resuelta
+                                        </button>
+                                    }
+                                </td>
+                            }
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-body-secondary">No hay penalizaciones registradas.</td>
+                        <td colspan="@(puedeResolver ? 9 : (esLector ? 7 : 8))" class="text-center py-5 text-body-secondary">
+                            <i class="bi bi-shield-check fs-1 d-block mb-2 text-body-tertiary"></i>
+                            <span>No se encontraron penalizaciones registradas.</span>
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- Modal Adaptable (Tema Claro / Tema Oscuro) -->
+@if (puedeResolver)
+{
+    <div class="modal fade" id="modalResolverPenalizacion" tabindex="-1" aria-labelledby="modalResolverLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-success text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="modalResolverLabel">
+                        <i class="bi bi-check-circle-fill me-2"></i>Resolver Penalización
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="Resolver" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="resolverPenalizacionId" name="penalizacionId" />
+
+                        <!-- Caja de Información Adaptable a Tema Claro / Oscuro -->
+                        <div class="p-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25 rounded-3 mb-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="d-block small text-body-secondary">Penalización:</span>
+                                    <strong id="resolverPenalizacionInfo" class="fs-6 text-body-emphasis"></strong>
+                                </div>
+                                <div class="text-end">
+                                    <span class="d-block small text-body-secondary">Monto Mora:</span>
+                                    <span id="resolverMontoInfo" class="fw-bold text-danger fs-5"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="motivoResolucion" class="form-label fw-bold text-body-emphasis">Motivo de Resolución (Obligatorio)</label>
+                            <textarea id="motivoResolucion" name="motivo" class="form-control" rows="3"
+                                      placeholder="Ej. Pago realizado en caja, cumplimiento de condición o exoneración autorizada." required></textarea>
+                            <span class="form-text text-body-secondary small">Indica la razón por la cual se habilita nuevamente al usuario para realizar préstamos.</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-secondary border-opacity-10 px-4 py-3">
+                        <button type="button" class="btn btn-outline-secondary fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success fw-semibold px-4">
+                            <i class="bi bi-check-lg me-1"></i> Confirmar Resolución
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (puedeResolver)
+    {
+        <script>
+            function prepararResolucion(penalizacionId, identificacion, monto) {
+                document.getElementById('resolverPenalizacionId').value = penalizacionId;
+                document.getElementById('resolverPenalizacionInfo').innerText = '#' + penalizacionId + ' (' + identificacion + ')';
+                document.getElementById('resolverMontoInfo').innerText = 'RD$ ' + monto;
+                document.getElementById('motivoResolucion').value = '';
+
+                var modal = new bootstrap.Modal(document.getElementById('modalResolverPenalizacion'));
+                modal.show();
+            }
+        </script>
+    }
+}
