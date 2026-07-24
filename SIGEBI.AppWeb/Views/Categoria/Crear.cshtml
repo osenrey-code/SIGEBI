@@ -1,50 +1,36 @@
-﻿@model SIGEBI.Application.DTOs.Request.CategoriaRequest
+﻿@model SIGEBI.AppWeb.Models.Categoria.CategoriaViewModel
 @{
-    ViewData["Title"] = "Nueva Categoría";
+    ViewData["Title"] = "Crear Categoría";
 }
 
-<div class="page-hero p-4 p-lg-5 mb-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-            <span class="hero-badge">Módulo de Catálogo</span>
-            <h1 class="fw-bold mb-2"><i class="bi bi-tag-fill me-2"></i>Registrar Categoría</h1>
-            <p class="hero-description mb-0">Agrega una nueva clasificación para organizar los libros.</p>
-        </div>
-        <div>
-            <a asp-action="Index" class="btn btn-outline-light text-white fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
-                <i class="bi bi-arrow-left"></i> Volver al Listado
-            </a>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Registrar Nueva Categoría</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Crear" method="post">
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label fw-bold">Nombre de la Categoría</label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Ej. Ficción, Tecnología..." required />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Descripcion" class="form-label fw-bold">Descripción (Opcional)</label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Breve detalle de esta categoría..."></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Guardar Categoría</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
-<div class="content-card card shadow-sm rounded-4 mb-4">
-    <div class="card-body p-4 p-lg-5">
-        <form asp-action="Crear" method="post">
-            <div class="row g-4">
-                <div class="col-md-12">
-                    <label asp-for="Nombre" class="form-label fw-bold text-body-emphasis">Nombre de la Categoría</label>
-                    <input asp-for="Nombre" class="form-control form-control-lg" required />
-                    <span asp-validation-for="Nombre" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-12">
-                    <label asp-for="Descripcion" class="form-label fw-bold text-body-emphasis">Descripción (Opcional)</label>
-                    <textarea asp-for="Descripcion" class="form-control form-control-lg" rows="3"></textarea>
-                    <span asp-validation-for="Descripcion" class="text-danger"></span>
-                </div>
-            </div>
-
-            <div class="d-flex justify-content-end gap-3 mt-5 border-top pt-4">
-                <a asp-action="Index" class="btn btn-outline-secondary btn-lg fw-semibold px-4">Cancelar</a>
-                <button type="submit" class="btn btn-primary btn-lg fw-semibold px-5">Guardar Categoría</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

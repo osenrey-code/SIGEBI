@@ -130,13 +130,38 @@
                     </ul>
 
                     <div class="d-flex align-items-center gap-2 pt-3 pt-lg-0">
-                        <button id="btnSwitchTheme" class="theme-toggle" type="button"
+                        <button id="btnSwitchTheme" class="theme-toggle me-1" type="button"
                                 title="Cambiar tema" aria-label="Cambiar tema">
                             <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
                         </button>
 
                         @if (autenticado)
                         {
+                            <!-- INICIO: Menú de Notificaciones (La campanita) -->
+                            <div class="dropdown me-2">
+                                <button class="btn border-0 shadow-none p-2 position-relative text-reset" type="button" id="menuNotificaciones" data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones">
+                                    <i class="bi bi-bell fs-5"></i>
+                                    <span class="position-absolute top-25 start-75 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65em;">
+                                        3
+                                    </span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="menuNotificaciones" style="width: 320px;">
+                                    <li>
+                                        <div class="dropdown-header d-flex justify-content-between align-items-center fw-bold">
+                                            <span>Notificaciones</span>
+                                            <a href="#" class="text-decoration-none small">Marcar leídas</a>
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <div class="text-center text-muted py-3 small">
+                                            Cargando notificaciones...
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- FIN: Menú de Notificaciones -->
+
                             <div class="dropdown">
                                 <button class="user-menu d-flex align-items-center gap-2 px-2 py-1 rounded-3"
                                         type="button"
@@ -218,22 +243,80 @@
                 const actualizarTema = (tema) => {
                     document.documentElement.setAttribute("data-bs-theme", tema);
                     localStorage.setItem("sigebi_theme", tema);
-
                     const oscuro = tema === "dark";
-
-                    iconoTema.className = oscuro
-                        ? "bi bi-sun-fill text-warning"
-                        : "bi bi-moon-stars-fill";
-
+                    iconoTema.className = oscuro ? "bi bi-sun-fill text-warning" : "bi bi-moon-stars-fill";
                     botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
                 };
 
                 actualizarTema(document.documentElement.getAttribute("data-bs-theme"));
 
-                botonTema.addEventListener("click", () => {
-                    const temaActual = document.documentElement.getAttribute("data-bs-theme");
-                    actualizarTema(temaActual === "dark" ? "light" : "dark");
-                });
+                if (botonTema) {
+                    botonTema.addEventListener("click", () => {
+                        const temaActual = document.documentElement.getAttribute("data-bs-theme");
+                        actualizarTema(temaActual === "dark" ? "light" : "dark");
+                    });
+                }
+
+                const cargarNotificaciones = () => {
+                    const badge = document.querySelector('#menuNotificaciones .badge');
+                    const lista = document.querySelector('[aria-labelledby="menuNotificaciones"]');
+
+                    if (!badge || !lista) return; 
+
+                    fetch('/Notificacion/ObtenerMisNotificaciones')
+                        .then(response => response.json())
+                        .then(data => {
+                            const noLeidas = data.filter(n => !n.leida);
+
+                            if (noLeidas.length > 0) {
+                                badge.textContent = noLeidas.length;
+                                badge.style.display = 'block';
+                            } else {
+                                badge.style.display = 'none';
+                            }
+
+                            const headerHtml = `
+                                        <li>
+                                            <div class="dropdown-header d-flex justify-content-between align-items-center fw-bold">
+                                                <span>Notificaciones</span>
+                                                <a href="#" class="text-decoration-none small">Marcar leídas</a>
+                                            </div>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                    `;
+
+                            if (data.length === 0) {
+                                lista.innerHTML = headerHtml + `<li><div class="text-center text-muted py-4 small">No tienes notificaciones recientes.</div></li>`;
+                                return;
+                            }
+
+                            let itemsHtml = '';
+                            data.forEach(n => {
+                                const fechaObj = new Date(n.fechaRegistro);
+                                const fechaFmt = fechaObj.toLocaleDateString() + ' ' + fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                                const bgClass = n.leida ? '' : 'bg-light';
+                                const fwClass = n.leida ? 'text-muted' : 'fw-semibold text-dark';
+
+                                itemsHtml += `
+                                            <li class="border-bottom ${bgClass}">
+                                                <a class="dropdown-item py-2 text-wrap" href="#">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.65em;">${n.tipo}</span>
+                                                        <small class="text-muted" style="font-size: 0.7em;">${fechaFmt}</small>
+                                                    </div>
+                                                    <span class="d-block small ${fwClass}">${n.mensaje}</span>
+                                                </a>
+                                            </li>
+                                        `;
+                            });
+
+                            lista.innerHTML = headerHtml + itemsHtml;
+                        })
+                        .catch(error => console.error('Error al cargar notificaciones:', error));
+                };
+
+                cargarNotificaciones();
             });
     </script>
 
