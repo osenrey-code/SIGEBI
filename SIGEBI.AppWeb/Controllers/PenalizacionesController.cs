@@ -1,36 +1,32 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.Interfaces.Service;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace SIGEBI.AppWeb.Controllers
 {
-    [Authorize(Roles = "Administrador,Bibliotecario,Auditor")]
-    public class PenalizacionesController : BaseController
+    public class PenalizacionesController : Controller
     {
-        private readonly IGestionPenalizaciones _gestionPenalizaciones;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IGestionPenalizaciones _gestionPenalizaciones; 
 
-        public PenalizacionesController(IGestionPenalizaciones gestionPenalizaciones)
+        public PenalizacionesController(IHttpClientFactory httpClientFactory, IGestionPenalizaciones gestionPenalizaciones)
         {
+            _httpClientFactory = httpClientFactory;
             _gestionPenalizaciones = gestionPenalizaciones;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        private int ObtenerUsuarioId()
         {
-            try
+            var idClaim = User.FindFirst("UsuarioId") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (idClaim != null && int.TryParse(idClaim.Value, out int id))
             {
-                var request = new ConsultarPenalizacionesRequest();
-                int usuarioId = ObtenerUsuarioId();
-                var penalizaciones = await _gestionPenalizaciones.ConsultarPenalizacionesAsync(request, usuarioId);
-                return View(penalizaciones);
+                return id;
             }
-            catch (System.Exception ex)
-            {
-                TempData["Error"] = "Error al cargar las penalizaciones: " + ex.Message;
-                return View(new List<SIGEBI.Application.DTOs.Response.PenalizacionResponse>());
-            }
+            return 1; 
         }
 
         [HttpPost]
@@ -40,6 +36,14 @@ namespace SIGEBI.AppWeb.Controllers
         {
             try
             {
+                var cliente = _httpClientFactory.CreateClient("API");
+                var token = User.FindFirst("Token")?.Value;
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    cliente.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+
                 var request = new ResolverPenalizacionRequest
                 {
                     PenalizacionId = penalizacionId,
@@ -47,10 +51,30 @@ namespace SIGEBI.AppWeb.Controllers
                 };
 
                 int usuarioId = ObtenerUsuarioId();
-                await _gestionPenalizaciones.ResolverPenalizacionAsync(request, usuarioId);
 
-                TempData["Success"] = "Penalización resuelta correctamente.";
-                return RedirectToAction(nameof(Index));
+                var jsonContent = new StringContent(
+                    JsonSerializer.Serialize(request),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                var respuesta = await cliente.PostAsync($"api/penalizaciones/resolver/{penalizacionId}", jsonContent);
+
+                if (respuesta.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Penalización resuelta correctamente.";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    var errorContenido = await respuesta.Content.ReadAsStringAsync();
+                    if (string.IsNullOrWhiteSpace(errorContenido))
+                    {
+                        errorContenido = respuesta.StatusCode.ToString();
+                    }
+                    TempData["Error"] = $"Error de API: {errorContenido}";
+                    return RedirectToAction(nameof(Index));
+                }
             }
             catch (System.Exception ex)
             {

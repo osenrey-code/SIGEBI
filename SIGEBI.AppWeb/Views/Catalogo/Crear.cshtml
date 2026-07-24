@@ -1,4 +1,5 @@
-﻿@model SIGEBI.Application.DTOs.Request.RegistrarRecursoRequest
+﻿@model SIGEBI.AppWeb.Models.Catalogo.CatalogoViewModel
+
 @{
     ViewData["Title"] = "Nuevo Recurso Bibliográfico";
 }
@@ -21,6 +22,10 @@
 <div class="content-card card shadow-sm rounded-4 mb-4">
     <div class="card-body p-4 p-lg-5">
         <form asp-action="Crear" method="post" enctype="multipart/form-data">
+
+            <!-- ¡AQUÍ ESTÁ LA LÍNEA AGREGADA PARA VER LOS ERRORES DE LA API! -->
+            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
             <div class="row g-4">
                 <div class="col-md-6">
                     <label asp-for="Titulo" class="form-label fw-bold text-body-emphasis">Título del Recurso</label>
@@ -47,20 +52,20 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label asp-for="AnioPublicado" class="form-label fw-bold text-body-emphasis">Año de Publicación</label>
-                    <input asp-for="AnioPublicado" type="number" class="form-control form-control-lg" placeholder="Ej. 2023" required />
-                    <span asp-validation-for="AnioPublicado" class="text-danger"></span>
+                    <label asp-for="AnioPublicacion" class="form-label fw-bold text-body-emphasis">Año de Publicación</label>
+                    <input asp-for="AnioPublicacion" type="number" class="form-control form-control-lg" placeholder="Ej. 2023" required />
+                    <span asp-validation-for="AnioPublicacion" class="text-danger"></span>
                 </div>
 
                 <div class="col-md-4">
-                    <label asp-for="CantidadEjemplares" class="form-label fw-bold text-body-emphasis">Cantidad de Ejemplares a Ingresar</label>
-                    <input asp-for="CantidadEjemplares" type="number" min="1" class="form-control form-control-lg" value="1" required />
-                    <span asp-validation-for="CantidadEjemplares" class="text-danger"></span>
+                    <label asp-for="StockDisponible" class="form-label fw-bold text-body-emphasis">Cantidad de Ejemplares a Ingresar</label>
+                    <input asp-for="StockDisponible" type="number" min="1" class="form-control form-control-lg" value="1" required />
+                    <span asp-validation-for="StockDisponible" class="text-danger"></span>
                 </div>
 
                 <div class="col-md-8">
-                    <label for="imagenPortada" class="form-label fw-bold text-body-emphasis">Portada del Libro (Imagen)</label>
-                    <input type="file" id="imagenPortada" name="imagenPortada" class="form-control form-control-lg" accept="image/png, image/jpeg, image/jpg, image/webp" />
+                    <label asp-for="ImagenArchivo" class="form-label fw-bold text-body-emphasis">Portada del Libro (Imagen)</label>
+                    <input asp-for="ImagenArchivo" type="file" class="form-control form-control-lg" accept="image/png, image/jpeg, image/jpg, image/webp" />
                     <div class="form-text text-body-secondary">Formatos permitidos: JPG, PNG, WEBP.</div>
                 </div>
             </div>
@@ -75,6 +80,6 @@
 
 @section Scripts {
     @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        //await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }

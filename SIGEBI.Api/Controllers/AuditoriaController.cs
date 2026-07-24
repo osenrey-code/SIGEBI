@@ -1,31 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
-using Microsoft.AspNetCore.Authorization;
 
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
     [Route("api/auditoria")]
-    [Authorize]
+    [Authorize(Roles = "Administrador,Auditor")]
     public class AuditoriaController : BaseApiController
     {
-        private readonly ILogAuditoria _log;
+        private readonly ILogAuditoria _logAuditoria;
 
-        public AuditoriaController(ILogAuditoria log)
+        public AuditoriaController(ILogAuditoria logAuditoria)
         {
-            _log = log;
+            _logAuditoria = logAuditoria;
         }
 
-
         [HttpGet("consultar")]
-        [Authorize(Roles = "Administrador,Auditor")]
-        public async Task<IActionResult> ConsultarRegistros(
-            [FromQuery] ConsultarLogAuditoriaRequest request)
+        public async Task<IActionResult> ConsultarAuditoria([FromQuery] ConsultarLogAuditoriaRequest request)
         {
-            int usuarioEjecutorId = ObtenerUsuarioId();
-            var registro = _log.ConsultarAuditoriaLog(request, usuarioEjecutorId);
-            return Ok(registro);
+            int usuarioId = ObtenerUsuarioId();
+            var resultado = await _logAuditoria.ConsultarAuditoriaLog(request, usuarioId);
+            return Ok(resultado);
         }
     }
 }

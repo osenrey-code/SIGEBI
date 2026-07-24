@@ -15,6 +15,11 @@ namespace SIGEBI.AppWeb
             builder.Services.AddApplication();
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
+            builder.Services.AddHttpClient("API", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:54538/");
+            });
+
             builder.Services
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -24,6 +29,7 @@ namespace SIGEBI.AppWeb
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                     options.SlidingExpiration = true;
                 });
+
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())

@@ -2,6 +2,7 @@
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
 using Microsoft.AspNetCore.Authorization;
+
 namespace SIGEBI.Api.Controllers
 {
     [ApiController]
@@ -10,18 +11,28 @@ namespace SIGEBI.Api.Controllers
     public class CatalogoController : BaseApiController
     {
         private readonly IGestionCatalogo _gestionCatalogo;
+        private readonly IStorageService _storageService; 
 
-        public CatalogoController(IGestionCatalogo gestionCatalogo)
+        public CatalogoController(IGestionCatalogo gestionCatalogo, IStorageService storageService)
         {
             _gestionCatalogo = gestionCatalogo;
+            _storageService = storageService;
         }
 
         // POST: api/catalogo/registrar
         [HttpPost("registrar")]
         [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> RegistrarRecurso(
-            [FromBody] RegistrarRecursoRequest request)
+        public async Task<IActionResult> RegistrarRecurso([FromForm] RegistrarRecursoRequest request)
         {
+            if (request.ImagenArchivo != null && request.ImagenArchivo.Length > 0)
+            {
+                using var stream = request.ImagenArchivo.OpenReadStream();
+                var extension = System.IO.Path.GetExtension(request.ImagenArchivo.FileName);
+                string rutaImagen = await _storageService.GuardarAsync(stream, extension, "imagenes");
+
+                request.ImagenUrl = rutaImagen;
+            }
+
             int usuarioEjecutorId = ObtenerUsuarioId();
 
             var recurso = await _gestionCatalogo.RegistrarRecursoAsync(
@@ -43,9 +54,9 @@ namespace SIGEBI.Api.Controllers
         // PUT: api/catalogo/actualizar
         [HttpPut("actualizar")]
         [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> ActualizarRecurso(
-            [FromBody] ActualizarRecursoRequest request)
+        public async Task<IActionResult> ActualizarRecurso([FromForm] ActualizarRecursoRequest request)
         {
+  
             int usuarioEjecutorId = ObtenerUsuarioId();
 
             var recurso = await _gestionCatalogo.ActualizarRecursoAsync(
