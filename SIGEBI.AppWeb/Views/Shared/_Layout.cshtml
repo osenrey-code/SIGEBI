@@ -257,11 +257,12 @@
                     });
                 }
 
+                // --- LÓGICA DE NOTIFICACIONES ---
                 const cargarNotificaciones = () => {
                     const badge = document.querySelector('#menuNotificaciones .badge');
                     const lista = document.querySelector('[aria-labelledby="menuNotificaciones"]');
 
-                    if (!badge || !lista) return; 
+                    if (!badge || !lista) return;
 
                     fetch('/Notificacion/ObtenerMisNotificaciones')
                         .then(response => response.json())
@@ -279,7 +280,7 @@
                                         <li>
                                             <div class="dropdown-header d-flex justify-content-between align-items-center fw-bold">
                                                 <span>Notificaciones</span>
-                                                <a href="#" class="text-decoration-none small">Marcar leídas</a>
+                                                <a href="#" id="btnMarcarTodasLeidas" class="text-decoration-none small">Marcar leídas</a>
                                             </div>
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
@@ -300,7 +301,7 @@
 
                                 itemsHtml += `
                                             <li class="border-bottom ${bgClass}">
-                                                <a class="dropdown-item py-2 text-wrap" href="#">
+                                                <a class="dropdown-item py-2 text-wrap item-notificacion" href="#" data-id="${n.notificacionId}">
                                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                                         <span class="badge bg-secondary rounded-pill" style="font-size: 0.65em;">${n.tipo}</span>
                                                         <small class="text-muted" style="font-size: 0.7em;">${fechaFmt}</small>
@@ -312,12 +313,20 @@
                             });
 
                             lista.innerHTML = headerHtml + itemsHtml;
+
+                            // Evento para marcar una por una al hacer clic
+                            document.querySelectorAll('.item-notificacion').forEach(item => {
+                                item.addEventListener('click', (e) => {
+                                    const id = item.getAttribute('data-id');
+                                    fetch(`/Notificacion/MarcarLeida/${id}`, { method: 'POST' })
+                                        .then(() => cargarNotificaciones());
+                                });
+                            });
                         })
                         .catch(error => console.error('Error al cargar notificaciones:', error));
                 };
 
                 cargarNotificaciones();
-            });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

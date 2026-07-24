@@ -1,38 +1,56 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SIGEBI.Application.Interfaces.Service;
+using System.Security.Claims;
 
 namespace SIGEBI.AppWeb.Controllers
 {
     [Authorize]
     public class NotificacionController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IServicioNotificacion _servicioNotificacion;
 
-        public NotificacionController(IHttpClientFactory httpClientFactory)
+        public NotificacionController(IServicioNotificacion servicioNotificacion)
         {
-            _httpClientFactory = httpClientFactory;
+            _servicioNotificacion = servicioNotificacion;
         }
 
         [HttpGet]
         public async Task<IActionResult> ObtenerMisNotificaciones()
         {
-            var cliente = _httpClientFactory.CreateClient("API");
-            var token = User.FindFirst("Token")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
+            try
             {
-                cliente.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                     ?? User.FindFirst("UsuarioId")?.Value
+                                     ?? User.FindFirst("sub")?.Value;
+
+                if (!int.TryParse(usuarioIdClaim, out int usuarioId))
+                {
+                    return Json(new List<object>());
+                }
+
+                var notificaciones = await _servicioNotificacion.ObtenerPendientesAsync(usuarioId);
+
+                return Json(notificaciones);
             }
-
-            var respuesta = await cliente.GetAsync("api/notificacion/consultar");
-
-            if (respuesta.IsSuccessStatusCode)
+            catch
             {
-                var contenido = await respuesta.Content.ReadAsStringAsync();
-                return Content(contenido, "application/json");
+                return Json(new List<object>());
             }
+        }
 
-            return Json(new List<object>());
+        [HttpPost]
+        public async Task<IActionResult> MarcarLeida(int id)
+        {
+            try
+            {
+                await _servicioNotificacion.MarcarComoLeidaAsync(id);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
