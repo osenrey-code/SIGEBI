@@ -1,37 +1,47 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SIGEBI.AppWeb.Models.Auditoria;
-using System.Net.Http.Json;
+using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.Interfaces.Service;
+using System.Security.Claims;
 
 namespace SIGEBI.AppWeb.Controllers
 {
     [Authorize(Roles = "Administrador,Auditor")]
     public class AuditoriaController : Controller
     {
-        private readonly HttpClient _httpClient;
+        private readonly ILogAuditoria _logAuditoria;
 
-        public AuditoriaController(IHttpClientFactory httpClientFactory)
+        public AuditoriaController(ILogAuditoria logAuditoria)
         {
-            _httpClient = httpClientFactory.CreateClient("SIGEBI.Api");
+            _logAuditoria = logAuditoria;
         }
 
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public async Task<IActionResult> Index([FromQuery] ConsultarLogAuditoriaRequest request)
         {
-            List<AuditoriaViewModel> lista = new();
             try
             {
-                var response = await _httpClient.GetAsync("api/auditoria/consultar");
-                if (response.IsSuccessStatusCode)
-                {
-                    lista = await response.Content.ReadFromJsonAsync<List<AuditoriaViewModel>>() ?? new();
-                }
-            }
-            catch (Exception)
-            {
-               
-            }
+                var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                     ?? User.FindFirst("UsuarioId")?.Value
+                                     ?? User.FindFirst("sub")?.Value;
 
-            return View(lista);
+                if (!int.TryParse(usuarioIdClaim, out int usuarioId))
+                {
+                    TempData["Error"] = "No se pudo identificar al usuario actual.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                var logs = await _logAuditoria.ConsultarAuditoriaLog(request ?? new ConsultarLogAuditoriaRequest(), usuarioId);
+
+                ViewBag.Filtros = request;
+
+                return View(logs);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View(new List<SIGEBI.Application.DTOs.Response.LogAuditoriaResponse>());
+            }
         }
     }
 }
