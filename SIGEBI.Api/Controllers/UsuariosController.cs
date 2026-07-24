@@ -78,7 +78,7 @@ namespace SIGEBI.Api.Controllers
 
         [HttpPatch("{id:int}/resetear-password-admin")]
         [Authorize(Roles = "Administrador")]
-        public async Task<IActionResult> ResetearPasswordAdmin([FromRoute] int id, [FromBody] ResetearPasswordAdminApiRequest request)
+        public async Task<IActionResult> ResetearPasswordAdmin([FromRoute] int id, [FromBody] ResetearPasswordAdminRequest request)
         {
             int actorId = ObtenerUsuarioId();
             await _gestionUsuarios.CambiarPasswordAdminAsync(id, request.NuevaPassword, actorId);

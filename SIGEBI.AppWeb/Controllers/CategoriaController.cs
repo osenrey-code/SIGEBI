@@ -30,6 +30,11 @@ namespace SIGEBI.AppWeb.Controllers
         }
 
         [HttpPost]
+
+
+
+
+
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(CategoriaRequest request)
         {
