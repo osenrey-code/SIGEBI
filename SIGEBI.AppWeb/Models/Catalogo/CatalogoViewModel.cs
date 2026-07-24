@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Text.Json.Serialization;
 
 namespace SIGEBI.AppWeb.Models.Catalogo
 {
@@ -11,7 +12,9 @@ namespace SIGEBI.AppWeb.Models.Catalogo
 
         public int CategoriaId { get; set; }
 
+        [JsonPropertyName("categoria")]
         public string CategoriaNombre { get; set; } = string.Empty;
+
         public int AnioPublicacion { get; set; }
         public int StockDisponible { get; set; }
         public bool Disponible { get; set; }

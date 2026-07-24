@@ -1,26 +1,43 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using SIGEBI.Application.Interfaces.Service;
-using SIGEBI.Application.DTOs.Request;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using System.Text.Json;
+using SIGEBI.AppWeb.Models.Categoria;
 
 namespace SIGEBI.AppWeb.Controllers
 {
     [Authorize(Roles = "Administrador,Bibliotecario")]
-    public class CategoriaController : BaseController
+    public class CategoriaController : Controller
     {
-        private readonly IGestionCategorias _gestionCategorias;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public CategoriaController(IGestionCategorias gestionCategorias)
+        public CategoriaController(IHttpClientFactory httpClientFactory)
         {
-            _gestionCategorias = gestionCategorias;
+            _httpClientFactory = httpClientFactory;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var categorias = await _gestionCategorias.ConsultarCategoriasAsync();
-            return View(categorias);
+            var cliente = _httpClientFactory.CreateClient("API");
+            var token = User.FindFirst("Token")?.Value;
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                cliente.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var respuesta = await cliente.GetAsync("api/categorias");
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                var contenido = await respuesta.Content.ReadAsStringAsync();
+                var categorias = JsonSerializer.Deserialize<List<CategoriaViewModel>>(contenido, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return View(categorias);
+            }
+
+            TempData["Error"] = "No se pudieron cargar las categorías.";
+            return View(new List<CategoriaViewModel>());
         }
 
         [HttpGet]
@@ -30,32 +47,30 @@ namespace SIGEBI.AppWeb.Controllers
         }
 
         [HttpPost]
-
-
-
-
-
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Crear(CategoriaRequest request)
+        public async Task<IActionResult> Crear(CategoriaViewModel modelo)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) return View(modelo);
+
+            var cliente = _httpClientFactory.CreateClient("API");
+            var token = User.FindFirst("Token")?.Value;
+
+            if (!string.IsNullOrEmpty(token))
             {
-                return View(request);
+                cliente.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
 
-            try
-            {
-                int actorId = ObtenerUsuarioId();
-                await _gestionCategorias.RegistrarCategoriaAsync(request, actorId);
+            var jsonContent = new StringContent(JsonSerializer.Serialize(modelo), Encoding.UTF8, "application/json");
+            var respuesta = await cliente.PostAsync("api/categorias/registrar", jsonContent);
 
-                TempData["Success"] = "Categoría registrada correctamente.";
+            if (respuesta.IsSuccessStatusCode)
+            {
+                TempData["Success"] = "Categoría agregada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (System.Exception ex)
-            {
-                TempData["Error"] = ex.Message;
-                return View(request);
-            }
+
+            TempData["Error"] = "Error al agregar la categoría.";
+            return View(modelo);
         }
     }
 }
