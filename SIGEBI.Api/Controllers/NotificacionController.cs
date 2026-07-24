@@ -1,24 +1,29 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class NotificacionController : ControllerBase
+    public class NotificacionController : BaseApiController
     {
+        private readonly IServicioNotificacion _servicioNotificacion;
 
-        [HttpGet("consultar")] 
+        public NotificacionController(IServicioNotificacion servicioNotificacion)
+        {
+            _servicioNotificacion = servicioNotificacion;
+        }
+
+        [HttpGet("consultar")]
         public async Task<IActionResult> Consultar()
         {
-            var notificacionesPrueba = new List<object>
-            {
-                new { NotificacionId = 1, Tipo = "Préstamo", Mensaje = "Tu libro vence mañana.", FechaRegistro = DateTime.Now.AddHours(-2), Leida = false },
-                new { NotificacionId = 2, Tipo = "Sistema", Mensaje = "Bienvenido al sistema SIGEBI.", FechaRegistro = DateTime.Now.AddDays(-1), Leida = true }
-            };
+            int usuarioId = ObtenerUsuarioId();
 
-            return Ok(notificacionesPrueba);
+            var notificaciones = await _servicioNotificacion.ObtenerPendientesAsync(usuarioId);
+
+            return Ok(notificaciones);
         }
     }
 }
