@@ -22,12 +22,12 @@ namespace SIGEBI.Api.Controllers
         // POST: api/catalogo/registrar
         [HttpPost("registrar")]
         [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> RegistrarRecurso([FromForm] RegistrarRecursoRequest request)
+        public async Task<IActionResult> RegistrarRecurso([FromForm] RegistrarRecursoRequest request, IFormFile? imagenArchivo)
         {
-            if (request.ImagenArchivo != null && request.ImagenArchivo.Length > 0)
+            if (imagenArchivo != null && imagenArchivo.Length > 0)
             {
-                using var stream = request.ImagenArchivo.OpenReadStream();
-                var extension = System.IO.Path.GetExtension(request.ImagenArchivo.FileName);
+                using var stream = imagenArchivo.OpenReadStream();
+                var extension = System.IO.Path.GetExtension(imagenArchivo.FileName);
                 string rutaImagen = await _storageService.GuardarAsync(stream, extension, "imagenes");
 
                 request.ImagenUrl = rutaImagen;
