@@ -70,7 +70,6 @@
 
                         @if (autenticado)
                         {
-                            <!-- Apunta al CatalogoController corregido -->
                             <li class="nav-item">
                                 <a class="nav-link @(controladorActual.Equals("Catalogo", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
                                    asp-controller="Catalogo" asp-action="Index">
@@ -89,7 +88,6 @@
                             }
 
                             <li class="nav-item">
-                                <!-- Si es Auditor va directo a Historial, si no va a Index -->
                                 <a class="nav-link @(controladorActual.Equals("Prestamos", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
                                    asp-controller="Prestamos" asp-action="@(esAuditor ? "Historial" : "Index")">
                                     <i class="bi bi-arrow-left-right me-1"></i> Préstamos
@@ -137,7 +135,7 @@
 
                         @if (autenticado)
                         {
-                            <!-- INICIO: Menú de Notificaciones (La campanita) -->
+                            <!-- INICIO: Menú de Notificaciones -->
                             <div class="dropdown me-2">
                                 <button class="btn border-0 shadow-none p-2 position-relative text-reset" type="button" id="menuNotificaciones" data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones">
                                     <i class="bi bi-bell fs-5"></i>
@@ -184,7 +182,6 @@
                                         <div class="small text-body-secondary mt-1">@rolUsuario</div>
                                     </li>
 
-                                    <!-- Opción Mi Perfil -->
                                     <li class="mt-1">
                                         <a class="dropdown-item rounded-3 py-2" asp-controller="Usuarios" asp-action="MiPerfil">
                                             <i class="bi bi-person me-2"></i>Mi Perfil
@@ -244,16 +241,21 @@
                     document.documentElement.setAttribute("data-bs-theme", tema);
                     localStorage.setItem("sigebi_theme", tema);
                     const oscuro = tema === "dark";
-                    iconoTema.className = oscuro ? "bi bi-sun-fill text-warning" : "bi bi-moon-stars-fill";
-                    botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
+                    if (iconoTema) {
+                        iconoTema.className = oscuro ? "bi bi-sun-fill text-warning" : "bi bi-moon-stars-fill";
+                    }
+                    if (botonTema) {
+                        botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
+                    }
                 };
 
-                actualizarTema(document.documentElement.getAttribute("data-bs-theme"));
+                const temaActual = document.documentElement.getAttribute("data-bs-theme") || "light";
+                actualizarTema(temaActual);
 
                 if (botonTema) {
                     botonTema.addEventListener("click", () => {
-                        const temaActual = document.documentElement.getAttribute("data-bs-theme");
-                        actualizarTema(temaActual === "dark" ? "light" : "dark");
+                        const temaEnCurso = document.documentElement.getAttribute("data-bs-theme");
+                        actualizarTema(temaEnCurso === "dark" ? "light" : "dark");
                     });
                 }
 
@@ -314,7 +316,6 @@
 
                             lista.innerHTML = headerHtml + itemsHtml;
 
-                            // Evento para marcar una por una al hacer clic
                             document.querySelectorAll('.item-notificacion').forEach(item => {
                                 item.addEventListener('click', (e) => {
                                     const id = item.getAttribute('data-id');
@@ -327,6 +328,7 @@
                 };
 
                 cargarNotificaciones();
+            });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

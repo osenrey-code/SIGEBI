@@ -9,7 +9,7 @@
         <div>
             <span class="hero-badge">Módulo de Reportes</span>
             <h1 class="fw-bold mb-2"><i class="bi bi-graph-up-arrow me-2"></i>Centro de Reportes y Estadísticas</h1>
-            <p class="hero-description mb-0">Selecciona el informe que deseas consultar o exportar en formato PDF.</p>
+            <p class="hero-description mb-0">Selecciona el informe que deseas consultar o exportar en formato PDF, así como los registros del sistema.</p>
         </div>
     </div>
 </div>
@@ -92,6 +92,22 @@
                 <div class="mt-auto">
                     <a asp-action="UsoCatalogo" class="btn btn-warning w-100 fw-bold rounded-3 shadow-sm text-dark">
                         <i class="bi bi-eye me-2"></i> Ver Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGS DE AUDITORÍA (CU-REP-04) -->
+        <div class="col-md-6 col-xl-3">
+            <div class="content-card card shadow-sm rounded-4 border-0 h-100 p-4 d-flex flex-column">
+                <div class="mb-3" style="color: #6366f1;">
+                    <i class="bi bi-shield-check display-5"></i>
+                </div>
+                <h4 class="fw-bold text-body-emphasis mb-2">Logs de Auditoría</h4>
+                <p class="text-body-secondary small mb-4">Consulta el historial inmutable de acciones, actores y transacciones del sistema.</p>
+                <div class="mt-auto">
+                    <a asp-controller="Auditoria" asp-action="Index" class="btn btn-dark w-100 fw-bold rounded-3 shadow-sm" style="background-color: #374151; border-color: #374151;">
+                        <i class="bi bi-search me-2"></i> Consultar Logs
                     </a>
                 </div>
             </div>
