@@ -70,12 +70,23 @@
 
                         @if (autenticado)
                         {
+                            <!-- Apunta al CatalogoController corregido -->
                             <li class="nav-item">
-                                <a class="nav-link @(controladorActual.Equals("RecursoBibliografico", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
-                                   asp-controller="RecursoBibliografico" asp-action="Index">
+                                <a class="nav-link @(controladorActual.Equals("Catalogo", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                                   asp-controller="Catalogo" asp-action="Index">
                                     <i class="bi bi-bookshelf me-1"></i> Catálogo
                                 </a>
                             </li>
+
+                            @if (puedeGestionar)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(controladorActual.Equals("Categorias", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                                       asp-controller="Categorias" asp-action="Index">
+                                        <i class="bi bi-tags me-1"></i> Categorías
+                                    </a>
+                                </li>
+                            }
 
                             <li class="nav-item">
                                 <!-- Si es Auditor va directo a Historial, si no va a Index -->

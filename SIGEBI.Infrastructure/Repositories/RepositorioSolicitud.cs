@@ -8,11 +8,10 @@ namespace SIGEBI.Infrastructure.Repositories
 {
     public class RepositorioSolicitud : RepositorioBase<Solicitud>, ISolicitudRepository
     {
-       
         public RepositorioSolicitud(SIGEBIDbContext context) : base(context)
         {
-            
         }
+
         public async Task<Solicitud?> ObtenerConDetallesAsync(int id)
         {
             return await _context.Solicitudes
@@ -45,7 +44,7 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             return await _context.Solicitudes
                 .AsNoTracking()
-                .Include(s => s.SolicitudId)
+                // Se removió .Include(s => s.SolicitudId) que causaba la excepción
                 .Include(s => s.Usuario)
                 .Include(s => s.Ejemplar)
                     .ThenInclude(e => e!.RecursoBibliografico)

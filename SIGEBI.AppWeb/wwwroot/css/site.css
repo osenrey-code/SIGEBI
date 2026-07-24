@@ -194,16 +194,22 @@ small,
     }
 
 /* ==========================================================================
-   TARJETAS, FORMULARIOS Y TABLAS
+   TARJETAS, FORMULARIOS, MODALES Y TABLAS
    ========================================================================== */
 
 .card,
 .metric-card,
-.content-card {
-    color: var(--text-primary);
+.content-card,
+.modal-content {
+    color: var(--text-primary) !important;
     background-color: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
     transition: background-color .25s ease, border-color .25s ease;
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--border-color) !important;
 }
 
 .content-card-header {

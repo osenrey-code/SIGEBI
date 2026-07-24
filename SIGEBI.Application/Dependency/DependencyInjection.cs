@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.Application.Common;
-using SIGEBI.Application.Interfaces;
 using SIGEBI.Application.Interfaces.Service;
 using SIGEBI.Application.UseCase;
 using SIGEBI.Application.UseCase.Auditory;
@@ -18,39 +17,28 @@ namespace SIGEBI.Application.Dependency
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-
+            //Usuarios
+            services.AddScoped<ILogin, Login>();
             services.AddScoped<IGestionUsuariosUseCase, GestionUsuarios>();
+
+            //Prestamos
             services.AddScoped<IGestionPrestamos, GestionPrestamos>();
             services.AddScoped<IGestionDevolucionesUseCase, GestionDevoluciones>();
+
+            //Reportes
             services.AddScoped<IGestionReportesUseCase, GestionReportes>();
+            services.AddScoped<ValidadorReportes>();
+
+            //Catalogo
             services.AddScoped<IGestionCatalogo,GestionCatalogo>();
             services.AddScoped<IGestionPenalizaciones, GestionPenalizaciones>();
             services.AddScoped<IGestionCategorias, GestionCategorias>();
-            services.AddScoped<ILogin, Login>();
+
+            //Auditoria y servicios 
             services.AddScoped<ILogAuditoria, ConsultarLogAuditoria>();
             services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
             services.AddScoped<IAuditoriaService, AuditoriaService>();
-            services.AddScoped<ValidadorReportes>();
-
-            return services;
-
-        }
-
-        //Gestion de Auditoria
-        private static IServiceCollection AddAuditoriaUseCases(this IServiceCollection services)
-
-        {
-            services.AddScoped<ConsultarLogAuditoria>();
-
-            return services;
-        }
-
-        //Servicios de Aplicacion
-        private static IServiceCollection AddServiciodeAplicacion(this IServiceCollection services)
-        {
-            services.AddScoped<IServicioNotificacion,ServicioNotificacion>();
-            services.AddScoped<IAuditoriaService, AuditoriaService>();
-
+            
             return services;
         }
     }

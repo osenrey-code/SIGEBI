@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SIGEBI.Api.Models;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
-using Microsoft.AspNetCore.Authorization;
 
 namespace SIGEBI.Api.Controllers
 {
@@ -11,7 +12,7 @@ namespace SIGEBI.Api.Controllers
     public class CatalogoController : BaseApiController
     {
         private readonly IGestionCatalogo _gestionCatalogo;
-        private readonly IStorageService _storageService; 
+        private readonly IStorageService _storageService;
 
         public CatalogoController(IGestionCatalogo gestionCatalogo, IStorageService storageService)
         {
@@ -22,21 +23,34 @@ namespace SIGEBI.Api.Controllers
         // POST: api/catalogo/registrar
         [HttpPost("registrar")]
         [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> RegistrarRecurso([FromForm] RegistrarRecursoRequest request, IFormFile? imagenArchivo)
+        public async Task<IActionResult> RegistrarRecurso([FromForm] RegistrarRecursoFormRequest apiRequest)
         {
-            if (imagenArchivo != null && imagenArchivo.Length > 0)
-            {
-                using var stream = imagenArchivo.OpenReadStream();
-                var extension = System.IO.Path.GetExtension(imagenArchivo.FileName);
-                string rutaImagen = await _storageService.GuardarAsync(stream, extension, "imagenes");
+            string? imagenUrl = null;
 
-                request.ImagenUrl = rutaImagen;
+            // Procesar el archivo recibido en la API
+            if (apiRequest.ImagenArchivo != null && apiRequest.ImagenArchivo.Length > 0)
+            {
+                using var stream = apiRequest.ImagenArchivo.OpenReadStream();
+                var extension = Path.GetExtension(apiRequest.ImagenArchivo.FileName);
+                imagenUrl = await _storageService.GuardarAsync(stream, extension, "imagenes");
             }
+
+            // Mapeo hacia el DTO limpio de Application
+            var appRequest = new RegistrarRecursoRequest
+            {
+                ISBN = apiRequest.ISBN,
+                Titulo = apiRequest.Titulo,
+                Autor = apiRequest.Autor,
+                CategoriaId = apiRequest.CategoriaId,
+                AnioPublicado = apiRequest.AnioPublicado,
+                CantidadEjemplares = apiRequest.CantidadEjemplares,
+                ImagenUrl = imagenUrl
+            };
 
             int usuarioEjecutorId = ObtenerUsuarioId();
 
             var recurso = await _gestionCatalogo.RegistrarRecursoAsync(
-                request,
+                appRequest,
                 usuarioEjecutorId
             );
 
@@ -54,13 +68,33 @@ namespace SIGEBI.Api.Controllers
         // PUT: api/catalogo/actualizar
         [HttpPut("actualizar")]
         [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> ActualizarRecurso([FromForm] ActualizarRecursoRequest request)
+        public async Task<IActionResult> ActualizarRecurso([FromForm] ActualizarRecursoApiRequest apiRequest)
         {
-  
+            string? imagenUrl = apiRequest.ImagenUrlActual;
+
+            // Si se envió una nueva imagen desde la API
+            if (apiRequest.NuevaImagenArchivo != null && apiRequest.NuevaImagenArchivo.Length > 0)
+            {
+                using var stream = apiRequest.NuevaImagenArchivo.OpenReadStream();
+                var extension = Path.GetExtension(apiRequest.NuevaImagenArchivo.FileName);
+                imagenUrl = await _storageService.GuardarAsync(stream, extension, "imagenes");
+            }
+
+            // Mapeo hacia el DTO limpio de Application
+            var appRequest = new ActualizarRecursoRequest
+            {
+                RecursoBibliograficoId = apiRequest.RecursoBibliograficoId,
+                Titulo = apiRequest.Titulo,
+                Autor = apiRequest.Autor,
+                CategoriaId = apiRequest.CategoriaId,
+                AnioPublicado = apiRequest.AnioPublicado,
+                ImagenUrl = imagenUrl
+            };
+
             int usuarioEjecutorId = ObtenerUsuarioId();
 
             var recurso = await _gestionCatalogo.ActualizarRecursoAsync(
-                request,
+                appRequest,
                 usuarioEjecutorId
             );
 

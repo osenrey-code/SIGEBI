@@ -2,13 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
-using SIGEBI.AppWeb.Models.Prestamos;
 using SIGEBI.AppWeb.Models.Solicitudes;
 using SIGEBI.Domain.Exceptions;
 
 namespace SIGEBI.AppWeb.Controllers
 {
-
     [Authorize]
     public class SolicitudesController : BaseController
     {
@@ -71,7 +69,6 @@ namespace SIGEBI.AppWeb.Controllers
                     }).ToList()
                 };
 
-               
                 return View("Index", modelo);
             }
             catch (Exception ex)
@@ -110,13 +107,13 @@ namespace SIGEBI.AppWeb.Controllers
         {
             var modelo = new RegistrarSolicitudViewModel();
 
-            
             if (ejemplarId.HasValue && ejemplarId.Value > 0)
             {
                 modelo.EjemplarId = ejemplarId.Value;
             }
 
-            return View(new RegistrarSolicitudViewModel());
+            // CORREGIDO: Se retorna la variable 'modelo' poblada en lugar de una instancia vacía.
+            return View(modelo);
         }
 
         [Authorize(Roles = "Docente,Estudiante")]
@@ -133,7 +130,10 @@ namespace SIGEBI.AppWeb.Controllers
                 await _gestionPrestamos.SolicitarPrestamoAsync(request, ObtenerUsuarioId());
 
                 TempData["Success"] = "Solicitud de préstamo registrada correctamente.";
-                return RedirectToAction(nameof(Index));
+
+                // CORREGIDO: Redirigir al Catálogo (Index) o Préstamos Activos en vez de Solicitudes/Index 
+                // (ya que Solicitudes/Index es exclusivo de Bibliotecario/Admin y daría error 403 a Docente/Estudiante).
+                return RedirectToAction("Index", "Catalogo");
             }
             catch (BusinessException ex)
             {
@@ -148,7 +148,7 @@ namespace SIGEBI.AppWeb.Controllers
             }
         }
 
-        [Authorize(Roles = "Bibliotecario")]
+        [Authorize(Roles = "Bibliotecario,Administrador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Aprobar(int id)
