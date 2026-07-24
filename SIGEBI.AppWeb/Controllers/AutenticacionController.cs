@@ -63,7 +63,8 @@ namespace SIGEBI.AppWeb.Controllers
                     new Claim(ClaimTypes.Name, response.NombreCompleto),
                     new Claim(ClaimTypes.Role, response.TipoUsuario),
                     new Claim("Identificacion", response.Identificacion),
-                    new Claim(ClaimTypes.Email, response.Correo)
+                    new Claim(ClaimTypes.Email, response.Correo),
+                    new Claim("Token", response.Token)
                 };
 
                 var identity = new ClaimsIdentity(claims,

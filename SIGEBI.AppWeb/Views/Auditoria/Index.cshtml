@@ -1,0 +1,55 @@
+﻿@model IEnumerable<SIGEBI.AppWeb.Models.Auditoria.AuditoriaViewModel>
+
+@{
+    ViewData["Title"] = "Registro de Auditoría";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Registro de Auditoría</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Historial de acciones y eventos del sistema</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Logs del Sistema
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario ID</th>
+                        <th>Acción</th>
+                        <th>Entidad Afectada</th>
+                        <th>Detalle</th>
+                        <th>Fecha y Hora</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.AuditoriaId</td>
+                                <td>@item.UsuarioId</td>
+                                <td>@item.Accion</td>
+                                <td>@item.EntidadAfectada</td>
+                                <td>@item.Detalle</td>
+                                <td>@item.FechaRegistro.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">No hay registros de auditoría disponibles.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

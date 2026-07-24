@@ -72,7 +72,7 @@
                             <td data-label="PORTADA">
                                 @if (!string.IsNullOrEmpty(item.ImagenUrl))
                                 {
-                                    <img src="@item.ImagenUrl" alt="Portada" class="img-thumbnail rounded" style="width: 45px; height: 65px; object-fit: cover;" />
+                                    <img src="https://localhost:54538/@(item.ImagenUrl.Replace('\\', '/'))" alt="Portada" class="img-thumbnail rounded" style="width: 45px; height: 65px; object-fit: cover;" />
                                 }
                                 else
                                 {
