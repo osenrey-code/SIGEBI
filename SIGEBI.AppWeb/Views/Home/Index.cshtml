@@ -82,7 +82,7 @@ else
                     </div>
                 </div>
 
-                <!-- Tarjeta: Préstamos (Añadida para Administrador) -->
+                <!-- Tarjeta: Préstamos -->
                 <div class="col-sm-6 col-xl-4">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
@@ -180,7 +180,7 @@ else
                     </div>
                 </div>
 
-                <!-- Acción: Solicitudes (Añadida para Bibliotecario) -->
+                <!-- Acción: Solicitudes -->
                 <div class="col-sm-6 col-xl-4">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-success mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
@@ -301,7 +301,8 @@ else
                 <i class="bi bi-person-workspace text-primary me-2"></i>Mi Espacio
             </h4>
             <div class="row g-4">
-                <div class="col-sm-6 col-xl-4">
+                <!-- Tarjeta 1: Mis Préstamos -->
+                <div class="col-md-6">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
                             <i class="bi bi-journal-check"></i>
@@ -316,28 +317,14 @@ else
                     </div>
                 </div>
 
-                <div class="col-sm-6 col-xl-4">
-                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
-                        <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
-                            <i class="bi bi-journal-plus"></i>
-                        </div>
-                        <h4 class="fw-bold mb-2">Solicitar Libro</h4>
-                        <p class="text-body-secondary small mb-4">Registra una nueva solicitud de préstamo para un recurso del catálogo.</p>
-                        <div class="mt-auto">
-                            <a asp-controller="Solicitudes" asp-action="Solicitar" class="btn btn-success text-white w-100 fw-bold rounded-3" style="background-color: #14733c;">
-                                Nueva Solicitud
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-xl-4">
+                <!-- Tarjeta 2: Catálogo -->
+                <div class="col-md-6">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
                             <i class="bi bi-search"></i>
                         </div>
                         <h4 class="fw-bold mb-2">Catálogo</h4>
-                        <p class="text-body-secondary small mb-4">Busca libros, revistas y otros materiales disponibles en la biblioteca.</p>
+                        <p class="text-body-secondary small mb-4">Busca libros, revistas y otros materiales disponibles en la biblioteca para solicitar su préstamo.</p>
                         <div class="mt-auto">
                             <a asp-controller="Catalogo" asp-action="Index" class="btn w-100 fw-bold rounded-3" style="background-color: #ffc107; color: #664400;">
                                 Explorar Catálogo
