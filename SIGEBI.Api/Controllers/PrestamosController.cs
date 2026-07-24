@@ -47,7 +47,8 @@ namespace SIGEBI.Api.Controllers
         [Authorize(Roles = "Bibliotecario,Administrador,Estudiante,Docente")]
         public async Task<IActionResult> ConsultarActivos([FromQuery] ConsultarPrestamosActivosRequest request)
         {
-            var activos = await _prestamos.ConsultarPrestamosActivosAsync(request);
+            var usuario = ObtenerUsuarioId();
+            var activos = await _prestamos.ConsultarPrestamosActivosAsync(request, usuario);
             return Ok(activos);
         }
     }
