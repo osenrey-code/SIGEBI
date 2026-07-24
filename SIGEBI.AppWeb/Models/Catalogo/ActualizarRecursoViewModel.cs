@@ -1,25 +1,28 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SIGEBI.Application.DTOs.Request
+namespace SIGEBI.AppWeb.Models.Catalogo
 {
-    public class RegistrarRecursoRequest
+    public class ActualizarRecursoViewModel
     {
-        [Required(ErrorMessage = "El ISBN es obligatorio.")]
+        public int RecursoBibliograficoId { get; set; }
+
         public string ISBN { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El título del libro es obligatorio.")]
         public string Titulo { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El autor del libro es obligatorio.")]
+        [Required(ErrorMessage = "El autor es obligatorio.")]
         public string Autor { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "La categoría del libro es obligatoria.")]
+        [Required(ErrorMessage = "La categoría es obligatoria.")]
         public int CategoriaId { get; set; }
 
         [Required(ErrorMessage = "El año de publicación es obligatorio.")]
         public int AnioPublicado { get; set; }
 
-        public string? ImagenUrl { get; set; }
-        public int CantidadEjemplares { get; set; } = 1;
+        public string? ImagenUrlActual { get; set; }
+
+        [Display(Name = "Cambiar Portada / Imagen")]
+        public IFormFile? NuevaImagen { get; set; }
     }
 }
