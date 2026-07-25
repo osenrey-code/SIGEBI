@@ -1,99 +1,111 @@
-﻿@model IEnumerable<SIGEBI.Application.DTOs.Response.PenalizacionResponse>
+﻿@using SIGEBI.Application.DTOs.Response
+@model IEnumerable<PenalizacionResponse>
+
 @{
     ViewData["Title"] = "Gestión de Penalizaciones";
+    var esAuditor = User.IsInRole("Auditor");
 }
 
-<div class="page-hero p-4 p-lg-5 mb-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-            <span class="hero-badge">Módulo de Penalizaciones</span>
-            <h1 class="fw-bold mb-2"><i class="bi bi-exclamation-octagon-fill me-2"></i>Gestión de Multas</h1>
-            <p class="hero-description mb-0">Control y resolución de penalizaciones generadas por retrasos en devoluciones.</p>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-exclamation-octagon text-danger me-2"></i> Penalizaciones</h2>
+        <p class="text-muted mb-0">Consulta y resolución de moras y sanciones del sistema.</p>
     </div>
 </div>
 
-@if (TempData["Success"] != null)
+@if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
-@if (TempData["Error"] != null)
+@if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
-<div class="content-card card shadow-sm rounded-4 overflow-hidden mb-4">
+<!-- Tarjeta de Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">ID Usuario</label>
+                <input type="number" name="usuarioId" class="form-control" placeholder="Ej: 12" value="@ViewBag.UsuarioFiltro" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Estado</label>
+                <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="Activa" selected="@(ViewBag.EstadoActual?.ToString() == "Activa")">Activa</option>
+                    <option value="Resuelta" selected="@(ViewBag.EstadoActual?.ToString() == "Resuelta")">Resuelta</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de Penalizaciones -->
+<div class="card border-0 shadow-sm">
     <div class="table-responsive">
-        <table class="table table-hover users-table align-middle mb-0">
-            <thead>
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
                 <tr>
-                    <th>ID</th>
-                    <th>USUARIO ID</th>
-                    <th>DÍAS RETRASO</th>
-                    <th>MONTO MORA</th>
-                    <th>MOTIVO</th>
-                    <th class="text-center">ESTADO</th>
-                    <th class="text-end">ACCIÓN</th>
+                    <th class="ps-4">ID</th>
+                    <th>Usuario</th>
+                    <th>Préstamo</th>
+                    <th>Retraso</th>
+                    <th>Mora</th>
+                    <th>Estado</th>
+                    <th>Fecha Registro</th>
+                    <th class="pe-4 text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @if (Model != null && Model.Any())
                 {
-                    @foreach (var item in Model)
+                    foreach (var p in Model)
                     {
                         <tr>
-                            <td data-label="ID" class="fw-bold text-body-secondary">#@item.PenalizacionId</td>
-                            <td data-label="USUARIO ID" class="text-body-secondary">@item.UsuarioId</td>
-                            <td data-label="DÍAS RETRASO" class="text-body-secondary">@item.DiasRetraso días</td>
-                            <td data-label="MONTO MORA" class="fw-bold text-danger">RD$ @item.MontoMora.ToString("N2")</td>
-                            <td data-label="MOTIVO" class="text-body-secondary">@item.Motivo</td>
-                            <td data-label="ESTADO" class="text-center">
-                                @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
+                            <td class="ps-4 fw-bold">#@p.PenalizacionId</td>
+                            <td><i class="bi bi-person me-1"></i> @p.UsuarioId</td>
+                            <td><i class="bi bi-book me-1"></i> @p.PrestamoId</td>
+                            <td><span class="badge bg-warning text-dark">@p.DiasRetraso días</span></td>
+                            <td class="fw-semibold text-danger">RD$ @p.MontoMora.ToString("N2")</td>
+                            <td>
+                                @if (p.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <span class="badge bg-danger px-3 py-2 rounded-pill">Activa</span>
+                                    <span class="badge bg-danger">Activa</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-success px-3 py-2 rounded-pill">Resuelta</span>
+                                    <span class="badge bg-success">Resuelta</span>
                                 }
                             </td>
-                            <td data-label="ACCIÓN" class="actions-cell">
-                                @if (item.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase) && (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario")))
+                            <td>@p.FechaGeneracion.ToString("dd/MM/yyyy")</td>
+                            <td class="pe-4 text-center">
+                                @if (p.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase) && !esAuditor)
                                 {
-                                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold shadow-sm rounded-3 px-3 py-1" data-bs-toggle="modal" data-bs-target="#resolverModal-@item.PenalizacionId">
-                                        Resolver
+                                    <button class="btn btn-sm btn-outline-success"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalResolver"
+                                            onclick="prepararModalResolver(@p.PenalizacionId, @p.MontoMora)">
+                                        <i class="bi bi-check2-circle me-1"></i> Resolver
                                     </button>
-
-                                    <!-- Modal para resolver -->
-                                    <div class="modal fade" id="resolverModal-@item.PenalizacionId" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content rounded-4 border-0 shadow">
-                                                <form asp-action="Resolver" method="post">
-                                                    <div class="modal-header border-0 pb-0">
-                                                        <h5 class="modal-title fw-bold">Resolver Penalización #@item.PenalizacionId</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <input type="hidden" name="penalizacionId" value="@item.PenalizacionId" />
-                                                        <div class="mb-3 text-start">
-                                                            <label class="form-label fw-bold">Motivo de Resolución</label>
-                                                            <textarea name="motivoResolucion" class="form-control" rows="3" placeholder="Ej. Pago realizado en caja..." required></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer border-0 pt-0">
-                                                        <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-primary rounded-3 px-4">Confirmar Resolución</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
+                                }
+                                else if (!string.IsNullOrEmpty(p.MotivoResolucion))
+                                {
+                                    <span class="text-muted small" title="Resuelto por ID: @p.UsuarioResolucionId">
+                                        <i class="bi bi-info-circle"></i> Info
+                                    </span>
                                 }
                             </td>
                         </tr>
@@ -102,10 +114,52 @@
                 else
                 {
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-body-secondary">No hay penalizaciones registradas.</td>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            No se encontraron penalizaciones con los filtros aplicados.
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- Modal para Resolver Penalización -->
+<div class="modal fade" id="modalResolver" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check2-circle me-2"></i>Resolver Penalización</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Resolver" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="inputPenalizacionId" name="penalizacionId" />
+                    <p class="mb-3">
+                        Estás a punto de marcar como resuelta la penalización <strong id="lblId"></strong>.
+                        Asegúrate de haber recibido el pago de la mora por valor de <strong class="text-danger" id="lblMora"></strong>.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Motivo de Resolución</label>
+                        <textarea name="motivoResolucion" class="form-control" rows="3" required placeholder="Ej. Pago de mora recibido en efectivo..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save me-1"></i> Confirmar Resolución</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function prepararModalResolver(id, mora) {
+            document.getElementById('inputPenalizacionId').value = id;
+            document.getElementById('lblId').innerText = "#" + id;
+            document.getElementById('lblMora').innerText = "RD$ " + mora.toFixed(2);
+        }
+    </script>
+}

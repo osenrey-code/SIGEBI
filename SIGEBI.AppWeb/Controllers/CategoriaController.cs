@@ -1,76 +1,59 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using System.Text.Json;
-using SIGEBI.AppWeb.Models.Categoria;
+using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.Service;
+using System.Security.Claims;
 
 namespace SIGEBI.AppWeb.Controllers
 {
-    [Authorize(Roles = "Administrador,Bibliotecario")]
-    public class CategoriaController : Controller
+    [Authorize] // Exigimos que el usuario haya iniciado sesión
+    public class CategoriasController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IGestionCategorias _gestionCategorias;
 
-        public CategoriaController(IHttpClientFactory httpClientFactory)
+        public CategoriasController(IGestionCategorias gestionCategorias)
         {
-            _httpClientFactory = httpClientFactory;
+            _gestionCategorias = gestionCategorias;
         }
 
-        [HttpGet]
+        // --- GET: /Categorias/Index ---
         public async Task<IActionResult> Index()
         {
-            var cliente = _httpClientFactory.CreateClient("API");
-            var token = User.FindFirst("Token")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
+            try
             {
-                cliente.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            }
-
-            var respuesta = await cliente.GetAsync("api/categorias");
-
-            if (respuesta.IsSuccessStatusCode)
-            {
-                var contenido = await respuesta.Content.ReadAsStringAsync();
-                var categorias = JsonSerializer.Deserialize<List<CategoriaViewModel>>(contenido, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                // Obtenemos todas las categorías directo del caso de uso
+                var categorias = await _gestionCategorias.ConsultarCategoriasAsync();
                 return View(categorias);
             }
-
-            TempData["Error"] = "No se pudieron cargar las categorías.";
-            return View(new List<CategoriaViewModel>());
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return View(new List<CategoriaResponse>());
+            }
         }
 
-        [HttpGet]
-        public IActionResult Crear()
-        {
-            return View();
-        }
-
+        // --- POST: /Categorias/Registrar ---
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Crear(CategoriaViewModel modelo)
+        [Authorize(Roles = "Administrador,Bibliotecario")] // Validado aquí y en tu UseCase
+        public async Task<IActionResult> Registrar(CategoriaRequest request)
         {
-            if (!ModelState.IsValid) return View(modelo);
-
-            var cliente = _httpClientFactory.CreateClient("API");
-            var token = User.FindFirst("Token")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
+            try
             {
-                cliente.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                // Extraemos el ID del usuario actual desde las cookies/claims
+                int currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+                // Ejecutamos el caso de uso directamente
+                await _gestionCategorias.RegistrarCategoriaAsync(request, currentUserId);
+
+                TempData["SuccessMessage"] = $"La categoría '{request.Nombre}' se registró exitosamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error al registrar la categoría: {ex.Message}";
             }
 
-            var jsonContent = new StringContent(JsonSerializer.Serialize(modelo), Encoding.UTF8, "application/json");
-            var respuesta = await cliente.PostAsync("api/categorias/registrar", jsonContent);
-
-            if (respuesta.IsSuccessStatusCode)
-            {
-                TempData["Success"] = "Categoría agregada correctamente.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            TempData["Error"] = "Error al agregar la categoría.";
-            return View(modelo);
+            return RedirectToAction(nameof(Index));
         }
     }
 }
