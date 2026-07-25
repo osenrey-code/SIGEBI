@@ -13,7 +13,9 @@ namespace SIGEBI.AppWeb.Controllers
         private readonly IGestionReportesUseCase _gestionReportes;
         private readonly ILogger<ReportesController> _logger;
 
-        public ReportesController(IGestionReportesUseCase gestionReportes, ILogger<ReportesController> logger)
+        public ReportesController(
+            IGestionReportesUseCase gestionReportes,
+            ILogger<ReportesController> logger)
         {
             _gestionReportes = gestionReportes;
             _logger = logger;
@@ -25,8 +27,6 @@ namespace SIGEBI.AppWeb.Controllers
             return View();
         }
 
-
-      
         [HttpGet]
         public async Task<IActionResult> Inventario()
         {
@@ -48,7 +48,6 @@ namespace SIGEBI.AppWeb.Controllers
             }
         }
 
-       
         [HttpGet]
         public async Task<IActionResult> InventarioPdf()
         {

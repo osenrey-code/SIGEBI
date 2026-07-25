@@ -56,7 +56,7 @@
 else
 {
     <!-- ==============================================
-         DASHBOARD: ADMINISTRADOR
+         DASHBOARD: ADMINISTRADOR (4 Tarjetas Simétricas)
          ============================================== -->
     @if (esAdministrador)
     {
@@ -66,7 +66,7 @@ else
             </h4>
             <div class="row g-4">
                 <!-- Tarjeta: Gestión de Usuarios -->
-                <div class="col-sm-6 col-xl-4">
+                <div class="col-sm-6 col-xl-3">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
                             <i class="bi bi-people-fill"></i>
@@ -82,8 +82,8 @@ else
                     </div>
                 </div>
 
-                <!-- Tarjeta: Préstamos -->
-                <div class="col-sm-6 col-xl-4">
+                <!-- Tarjeta: Control de Préstamos -->
+                <div class="col-sm-6 col-xl-3">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
                             <i class="bi bi-journal-check"></i>
@@ -99,15 +99,15 @@ else
                     </div>
                 </div>
 
-                <!-- Tarjeta: Reportes Generales -->
-                <div class="col-sm-6 col-xl-4">
+                <!-- Tarjeta: Reportes & Auditoría (Integrado según CU-REP-04) -->
+                <div class="col-sm-6 col-xl-3">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
                             <i class="bi bi-bar-chart-fill"></i>
                         </div>
-                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Estadísticas</span>
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Estadísticas y Logs</span>
                         <h4 class="fw-bold mb-2">Reportes</h4>
-                        <p class="text-body-secondary small mb-4">Visualizar métricas y reportes globales de la biblioteca.</p>
+                        <p class="text-body-secondary small mb-4">Visualizar métricas globales de la biblioteca y logs de auditoría.</p>
                         <div class="mt-auto">
                             <a asp-controller="Reportes" asp-action="Index" class="btn btn-success text-white w-100 fw-bold rounded-3" style="background-color: #14733c;">
                                 Ver Reportes
@@ -116,25 +116,8 @@ else
                     </div>
                 </div>
 
-                <!-- Tarjeta: Módulo de Auditoría -->
-                <div class="col-sm-6 col-xl-4">
-                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
-                        <div class="metric-icon metric-danger mx-auto mb-3 shadow-sm">
-                            <i class="bi bi-shield-lock-fill"></i>
-                        </div>
-                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Seguridad</span>
-                        <h4 class="fw-bold mb-2">Auditoría</h4>
-                        <p class="text-body-secondary small mb-4">Revisar registros de actividad y logs del sistema.</p>
-                        <div class="mt-auto">
-                            <a asp-controller="Auditoria" asp-action="Index" class="btn btn-danger text-white w-100 fw-bold rounded-3" style="background-color: #b42318;">
-                                Revisar Logs
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Tarjeta: Gestión de Catálogo -->
-                <div class="col-sm-6 col-xl-4">
+                <div class="col-sm-6 col-xl-3">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
                             <i class="bi bi-journal-bookmark-fill"></i>
@@ -258,22 +241,23 @@ else
                 <i class="bi bi-shield-check text-danger me-2"></i>Panel de Auditoría y Control
             </h4>
             <div class="row g-4">
-                <div class="col-sm-6 col-xl-4">
+                <div class="col-sm-6 col-xl-6">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-danger mx-auto mb-3 shadow-sm">
                             <i class="bi bi-shield-lock-fill"></i>
                         </div>
                         <h4 class="fw-bold mb-2">Logs de Auditoría</h4>
-                        <p class="text-body-secondary small mb-4">Revisar el historial de actividades y transacciones del sistema.</p>
+                        <p class="text-body-secondary small mb-4">Revisar el historial de actividades y transacciones del sistema desde Reportes.</p>
                         <div class="mt-auto">
-                            <a asp-controller="Auditoria" asp-action="Index" class="btn btn-danger text-white w-100 fw-bold rounded-3" style="background-color: #b42318;">
+                            <!-- Enrutado a Reportes/Auditoria según CU-REP-04 -->
+                            <a asp-controller="Reportes" asp-action="Auditoria" class="btn btn-danger text-white w-100 fw-bold rounded-3" style="background-color: #b42318;">
                                 Ver Auditoría
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-sm-6 col-xl-4">
+                <div class="col-sm-6 col-xl-6">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
                             <i class="bi bi-clock-history"></i>
