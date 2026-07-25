@@ -99,7 +99,7 @@ else
                     </div>
                 </div>
 
-                <!-- Tarjeta: Reportes & Auditoría (Integrado según CU-REP-04) -->
+                <!-- Tarjeta: Reportes & Auditoría -->
                 <div class="col-sm-6 col-xl-3">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
@@ -232,7 +232,7 @@ else
     }
 
     <!-- ==============================================
-         DASHBOARD: AUDITOR
+         DASHBOARD: AUDITOR (3 Tarjetas Simétricas)
          ============================================== -->
     @if (esAuditor && !esAdministrador && !esBibliotecario)
     {
@@ -241,23 +241,25 @@ else
                 <i class="bi bi-shield-check text-danger me-2"></i>Panel de Auditoría y Control
             </h4>
             <div class="row g-4">
-                <div class="col-sm-6 col-xl-6">
+
+                <!-- Tarjeta 1: Centro de Reportes y Logs -->
+                <div class="col-md-4">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
-                        <div class="metric-icon metric-danger mx-auto mb-3 shadow-sm">
-                            <i class="bi bi-shield-lock-fill"></i>
+                        <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-bar-chart-fill"></i>
                         </div>
-                        <h4 class="fw-bold mb-2">Logs de Auditoría</h4>
-                        <p class="text-body-secondary small mb-4">Revisar el historial de actividades y transacciones del sistema desde Reportes.</p>
+                        <h4 class="fw-bold mb-2">Reportes y Auditoría</h4>
+                        <p class="text-body-secondary small mb-4">Generar informes estadísticos de inventario, préstamos, penalizaciones y logs del sistema.</p>
                         <div class="mt-auto">
-                            <!-- Enrutado a Reportes/Auditoria según CU-REP-04 -->
-                            <a asp-controller="Reportes" asp-action="Auditoria" class="btn btn-danger text-white w-100 fw-bold rounded-3" style="background-color: #b42318;">
-                                Ver Auditoría
+                            <a asp-controller="Reportes" asp-action="Index" class="btn btn-success text-white w-100 fw-bold rounded-3" style="background-color: #14733c;">
+                                Ver Reportes
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-sm-6 col-xl-6">
+                <!-- Tarjeta 2: Historial de Préstamos -->
+                <div class="col-md-4">
                     <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
                         <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
                             <i class="bi bi-clock-history"></i>
@@ -271,6 +273,23 @@ else
                         </div>
                     </div>
                 </div>
+
+                <!-- Tarjeta 3: Catálogo en Modo Lectura -->
+                <div class="col-md-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Catálogo</h4>
+                        <p class="text-body-secondary small mb-4">Consultar el inventario de recursos bibliográficos en modo lectura.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Catalogo" asp-action="Index" class="btn w-100 fw-bold rounded-3" style="background-color: #ffc107; color: #664400;">
+                                Ver Catálogo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     }

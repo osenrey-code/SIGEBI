@@ -11,11 +11,16 @@ namespace SIGEBI.AppWeb.Controllers
     public class SolicitudesController : BaseController
     {
         private readonly IGestionPrestamos _gestionPrestamos;
+        private readonly IGestionCatalogo _gestionCatalogo;
         private readonly ILogger<SolicitudesController> _logger;
 
-        public SolicitudesController(IGestionPrestamos gestionPrestamos, ILogger<SolicitudesController> logger)
+        public SolicitudesController(
+            IGestionPrestamos gestionPrestamos,
+            IGestionCatalogo gestionCatalogo,
+            ILogger<SolicitudesController> logger)
         {
             _gestionPrestamos = gestionPrestamos;
+            _gestionCatalogo = gestionCatalogo;
             _logger = logger;
         }
 
@@ -103,16 +108,42 @@ namespace SIGEBI.AppWeb.Controllers
 
         [Authorize(Roles = "Docente,Estudiante")]
         [HttpGet]
-        public IActionResult Solicitar(int? ejemplarId)
+        public async Task<IActionResult> Solicitar(int? recursoId, int? ejemplarId)
         {
             var modelo = new RegistrarSolicitudViewModel();
 
+            // 1. Si ya viene el ejemplarId específico directamente
             if (ejemplarId.HasValue && ejemplarId.Value > 0)
             {
                 modelo.EjemplarId = ejemplarId.Value;
+                return View(modelo);
             }
 
-            // CORREGIDO: Se retorna la variable 'modelo' poblada en lugar de una instancia vacía.
+            // 2. Si viene el recursoId (ej. el libro 8), consultamos el ID de su primer ejemplar disponible de forma limpia
+            if (recursoId.HasValue && recursoId.Value > 0)
+            {
+                try
+                {
+                    var idEjemplarDisponible = await _gestionCatalogo.ObtenerPrimerEjemplarDisponibleIdAsync(recursoId.Value);
+
+                    if (idEjemplarDisponible.HasValue && idEjemplarDisponible.Value > 0)
+                    {
+                        modelo.EjemplarId = idEjemplarDisponible.Value; // Inyecta limpiamente el EjemplarId real (ej. 31)
+                    }
+                    else
+                    {
+                        TempData["Error"] = "No hay ejemplares disponibles para este recurso en este momento.";
+                        return RedirectToAction("Index", "Catalogo");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al obtener el ejemplar disponible para el recurso {RecursoId}", recursoId);
+                    TempData["Error"] = "Ocurrió un error al procesar la solicitud.";
+                    return RedirectToAction("Index", "Catalogo");
+                }
+            }
+
             return View(modelo);
         }
 
@@ -130,9 +161,6 @@ namespace SIGEBI.AppWeb.Controllers
                 await _gestionPrestamos.SolicitarPrestamoAsync(request, ObtenerUsuarioId());
 
                 TempData["Success"] = "Solicitud de préstamo registrada correctamente.";
-
-                // CORREGIDO: Redirigir al Catálogo (Index) o Préstamos Activos en vez de Solicitudes/Index 
-                // (ya que Solicitudes/Index es exclusivo de Bibliotecario/Admin y daría error 403 a Docente/Estudiante).
                 return RedirectToAction("Index", "Catalogo");
             }
             catch (BusinessException ex)

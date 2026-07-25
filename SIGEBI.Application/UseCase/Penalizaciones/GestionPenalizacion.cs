@@ -37,10 +37,28 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
         {
             Guard.NotNull(request, "Los filtros de penalizaciones");
 
-            await ValidarUsuarioAutorizadoParaConsultaAsync(
-                usuarioId,
-                "Solo personal autorizado puede consultar penalizaciones."
-            );
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario ejecutor es obligatorio.");
+
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(usuarioId);
+
+            if (usuarioEjecutor is null)
+                throw new BusinessException("El usuario ejecutor no existe.");
+
+            if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("El usuario ejecutor no está activo.");
+
+            // Evaluamos si es personal autorizado (Admin, Bibliotecario o Auditor)
+            bool esPersonalAutorizado = usuarioEjecutor is Bibliotecario ||
+                                        usuarioEjecutor is Administrador ||
+                                        usuarioEjecutor is Auditor;
+
+            if (!esPersonalAutorizado)
+            {
+                // Si es un Estudiante o Docente, solo puede ver sus propias penalizaciones.
+                // Forzamos el request.UsuarioId al ID del usuario logueado, ignorando cualquier otra cosa.
+                request.UsuarioId = usuarioId;
+            }
 
             EstadoPenalizacion? estado = null;
 

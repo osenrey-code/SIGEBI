@@ -152,7 +152,8 @@ else
                     {
                         @if (Model.CopiasDisponibles > 0)
                         {
-                            <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-ejemplarId="@Model.RecursoBibliograficoId"
+                            <!-- CORREGIDO: Envía recursoId para que el controlador busque la copia física disponible automáticamente -->
+                            <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-recursoId="@Model.RecursoBibliograficoId"
                                class="btn btn-primary btn-lg fw-semibold px-4 d-inline-flex align-items-center gap-2">
                                 <i class="bi bi-bookmark-plus-fill"></i> Solicitar Préstamo
                             </a>

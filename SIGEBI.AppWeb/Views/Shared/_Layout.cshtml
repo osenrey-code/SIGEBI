@@ -77,6 +77,21 @@
                                 </a>
                             </li>
 
+                            <li class="nav-item">
+                                <a class="nav-link @(controladorActual.Equals("Prestamos", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                                   asp-controller="Prestamos" asp-action="@(esAuditor ? "Historial" : "Index")">
+                                    <i class="bi bi-arrow-left-right me-1"></i> Préstamos
+                                </a>
+                            </li>
+
+                            <!-- ACCESIBLE PARA TODOS: Estudiantes, Docentes y Gestores -->
+                            <li class="nav-item">
+                                <a class="nav-link @(controladorActual.Equals("Penalizaciones", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+                                   asp-controller="Penalizaciones" asp-action="Index">
+                                    <i class="bi bi-exclamation-octagon me-1"></i> Penalizaciones
+                                </a>
+                            </li>
+
                             @if (puedeGestionar)
                             {
                                 <li class="nav-item">
@@ -85,28 +100,11 @@
                                         <i class="bi bi-tags me-1"></i> Categorías
                                     </a>
                                 </li>
-                            }
 
-                            <li class="nav-item">
-                                <a class="nav-link @(controladorActual.Equals("Prestamos", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
-                                   asp-controller="Prestamos" asp-action="@(esAuditor ? "Historial" : "Index")">
-                                    <i class="bi bi-arrow-left-right me-1"></i> Préstamos
-                                </a>
-                            </li>
-
-                            @if (puedeGestionar)
-                            {
                                 <li class="nav-item">
                                     <a class="nav-link @(controladorActual.Equals("Devoluciones", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
                                        asp-controller="Devoluciones" asp-action="Index">
                                         <i class="bi bi-box-arrow-in-left me-1"></i> Devoluciones
-                                    </a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link @(controladorActual.Equals("Penalizaciones", StringComparison.OrdinalIgnoreCase) ? "active" : "")"
-                                       asp-controller="Penalizaciones" asp-action="Index">
-                                        <i class="bi bi-exclamation-octagon me-1"></i> Penalizaciones
                                     </a>
                                 </li>
 
@@ -233,130 +231,130 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                // --- LÓGICA DEL TEMA ---
-                const botonTema = document.getElementById("btnSwitchTheme");
-                const iconoTema = document.getElementById("themeIcon");
+        document.addEventListener("DOMContentLoaded", () => {
+        // --- LÓGICA DEL TEMA ---
+        const botonTema = document.getElementById("btnSwitchTheme");
+        const iconoTema = document.getElementById("themeIcon");
 
-                const actualizarTema = (tema) => {
-                    document.documentElement.setAttribute("data-bs-theme", tema);
-                    localStorage.setItem("sigebi_theme", tema);
-                    const oscuro = tema === "dark";
-                    if (iconoTema) {
-                        iconoTema.className = oscuro ? "bi bi-sun-fill text-warning" : "bi bi-moon-stars-fill";
-                    }
-                    if (botonTema) {
-                        botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
-                    }
-                };
+        const actualizarTema = (tema) => {
+        document.documentElement.setAttribute("data-bs-theme", tema);
+        localStorage.setItem("sigebi_theme", tema);
+        const oscuro = tema === "dark";
+        if (iconoTema) {
+        iconoTema.className = oscuro ? "bi bi-sun-fill text-warning" : "bi bi-moon-stars-fill";
+        }
+        if (botonTema) {
+        botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
+        }
+        };
 
-                const temaActual = document.documentElement.getAttribute("data-bs-theme") || "light";
-                actualizarTema(temaActual);
+        const temaActual = document.documentElement.getAttribute("data-bs-theme") || "light";
+        actualizarTema(temaActual);
 
-                if (botonTema) {
-                    botonTema.addEventListener("click", () => {
-                        const temaEnCurso = document.documentElement.getAttribute("data-bs-theme");
-                        actualizarTema(temaEnCurso === "dark" ? "light" : "dark");
-                    });
-                }
+        if (botonTema) {
+        botonTema.addEventListener("click", () => {
+        const temaEnCurso = document.documentElement.getAttribute("data-bs-theme");
+        actualizarTema(temaEnCurso === "dark" ? "light" : "dark");
+        });
+        }
 
-                // --- LÓGICA DE NOTIFICACIONES ---
-                const cargarNotificaciones = () => {
-                    const badge = document.querySelector('#menuNotificaciones .badge');
-                    const lista = document.querySelector('[aria-labelledby="menuNotificaciones"]');
+        // --- LÓGICA DE NOTIFICACIONES ---
+        const cargarNotificaciones = () => {
+        const badge = document.querySelector('#menuNotificaciones .badge');
+        const lista = document.querySelector('[aria-labelledby="menuNotificaciones"]');
 
-                    if (!badge || !lista) return;
+        if (!badge || !lista) return;
 
-                    fetch('/Notificacion/ObtenerMisNotificaciones')
-                        .then(response => response.json())
-                        .then(data => {
-                            const noLeidas = data.filter(n => !(n.leida ?? n.Leida));
+        fetch('/Notificacion/ObtenerMisNotificaciones')
+        .then(response => response.json())
+        .then(data => {
+        const noLeidas = data.filter(n => !(n.leida ?? n.Leida));
 
-                            if (noLeidas.length > 0) {
-                                badge.textContent = noLeidas.length;
-                                badge.style.display = 'block';
-                            } else {
-                                badge.style.display = 'none';
-                            }
+        if (noLeidas.length > 0) {
+        badge.textContent = noLeidas.length;
+        badge.style.display = 'block';
+        } else {
+        badge.style.display = 'none';
+        }
 
-                            const headerHtml = `
-                                    <li>
-                                        <div class="dropdown-header d-flex justify-content-between align-items-center fw-bold">
-                                            <span>Notificaciones</span>
-                                            <a href="javascript:void(0)" id="btnMarcarTodasLeidas" class="text-decoration-none small">Marcar leídas</a>
-                                        </div>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                `;
+        const headerHtml = `
+        <li>
+        <div class="dropdown-header d-flex justify-content-between align-items-center fw-bold">
+        <span>Notificaciones</span>
+        <a href="javascript:void(0)" id="btnMarcarTodasLeidas" class="text-decoration-none small">Marcar leídas</a>
+        </div>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        `;
 
-                            if (!data || data.length === 0) {
-                                lista.innerHTML = headerHtml + `<li><div class="text-center text-muted py-4 small">No tienes notificaciones recientes.</div></li>`;
-                                return;
-                            }
+        if (!data || data.length === 0) {
+        lista.innerHTML = headerHtml + `<li><div class="text-center text-muted py-4 small">No tienes notificaciones recientes.</div></li>`;
+        return;
+        }
 
-                            let itemsHtml = '';
-                            data.forEach(n => {
-                                const id = n.notificacionId ?? n.NotificacionId;
-                                const tipo = n.tipo ?? n.Tipo ?? 'Info';
-                                const mensaje = n.mensaje ?? n.Mensaje ?? '';
-                                const fecha = n.fechaRegistro ?? n.FechaRegistro;
-                                const estaLeida = n.leida ?? n.Leida;
+        let itemsHtml = '';
+        data.forEach(n => {
+        const id = n.notificacionId ?? n.NotificacionId;
+        const tipo = n.tipo ?? n.Tipo ?? 'Info';
+        const mensaje = n.mensaje ?? n.Mensaje ?? '';
+        const fecha = n.fechaRegistro ?? n.FechaRegistro;
+        const estaLeida = n.leida ?? n.Leida;
 
-                                const fechaObj = new Date(fecha);
-                                const fechaFmt = !isNaN(fechaObj)
-                                    ? fechaObj.toLocaleDateString() + ' ' + fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                    : '';
+        const fechaObj = new Date(fecha);
+        const fechaFmt = !isNaN(fechaObj)
+        ? fechaObj.toLocaleDateString() + ' ' + fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : '';
 
-                                const bgClass = estaLeida ? '' : 'bg-light';
-                                const fwClass = estaLeida ? 'text-muted' : 'fw-semibold text-dark';
+        const bgClass = estaLeida ? '' : 'bg-body-secondary';
+        const fwClass = estaLeida ? 'text-muted' : 'fw-semibold text-body-emphasis';
 
-                                itemsHtml += `
-                                        <li class="border-bottom ${bgClass}">
-                                            <a class="dropdown-item py-2 text-wrap item-notificacion" href="javascript:void(0)" data-id="${id}">
-                                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                                    <span class="badge bg-secondary rounded-pill" style="font-size: 0.65em;">${tipo}</span>
-                                                    <small class="text-muted" style="font-size: 0.7em;">${fechaFmt}</small>
-                                                </div>
-                                                <span class="d-block small ${fwClass}">${mensaje}</span>
-                                            </a>
-                                        </li>
-                                    `;
-                            });
+        itemsHtml += `
+        <li class="border-bottom ${bgClass}">
+        <a class="dropdown-item py-2 text-wrap item-notificacion" href="javascript:void(0)" data-id="${id}">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="badge bg-secondary rounded-pill" style="font-size: 0.65em;">${tipo}</span>
+        <small class="text-muted" style="font-size: 0.7em;">${fechaFmt}</small>
+        </div>
+        <span class="d-block small ${fwClass}">${mensaje}</span>
+        </a>
+        </li>
+        `;
+        });
 
-                            lista.innerHTML = headerHtml + itemsHtml;
+        lista.innerHTML = headerHtml + itemsHtml;
 
-                            document.querySelectorAll('.item-notificacion').forEach(item => {
-                                item.addEventListener('click', () => {
-                                    const id = item.getAttribute('data-id');
-                                    if (id) {
-                                        fetch(`/Notificacion/MarcarLeida?id=${id}`, { method: 'POST' })
-                                            .then(() => cargarNotificaciones());
-                                    }
-                                });
-                            });
+        document.querySelectorAll('.item-notificacion').forEach(item => {
+        item.addEventListener('click', () => {
+        const id = item.getAttribute('data-id');
+        if (id) {
+        fetch(`/Notificacion/MarcarLeida?id=${id}`, { method: 'POST' })
+        .then(() => cargarNotificaciones());
+        }
+        });
+        });
 
-                            // Evento para el botón "Marcar leídas"
-                            const btnMarcar = document.getElementById('btnMarcarTodasLeidas');
-                            if (btnMarcar) {
-                                btnMarcar.addEventListener('click', () => {
-                                    const promesas = noLeidas.map(n => {
-                                        const id = n.notificacionId ?? n.NotificacionId;
-                                        return fetch(`/Notificacion/MarcarLeida?id=${id}`, { method: 'POST' });
-                                    });
-                                    Promise.all(promesas).then(() => cargarNotificaciones());
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error al cargar notificaciones:', error);
-                            if (lista) {
-                                lista.innerHTML = `<li><div class="text-center text-muted py-3 small">Error al cargar notificaciones</div></li>`;
-                            }
-                        });
-                };
+        // Evento para el botón "Marcar leídas"
+        const btnMarcar = document.getElementById('btnMarcarTodasLeidas');
+        if (btnMarcar) {
+        btnMarcar.addEventListener('click', () => {
+        const promesas = noLeidas.map(n => {
+        const id = n.notificacionId ?? n.NotificacionId;
+        return fetch(`/Notificacion/MarcarLeida?id=${id}`, { method: 'POST' });
+        });
+        Promise.all(promesas).then(() => cargarNotificaciones());
+        });
+        }
+        })
+        .catch(error => {
+        console.error('Error al cargar notificaciones:', error);
+        if (lista) {
+        lista.innerHTML = `<li><div class="text-center text-muted py-3 small">Error al cargar notificaciones</div></li>`;
+        }
+        });
+        };
 
-                cargarNotificaciones();
-            });
+        cargarNotificaciones();
+        });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

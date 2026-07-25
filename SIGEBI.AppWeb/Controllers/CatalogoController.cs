@@ -31,6 +31,12 @@ namespace SIGEBI.AppWeb.Controllers
         [HttpGet]
         public async Task<IActionResult> Index([FromQuery] ConsultarCatalogoRequest filtro)
         {
+            // Redirección directa para el perfil Auditor hacia la trazabilidad de Recursos
+            if (User.IsInRole("Auditor"))
+            {
+                return RedirectToAction("Index", "Auditoria", new { EntidadAfectada = "Recurso" });
+            }
+
             try
             {
                 var resultados = await _gestionCatalogo.ConsultarCatalogoAsync(filtro);
@@ -259,7 +265,6 @@ namespace SIGEBI.AppWeb.Controllers
             return RedirectToAction(nameof(Detalles), new { id = request.RecursoBibliograficoId });
         }
 
-
         [Authorize(Roles = "Administrador")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -289,8 +294,6 @@ namespace SIGEBI.AppWeb.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
-
         [Authorize(Roles = "Administrador,Bibliotecario,Auditor")]
         [HttpGet]
         public async Task<IActionResult> Historial(int id)
@@ -313,7 +316,5 @@ namespace SIGEBI.AppWeb.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
-
-       
     }
 }
