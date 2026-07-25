@@ -237,6 +237,7 @@
 
     <script>
             document.addEventListener("DOMContentLoaded", () => {
+                // --- LÓGICA DEL TEMA ---
                 const botonTema = document.getElementById("btnSwitchTheme");
                 const iconoTema = document.getElementById("themeIcon");
 
@@ -244,11 +245,11 @@
                     document.documentElement.setAttribute("data-bs-theme", tema);
                     localStorage.setItem("sigebi_theme", tema);
                     const oscuro = tema === "dark";
-                    iconoTema.className = oscuro ? "bi bi-sun-fill text-warning" : "bi bi-moon-stars-fill";
-                    botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
+                    if (iconoTema) iconoTema.className = oscuro ? "bi bi-sun-fill text-warning" : "bi bi-moon-stars-fill";
+                    if (botonTema) botonTema.title = oscuro ? "Usar tema claro" : "Usar tema oscuro";
                 };
 
-                actualizarTema(document.documentElement.getAttribute("data-bs-theme"));
+                actualizarTema(document.documentElement.getAttribute("data-bs-theme") || "light");
 
                 if (botonTema) {
                     botonTema.addEventListener("click", () => {
@@ -267,7 +268,7 @@
                     fetch('/Notificacion/ObtenerMisNotificaciones')
                         .then(response => response.json())
                         .then(data => {
-                            const noLeidas = data.filter(n => !n.leida);
+                            const noLeidas = data.filter(n => !(n.leida ?? n.Leida));
 
                             if (noLeidas.length > 0) {
                                 badge.textContent = noLeidas.length;
@@ -277,56 +278,84 @@
                             }
 
                             const headerHtml = `
-                                        <li>
-                                            <div class="dropdown-header d-flex justify-content-between align-items-center fw-bold">
-                                                <span>Notificaciones</span>
-                                                <a href="#" id="btnMarcarTodasLeidas" class="text-decoration-none small">Marcar leídas</a>
-                                            </div>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                    `;
+                                    <li>
+                                        <div class="dropdown-header d-flex justify-content-between align-items-center fw-bold">
+                                            <span>Notificaciones</span>
+                                            <a href="javascript:void(0)" id="btnMarcarTodasLeidas" class="text-decoration-none small">Marcar leídas</a>
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                `;
 
-                            if (data.length === 0) {
+                            if (!data || data.length === 0) {
                                 lista.innerHTML = headerHtml + `<li><div class="text-center text-muted py-4 small">No tienes notificaciones recientes.</div></li>`;
                                 return;
                             }
 
                             let itemsHtml = '';
                             data.forEach(n => {
-                                const fechaObj = new Date(n.fechaRegistro);
-                                const fechaFmt = fechaObj.toLocaleDateString() + ' ' + fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                const id = n.notificacionId ?? n.NotificacionId;
+                                const tipo = n.tipo ?? n.Tipo ?? 'Info';
+                                const mensaje = n.mensaje ?? n.Mensaje ?? '';
+                                const fecha = n.fechaRegistro ?? n.FechaRegistro;
+                                const estaLeida = n.leida ?? n.Leida;
 
-                                const bgClass = n.leida ? '' : 'bg-light';
-                                const fwClass = n.leida ? 'text-muted' : 'fw-semibold text-dark';
+                                const fechaObj = new Date(fecha);
+                                const fechaFmt = !isNaN(fechaObj)
+                                    ? fechaObj.toLocaleDateString() + ' ' + fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                    : '';
+
+                                const bgClass = estaLeida ? '' : 'bg-light';
+                                const fwClass = estaLeida ? 'text-muted' : 'fw-semibold text-dark';
 
                                 itemsHtml += `
-                                            <li class="border-bottom ${bgClass}">
-                                                <a class="dropdown-item py-2 text-wrap item-notificacion" href="#" data-id="${n.notificacionId}">
-                                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.65em;">${n.tipo}</span>
-                                                        <small class="text-muted" style="font-size: 0.7em;">${fechaFmt}</small>
-                                                    </div>
-                                                    <span class="d-block small ${fwClass}">${n.mensaje}</span>
-                                                </a>
-                                            </li>
-                                        `;
+                                        <li class="border-bottom ${bgClass}">
+                                            <a class="dropdown-item py-2 text-wrap item-notificacion" href="javascript:void(0)" data-id="${id}">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="badge bg-secondary rounded-pill" style="font-size: 0.65em;">${tipo}</span>
+                                                    <small class="text-muted" style="font-size: 0.7em;">${fechaFmt}</small>
+                                                </div>
+                                                <span class="d-block small ${fwClass}">${mensaje}</span>
+                                            </a>
+                                        </li>
+                                    `;
                             });
 
                             lista.innerHTML = headerHtml + itemsHtml;
 
                             // Evento para marcar una por una al hacer clic
                             document.querySelectorAll('.item-notificacion').forEach(item => {
-                                item.addEventListener('click', (e) => {
+                                item.addEventListener('click', () => {
                                     const id = item.getAttribute('data-id');
-                                    fetch(`/Notificacion/MarcarLeida/${id}`, { method: 'POST' })
-                                        .then(() => cargarNotificaciones());
+                                    if (id) {
+                                        fetch(`/Notificacion/MarcarLeida?id=${id}`, { method: 'POST' })
+                                            .then(() => cargarNotificaciones());
+                                    }
                                 });
                             });
+
+                            // Evento para el botón "Marcar leídas"
+                            const btnMarcar = document.getElementById('btnMarcarTodasLeidas');
+                            if (btnMarcar) {
+                                btnMarcar.addEventListener('click', () => {
+                                    const promesas = noLeidas.map(n => {
+                                        const id = n.notificacionId ?? n.NotificacionId;
+                                        return fetch(`/Notificacion/MarcarLeida?id=${id}`, { method: 'POST' });
+                                    });
+                                    Promise.all(promesas).then(() => cargarNotificaciones());
+                                });
+                            }
                         })
-                        .catch(error => console.error('Error al cargar notificaciones:', error));
+                        .catch(error => {
+                            console.error('Error al cargar notificaciones:', error);
+                            if (lista) {
+                                lista.innerHTML = `<li><div class="text-center text-muted py-3 small">Error al cargar notificaciones</div></li>`;
+                            }
+                        });
                 };
 
                 cargarNotificaciones();
+            });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
