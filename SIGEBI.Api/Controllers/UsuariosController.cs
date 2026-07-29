@@ -84,5 +84,15 @@ namespace SIGEBI.Api.Controllers
             await _gestionUsuarios.CambiarPasswordAdminAsync(id, request.NuevaPassword, actorId);
             return Ok(new { mensaje = "La contraseña del usuario ha sido restablecida exitosamente." });
         }
+
+        [HttpGet("perfil")]
+        public async Task<IActionResult> ObtenerMiPerfil()
+        {
+            
+            int usuarioId = ObtenerUsuarioId();
+            var perfil = await _gestionUsuarios.BuscarPorIdAsync(usuarioId);
+
+            return Ok(perfil);
+        }
     }
 }

@@ -69,6 +69,8 @@ namespace SIGEBI.AppWeb.Controllers
                 var jwtToken = handler.ReadJwtToken(token);
                 var claims = jwtToken.Claims.ToList();
 
+                claims.Add(new Claim("Token", token));
+
                 var rol = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value;
 
                 var esLector = string.Equals(rol, "Estudiante", StringComparison.OrdinalIgnoreCase) ||
@@ -88,7 +90,7 @@ namespace SIGEBI.AppWeb.Controllers
                 var authProperties = new AuthenticationProperties();
                 authProperties.StoreTokens(new[]
                 {
-                    new AuthenticationToken { Name = "acces_token", Value = token}
+                    new AuthenticationToken { Name = "access_token", Value = token}
                 });
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -1,8 +1,15 @@
-﻿@* @model SIGEBI.Application.DTOs.Request.CambiarPasswordRequest
+﻿@model SIGEBI.AppWeb.Models.DTOs.Usuarios.UsuarioDto
 
 @{
     ViewData["Title"] = "Mi Perfil";
-    var usuarioInfo = ViewBag.Usuario as SIGEBI.Application.DTOs.Response.UsuarioResponse;
+    var cambiarPasswordModel = ViewBag.CambiarPasswordModel as SIGEBI.AppWeb.Models.ViewModels.Usuarios.CambiarPasswordViewModel 
+        ?? new SIGEBI.AppWeb.Models.ViewModels.Usuarios.CambiarPasswordViewModel();
+
+    // Captura el mensaje de error (ya sea de la API o de la validación local) sin listas ni viñetas
+    var mensajeError = TempData["Error"]?.ToString() 
+        ?? (!ViewData.ModelState.IsValid 
+            ? ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault(e => !string.IsNullOrEmpty(e)) 
+            : null);
 }
 
 <!-- HERO SECTION -->
@@ -14,19 +21,13 @@
     </div>
 </div>
 
-<!-- ALERTAS DE NOTIFICACIÓN -->
+<!-- ALERTAS DE NOTIFICACIÓN GLOBALES (ÉXITO) -->
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-success border-0 bg-success-subtle text-success alert-dismissible fade show shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
 
@@ -41,21 +42,21 @@
             <div class="mb-3">
                 <label class="form-label small text-body-secondary fw-semibold">Nombre Completo</label>
                 <div class="form-control bg-body-tertiary border-0 text-body-emphasis fw-semibold py-2">
-                    @(usuarioInfo?.NombreCompleto ?? User.Identity?.Name)
+                    @(Model?.NombreCompleto ?? User.Identity?.Name ?? "N/A")
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label small text-body-secondary fw-semibold">Identificación / Matrícula</label>
                 <div class="form-control bg-body-tertiary border-0 text-body-emphasis py-2">
-                    @(usuarioInfo?.Identificacion ?? "N/A")
+                    @(Model?.Identificacion ?? "N/A")
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label small text-body-secondary fw-semibold">Correo Electrónico</label>
                 <div class="form-control bg-body-tertiary border-0 text-body-emphasis py-2">
-                    @(usuarioInfo?.Correo ?? "N/A")
+                    @(Model?.Correo ?? "N/A")
                 </div>
             </div>
 
@@ -64,7 +65,7 @@
                 <div>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fs-6">
                         <i class="bi bi-shield-lock me-1"></i>
-                        @(usuarioInfo?.TipoUsuario ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)
+                        @(Model?.TipoUsuario ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Usuario")
                     </span>
                 </div>
             </div>
@@ -78,22 +79,31 @@
                 <i class="bi bi-key text-success me-2"></i>Cambiar Contraseña
             </h5>
 
+            <!-- ALERTA DE ERROR MODERNA, CENTRADA Y SIN VIÑETAS -->
+            @if (!string.IsNullOrEmpty(mensajeError))
+            {
+                <div class="alert alert-danger border-0 bg-danger-subtle text-danger rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+                    <span class="fw-semibold text-center mb-0">@mensajeError</span>
+                </div>
+            }
+
             <form asp-controller="Usuarios" asp-action="CambiarMiPassword" method="post">
                 @Html.AntiForgeryToken()
 
                 <div class="mb-3">
-                    <label asp-for="PasswordActual" class="form-label fw-semibold text-body-secondary">Contraseña Actual <span class="text-danger">*</span></label>
-                    <input asp-for="PasswordActual" type="password" class="form-control rounded-3" required placeholder="••••••••" />
+                    <label class="form-label fw-semibold text-body-secondary">Contraseña Actual <span class="text-danger">*</span></label>
+                    <input type="password" name="PasswordActual" class="form-control rounded-3" required placeholder="••••••••" />
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="PasswordNueva" class="form-label fw-semibold text-body-secondary">Nueva Contraseña <span class="text-danger">*</span></label>
-                    <input asp-for="PasswordNueva" type="password" class="form-control rounded-3" required minlength="6" placeholder="Mínimo 6 caracteres" />
+                    <label class="form-label fw-semibold text-body-secondary">Nueva Contraseña <span class="text-danger">*</span></label>
+                    <input type="password" name="PasswordNueva" class="form-control rounded-3" required minlength="6" placeholder="Mínimo 6 caracteres" />
                 </div>
 
                 <div class="mb-4">
-                    <label asp-for="ConfirmarPasswordNueva" class="form-label fw-semibold text-body-secondary">Confirmar Nueva Contraseña <span class="text-danger">*</span></label>
-                    <input asp-for="ConfirmarPasswordNueva" type="password" class="form-control rounded-3" required minlength="6" placeholder="Repite la nueva contraseña" />
+                    <label class="form-label fw-semibold text-body-secondary">Confirmar Nueva Contraseña <span class="text-danger">*</span></label>
+                    <input type="password" name="ConfirmarPassword" class="form-control rounded-3" required minlength="6" placeholder="Repite la nueva contraseña" />
                 </div>
 
                 <div class="text-end">
@@ -104,4 +114,4 @@
             </form>
         </div>
     </div>
-</div> *@
+</div>
