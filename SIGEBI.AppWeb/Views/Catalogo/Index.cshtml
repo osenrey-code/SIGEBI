@@ -1,5 +1,5 @@
 ﻿@using System.Security.Claims
-@model IEnumerable<SIGEBI.Application.DTOs.Response.RecursoResponse>
+@model SIGEBI.AppWeb.Models.Catalogo.CatalogoViewModel
 
 @{
     ViewData["Title"] = "Catálogo de Recursos Bibliográficos";
@@ -29,19 +29,20 @@
     </div>
 </div>
 
-<!-- ALERTAS DE SISTEMA -->
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+<!-- ALERTAS DE SISTEMA (ESTÁNDAR GUÍA DE ARQUITECTURA) -->
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-danger border-0 bg-danger-subtle text-danger rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Error"]</span>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 bg-success-subtle text-success rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
     </div>
 }
 
@@ -52,7 +53,7 @@
             <div class="col-md-9">
                 <div class="input-group input-group-lg">
                     <span class="input-group-text border-end-0 bg-transparent"><i class="bi bi-search text-body-secondary"></i></span>
-                    <input type="text" id="inputBuscador" name="Titulo" class="form-control border-start-0 fs-6 shadow-none" placeholder="Buscar por título, autor o ISBN..." value="@Context.Request.Query["Titulo"]" onkeyup="filtrarEstanteriaLocal()" />
+                    <input type="text" id="inputBuscador" name="busqueda" class="form-control border-start-0 fs-6 shadow-none" placeholder="Buscar por título, autor o ISBN..." value="@Model.Busqueda" onkeyup="filtrarEstanteriaLocal()" />
                 </div>
             </div>
             <div class="col-md-3 d-flex gap-2">
@@ -66,9 +67,9 @@
 </div>
 
 <!-- ESTANTERÍA DE RECURSOS (AGRUPADOS POR CATEGORÍA) -->
-@if (Model != null && Model.Any())
+@if (Model.Recursos != null && Model.Recursos.Any())
 {
-    var gruposCategoria = Model.GroupBy(x => string.IsNullOrWhiteSpace(x.Categoria) ? "Sin Categoría" : x.Categoria);
+    var gruposCategoria = Model.Recursos.GroupBy(x => string.IsNullOrWhiteSpace(x.Categoria) ? "Sin Categoría" : x.Categoria);
 
     foreach (var grupo in gruposCategoria)
     {
@@ -115,7 +116,7 @@
                                         ISBN: @item.ISBN
                                     </p>
 
-                                    <!-- DISPONIBILIDAD (DEBAJO DEL ISBN) -->
+                                    <!-- DISPONIBILIDAD -->
                                     <div class="mb-2">
                                         <span class="badge @(item.CopiasDisponibles > 0 ? "text-bg-success" : "text-bg-danger") fw-semibold extra-small">
                                             <i class="bi @(item.CopiasDisponibles > 0 ? "bi-check-circle-fill" : "bi-x-circle-fill") me-1"></i>
@@ -160,7 +161,6 @@
 
                                         @if (item.CopiasDisponibles > 0)
                                         {
-                                            <!-- CORREGIDO: Envía recursoId para mapear al recurso correcto -->
                                             <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-recursoId="@item.RecursoBibliograficoId"
                                                class="btn btn-sm btn-primary w-100 rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1">
                                                 <i class="bi bi-bookmark-plus"></i> Solicitar
@@ -233,7 +233,7 @@ else
     </div>
 }
 
-<!-- ESTILOS Y ANIMACIONES DE ESTANTERÍA DIGITAL -->
+<!-- ESTILOS Y ANIMACIONES -->
 <style>
     .portada-wrapper {
         aspect-ratio: 2 / 3;
@@ -292,7 +292,6 @@ else
 
 @section Scripts {
     <script>
-        // FILTRADO DINÁMICO CLIENTE/SERVIDOR
         function filtrarEstanteriaLocal() {
             const query = document.getElementById('inputBuscador').value.toLowerCase().trim();
             const tarjetas = document.querySelectorAll('.tarjeta-libro-item');
@@ -310,7 +309,6 @@ else
                 }
             });
 
-            // Ocultar cabeceras de categorías vacías en tiempo real
             secciones.forEach(seccion => {
                 const visibles = seccion.querySelectorAll('.tarjeta-libro-item:not(.d-none)');
                 if (visibles.length === 0 && query !== '') {
