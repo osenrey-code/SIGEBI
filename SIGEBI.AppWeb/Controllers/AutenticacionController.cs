@@ -1,20 +1,22 @@
-﻿using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using SIGEBI.AppWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using SIGEBI.AppWeb.Services;
+using SIGEBI.AppWeb.Models.Autth;
 
 namespace SIGEBI.AppWeb.Controllers
 {
     public class AutenticacionController : Controller
     {
-        private readonly ILogin _loginService;
+        private readonly IApiClient _apiClient;
         private readonly ILogger<AutenticacionController> _logger;
 
-        public AutenticacionController(ILogin loginService, ILogger<AutenticacionController> logger)
+        public AutenticacionController(IApiClient apiClient, ILogger<AutenticacionController> logger)
         {
-            _loginService = loginService;
+            _apiClient = apiClient;
             _logger = logger;
         }
 
@@ -44,65 +46,78 @@ namespace SIGEBI.AppWeb.Controllers
 
             try
             {
-                var request = new LoginRequest
+                var request = new LoginViewModel
                 {
                     Identificacion = model.Identificacion.Trim(),
                     Password = model.Password
                 };
 
-                var response = await _loginService.AutenticarAsync(request);
+                var tokenJwt = await _apiClient.PostAsync<object, LoginResponse>("api/account/login", request);
 
-                var claims = new List<Claim>
+                if (tokenJwt == null || string.IsNullOrWhiteSpace(tokenJwt.Token))
                 {
-                    new Claim(ClaimTypes.NameIdentifier, response.UsuarioId.ToString()),
-                    new Claim("UsuarioId", response.UsuarioId.ToString()),
-                    new Claim(ClaimTypes.Name, response.NombreCompleto),
-                    new Claim(ClaimTypes.Role, response.TipoUsuario),
-                    new Claim("Identificacion", response.Identificacion),
-                    new Claim(ClaimTypes.Email, response.Correo),
-                    new Claim("Token", response.Token)
-                };
+                    _logger.LogWarning("La API retornó un token nulo o vació para la identificación: {Identificacion}", model.Identificacion);
+                    ModelState.AddModelError(string.Empty, "Credencialies inválidas.");
+                    return View(model);
+                }
 
-                var identity = new ClaimsIdentity(claims,
-                    CookieAuthenticationDefaults.AuthenticationScheme);
+                var token = tokenJwt.Token;
 
-                var principal = new ClaimsPrincipal(identity);
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var claims = jwtToken.Claims.ToList();
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                var rol = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value;
 
-                _logger.LogInformation("Login exitoso. UsuarioId: {UsuarioId}, Rol: {TipoUsuario}",
-                    response.UsuarioId, response.TipoUsuario);
+                var esLector = string.Equals(rol, "Estudiante", StringComparison.OrdinalIgnoreCase) ||
+                               string.Equals(rol, "Docente", StringComparison.OrdinalIgnoreCase);
 
+
+                if (!esLector)
+                {
+                    _logger.LogWarning("Acceso denegado en Web para {Identificacion}. Rol detectado: '{Rol}'. Este portal es exclusivo para lectores.",
+                        model.Identificacion, rol);
+
+                    ModelState.AddModelError(string.Empty, "Acceso denegado: Este portal está habilitado únicamente para Estudiantes y Docentes. " +
+                        "Si es personal administrativo, utilice la App de Escritorio.");
+                    return View(model);
+                }
+
+                var authProperties = new AuthenticationProperties();
+                authProperties.StoreTokens(new[]
+                {
+                    new AuthenticationToken { Name = "acces_token", Value = token}
+                });
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity); ;
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+                _logger.LogInformation("Inicio de sesión exitoso para {Identificacion} con rol: '{}'.", model.Identificacion, rol);
+                
                 return RedirectToAction("Index", "Home");
-            }
-
-            catch (BusinessException ex)
-            {
-                _logger.LogWarning("Login fallido para identificación {Identificacion}. Motivo: {Motivo}",
-                    model.Identificacion, ex.Message);
-
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View(model);
+                
             }
             catch (Exception ex)
             {
                 
                     _logger.LogError(ex, "Error inesperado durante el login para la identificación {Identificacion}",
                         model.Identificacion);
-                    ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al iniciar sesión.");
+                    ModelState.AddModelError(string.Empty, ex.Message);
                     return View(model);
                 
             }
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            var usuarioId = User.FindFirst("UsuarioId")?.Value;
+            var usuario = User.Identity?.Name ?? "Usuario Desconocido";
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            _logger.LogInformation("Logout ejecutado. Usuario: {UsuarioId}", usuarioId);
-            return RedirectToAction(nameof(Login));
+            _logger.LogInformation("El usuario {Usuario} cerró sesión correctamente.", usuario);
+            return RedirectToAction("Login");
         }
 
         [HttpGet]

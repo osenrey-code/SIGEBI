@@ -1,4 +1,4 @@
-﻿using SIGEBI.Application.DTOs.Response;
+﻿
 
 namespace SIGEBI.AppWeb.Models.Catalogo
 {
@@ -9,6 +9,5 @@ namespace SIGEBI.AppWeb.Models.Catalogo
         public string? Categoria { get; set; }
         public bool SoloDisponibles { get; set; }
 
-        public IEnumerable<RecursoResponse> Recursos { get; set; } = new List<RecursoResponse>();
     }
 }

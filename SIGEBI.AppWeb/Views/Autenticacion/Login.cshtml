@@ -1,4 +1,4 @@
-﻿@model SIGEBI.AppWeb.Models.LoginViewModel
+﻿@model SIGEBI.AppWeb.Models.Autth.LoginViewModel
 
 @{
     ViewData["Title"] = "Iniciar sesión";
@@ -18,8 +18,12 @@
                     </div>
 
                     <form asp-action="Login" method="post">
-                        <!-- Aquí se mostrarán los errores de BusinessException -->
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small mb-3" role="alert" style="display: @(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+                        <!-- Alerta estilizada con fondo suave y control de visibilidad inteligente -->
+                        <div asp-validation-summary="ModelOnly"
+                             class="alert alert-danger p-3 small mb-4 rounded-3 border-0 bg-danger bg-opacity-10 text-danger shadow-sm"
+                             role="alert"
+                             style="display: @(ViewData.ModelState.IsValid ? "none" : "block")">
+                        </div>
 
                         <div class="mb-3">
                             <label asp-for="Identificacion" class="form-label fw-medium"></label>
@@ -43,3 +47,18 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <style>
+        /* Oculta las viñetas predeterminadas de la lista de errores del validation summary */
+        .alert ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .alert li {
+            font-weight: 500;
+        }
+    </style>
+}

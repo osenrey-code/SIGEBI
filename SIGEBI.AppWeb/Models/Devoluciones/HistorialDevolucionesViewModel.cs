@@ -1,4 +1,4 @@
-﻿using SIGEBI.Application.DTOs.Response;
+﻿
 
 namespace SIGEBI.AppWeb.Models.Devoluciones
 {
@@ -10,6 +10,6 @@ namespace SIGEBI.AppWeb.Models.Devoluciones
         public DateTime? FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
 
-        public IEnumerable<DevolucionResponse> Devoluciones { get; set; } = new List<DevolucionResponse>();
+
     }
 }

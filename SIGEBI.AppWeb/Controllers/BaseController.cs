@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SIGEBI.Domain.Exceptions;
+
 using System.Security.Claims;
 
 namespace SIGEBI.AppWeb.Controllers
@@ -43,11 +43,6 @@ namespace SIGEBI.AppWeb.Controllers
                 var resultado = await consulta();
                 return vistaExito(resultado);
             }
-            catch (BusinessException ex)
-            {
-                logger.LogWarning(ex, "Regla de negocio no cumplida: {Mensaje}", ex.Message);
-                TempData["Error"] = ex.Message;
-            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "{MensajeLog}", mensajeErrorLog);
@@ -76,12 +71,6 @@ namespace SIGEBI.AppWeb.Controllers
                 TempData["Success"] = mensajeExito;
                 return RedirectToAction(accionExito);
             }
-            catch (BusinessException ex)
-            {
-                logger.LogWarning(ex, "Advertencia de negocio al procesar formulario: {Mensaje}", ex.Message);
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return vistaError();
-            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "{MensajeLog}", mensajeErrorLog ?? "Error no controlado al procesar formulario.");
@@ -100,11 +89,6 @@ namespace SIGEBI.AppWeb.Controllers
             {
                 await accion();
                 TempData["Success"] = mensajeExito;
-            }
-            catch (BusinessException ex)
-            {
-                logger.LogWarning(ex, "Advertencia de negocio: {Mensaje}", ex.Message);
-                TempData["Error"] = ex.Message;
             }
             catch (Exception ex)
             {
