@@ -13,8 +13,6 @@
   <ItemGroup>
     <Folder Include="Models\DTOs\Catalogo\" />
     <Folder Include="Models\DTOs\Penalizaciones\" />
-    <Folder Include="Models\DTOs\Prestamos\" />
-    <Folder Include="Models\DTOs\Solicitudes\" />
   </ItemGroup>
 
 </Project>

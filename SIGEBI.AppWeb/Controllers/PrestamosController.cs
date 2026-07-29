@@ -1,69 +1,58 @@
-﻿//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
-//using SIGEBI.Application.Interfaces.Service;
-//using SIGEBI.Application.DTOs.Request;
-//using SIGEBI.AppWeb.Models.Prestamos;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SIGEBI.AppWeb.Services;
+using SIGEBI.AppWeb.Models.DTOs.Prestamos;
+using SIGEBI.AppWeb.Models.ViewModels.Solicitudes;
+using SIGEBI.AppWeb.Models.ViewModels.Prestamos;
 
-//namespace SIGEBI.AppWeb.Controllers
-//{
-//    [Authorize]
-//    public class PrestamosController : BaseController
-//    {
-//        private readonly IGestionPrestamos _gestionPrestamos;
-//        private readonly ILogger<PrestamosController> _logger;
+namespace SIGEBI.AppWeb.Controllers
+{
+    [Authorize(Roles = "Docente,Estudiante")]
+    public class PrestamosController : BaseController
+    {
+        private readonly IApiClient _apiClient;
+        private readonly ILogger<PrestamosController> _logger;
 
-//        public PrestamosController(IGestionPrestamos gestionPrestamos, ILogger<PrestamosController> logger)
-//        {
-//            _gestionPrestamos = gestionPrestamos;
-//            _logger = logger;
-//        }
+        public PrestamosController(IApiClient apiClient, ILogger<PrestamosController> logger)
+        {
+            _apiClient = apiClient; 
+            _logger = logger;
+        }
 
-//        [HttpGet]
-//        public IActionResult Index()
-//        {
-//            return RedirectToAction(nameof(Activos));
-//        }
+        [HttpGet]
+        public IActionResult Index()
+        {
+            return RedirectToAction(nameof(Activos));
+        }
 
-//        [Authorize(Roles = "Administrador,Bibliotecario,Docente,Estudiante")]
-//        [HttpGet]
-//        public async Task<IActionResult> Activos(string? identificacion, int? recursoId, int? ejemplarId)
-//        {
-//            try
-//            {
-//                var request = new ConsultarPrestamosActivosRequest
-//                {
-//                    Identificacion = identificacion,
-//                    RecursoBibliograficoId = recursoId,
-//                    EjemplarId = ejemplarId
-//                };
+        [HttpGet]
+        public async Task<IActionResult> Activos()
+        {
+            var modelo = new PrestamoIndexViewModel();
 
-//                var respuesta = await _gestionPrestamos.ConsultarPrestamosActivosAsync(request, ObtenerUsuarioId());
+            try
+            {
+                var respuesta = await _apiClient.GetAsync<List<PrestamoDto>>("api/prestamos/consultar/activos")
+                    ?? new List<PrestamoDto>();
 
-//                var modelo = new PrestamoFiltroViewModel
-//                {
-//                    Identificacion = identificacion,
-//                    RecursoBibliograficoId = recursoId,
-//                    EjemplarId = ejemplarId,
-//                    Prestamos = respuesta.Select(p => new PrestamoItemViewModel
-//                    {
-//                        PrestamoId = p.PrestamoId,
-//                        TituloRecurso = p.TituloRecurso,
-//                        IdentificadorEjemplar = p.IdentificadorEjemplar,
-//                        FechaInicio = p.FechaInicio,
-//                        FechaLimite = p.FechaLimite,
-//                        Estado = p.Estado,
-//                        EstaVencido = p.EstaVencido
-//                    }).ToList()
-//                };
+                modelo.Prestamos = respuesta.Select(p => new PrestamoItemViewModel
+                {
+                    PrestamoId = p.PrestamoId,
+                    TituloRecurso = p.TituloRecurso,
+                    IdentificadorEjemplar = p.IdentificadorEjemplar,
+                    FechaInicio = p.FechaInicio,
+                    FechaLimite = p.FechaLimite,
+                    Estado = p.Estado,
+                    EstaVencido = p.EstaVencido
+                }).ToList();
 
-//                return View(modelo);
-//            }
-//            catch (Exception ex)
-//            {
-//                _logger.LogError(ex, "Error al consultar los préstamos activos.");
-//                TempData["Error"] = "No se pudieron cargar los préstamos activos.";
-//                return View(new PrestamoFiltroViewModel());
-//            }
-//        }
-//    }
-//}
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errpr al consultar los préstamos activos.");
+                TempData["Error"] = ex.Message;
+            }
+
+            return View("Index", modelo);
+        }
+    }
+}
