@@ -1,4 +1,4 @@
-﻿namespace SIGEBI.AppWeb.Models.Autth
+﻿namespace SIGEBI.AppWeb.Models.DTOs.Auth
 {
     public class LoginResponse
     {

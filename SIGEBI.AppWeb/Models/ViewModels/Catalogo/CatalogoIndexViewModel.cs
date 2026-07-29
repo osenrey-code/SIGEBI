@@ -1,6 +1,4 @@
-﻿
-
-namespace SIGEBI.AppWeb.Models.Catalogo
+﻿namespace SIGEBI.AppWeb.Models.ViewModels.Catalogo
 {
     public class CatalogoIndexViewModel
     {

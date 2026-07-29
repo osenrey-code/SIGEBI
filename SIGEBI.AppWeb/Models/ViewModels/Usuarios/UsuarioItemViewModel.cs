@@ -1,4 +1,4 @@
-﻿namespace SIGEBI.AppWeb.Models.Usuarios
+﻿namespace SIGEBI.AppWeb.Models.ViewModels.Usuarios
 {
     public class UsuarioItemViewModel
     {

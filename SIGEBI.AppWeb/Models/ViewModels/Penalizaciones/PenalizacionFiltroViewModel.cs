@@ -1,5 +1,4 @@
-﻿
-namespace SIGEBI.AppWeb.Models.Penalizaciones
+﻿namespace SIGEBI.AppWeb.Models.ViewModels.Penalizaciones
 {
     public class PenalizacionFiltroViewModel
     {

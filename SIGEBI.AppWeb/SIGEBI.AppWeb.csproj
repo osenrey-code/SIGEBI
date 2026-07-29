@@ -10,4 +10,12 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\DTOs\Catalogo\" />
+    <Folder Include="Models\DTOs\Penalizaciones\" />
+    <Folder Include="Models\DTOs\Usuarios\" />
+    <Folder Include="Models\DTOs\Prestamos\" />
+    <Folder Include="Models\DTOs\Solicitudes\" />
+  </ItemGroup>
+
 </Project>

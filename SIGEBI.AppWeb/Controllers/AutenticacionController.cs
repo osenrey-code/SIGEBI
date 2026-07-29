@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using SIGEBI.AppWeb.Services;
-using SIGEBI.AppWeb.Models.Autth;
+using SIGEBI.AppWeb.Models.ViewModels.Auth;
+using SIGEBI.AppWeb.Models.DTOs.Auth;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace SIGEBI.AppWeb.Controllers
 {
@@ -46,13 +48,13 @@ namespace SIGEBI.AppWeb.Controllers
 
             try
             {
-                var request = new LoginViewModel
+                var request = new LoginRequestdto
                 {
                     Identificacion = model.Identificacion.Trim(),
                     Password = model.Password
                 };
 
-                var tokenJwt = await _apiClient.PostAsync<object, LoginResponse>("api/account/login", request);
+                var tokenJwt = await _apiClient.PostAsync<LoginRequestdto, LoginResponse>("api/account/login", request);
 
                 if (tokenJwt == null || string.IsNullOrWhiteSpace(tokenJwt.Token))
                 {

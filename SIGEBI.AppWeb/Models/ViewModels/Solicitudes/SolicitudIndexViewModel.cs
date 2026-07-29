@@ -1,4 +1,4 @@
-﻿namespace SIGEBI.AppWeb.Models.Solicitudes
+﻿namespace SIGEBI.AppWeb.Models.ViewModels.Solicitudes
 {
     public class SolicitudIndexViewModel
     {

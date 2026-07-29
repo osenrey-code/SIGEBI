@@ -1,4 +1,4 @@
-﻿namespace SIGEBI.AppWeb.Models
+﻿namespace SIGEBI.AppWeb.Models.ViewModels
 {
     public class ErrorViewModel
     {

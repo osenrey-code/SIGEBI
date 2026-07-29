@@ -1,4 +1,4 @@
-﻿namespace SIGEBI.AppWeb.Models.Prestamos
+﻿namespace SIGEBI.AppWeb.Models.ViewModels.Prestamos
 {
     public class PrestamoIndexViewModel
     {

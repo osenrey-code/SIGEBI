@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SIGEBI.AppWeb.Models.Autth
+namespace SIGEBI.AppWeb.Models.ViewModels.Auth
 {
     public class LoginViewModel
     {
