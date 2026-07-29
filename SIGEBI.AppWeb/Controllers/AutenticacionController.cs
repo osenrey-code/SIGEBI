@@ -2,12 +2,8 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SIGEBI.AppWeb.Models;
-using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.Interfaces.Service;
-using SIGEBI.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-
 
 namespace SIGEBI.AppWeb.Controllers
 {

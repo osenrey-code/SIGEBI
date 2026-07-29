@@ -63,36 +63,5 @@ namespace SIGEBI.AppWeb.Controllers
                 return View(new PenalizacionFiltroViewModel());
             }
         }
-
-        [Authorize(Roles = "Administrador,Bibliotecario")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Resolver(int penalizacionId, string motivo)
-        {
-            try
-            {
-                var request = new ResolverPenalizacionRequest
-                {
-                    PenalizacionId = penalizacionId,
-                    MotivoResolucion = motivo
-                };
-
-                await _gestionPenalizaciones.ResolverPenalizacionAsync(request, ObtenerUsuarioId());
-
-                TempData["Success"] = $"La penalización #{penalizacionId} ha sido resuelta exitosamente.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (BusinessException ex)
-            {
-                TempData["Error"] = ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al resolver la penalización {Id}", penalizacionId);
-                TempData["Error"] = "Ocurrió un error al procesar la resolución de la penalización.";
-                return RedirectToAction(nameof(Index));
-            }
-        }
     }
 }

@@ -65,47 +65,5 @@ namespace SIGEBI.AppWeb.Controllers
                 return View(new PrestamoFiltroViewModel());
             }
         }
-
-        [Authorize(Roles = "Administrador,Bibliotecario,Auditor")]
-        [HttpGet]
-        public async Task<IActionResult> Historial(string? identificacion, int? recursoId, int? ejemplarId)
-        {
-            try
-            {
-                var request = new ConsultarHistorialPrestamosRequest
-                {
-                    Identificacion = identificacion,
-                    RecursoBibliograficoId = recursoId,
-                    EjemplarId = ejemplarId
-                };
-
-                var respuesta = await _gestionPrestamos.ConsultarHistorialAsync(request);
-
-                var modelo = new PrestamoFiltroViewModel
-                {
-                    Identificacion = identificacion,
-                    RecursoBibliograficoId = recursoId,
-                    EjemplarId = ejemplarId,
-                    Prestamos = respuesta.Select(p => new PrestamoItemViewModel
-                    {
-                        PrestamoId = p.PrestamoId,
-                        TituloRecurso = p.TituloRecurso,
-                        IdentificadorEjemplar = p.IdentificadorEjemplar,
-                        FechaInicio = p.FechaInicio,
-                        FechaLimite = p.FechaLimite,
-                        Estado = p.Estado,
-                        EstaVencido = p.EstaVencido
-                    }).ToList()
-                };
-
-                return View(modelo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al consultar el historial de préstamos.");
-                TempData["Error"] = "No se pudo cargar el historial de préstamos.";
-                return View(new PrestamoFiltroViewModel());
-            }
-        }
     }
 }
