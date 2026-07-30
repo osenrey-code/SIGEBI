@@ -97,10 +97,12 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             if (request.UsuarioId <= 0)
                 throw new BusinessException("El usuario consultado es obligatorio.");
 
-            await ValidarUsuarioAutorizadoParaConsultaAsync(
-                usuarioId,
-                "Solo personal autorizado puede consultar penalizaciones activas."
-            );
+            var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
+            if (usuario is not Estudiante && 
+                usuario is not Docente)
+            {
+                throw new BusinessException("Usuario no autorizado. ");
+            }
 
             var penalizaciones = await _penalizaciones.ConsultarAsync(
                 request.UsuarioId,
