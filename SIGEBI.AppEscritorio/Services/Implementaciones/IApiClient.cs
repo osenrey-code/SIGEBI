@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SIGEBI.AppEscritorio.Services
+namespace SIGEBI.AppEscritorio.Services.Implementaciones
 {
     public interface IApiClient 
     {

@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace SIGEBI.AppEscritorio.Services
+namespace SIGEBI.AppEscritorio.Services.Implementaciones
 {
     public class ApiClient : IApiClient
     {
