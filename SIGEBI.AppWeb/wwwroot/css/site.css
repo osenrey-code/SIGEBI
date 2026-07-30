@@ -594,3 +594,34 @@ small,
         font-size: .95rem;
     }
 }
+
+/* ==========================================================================
+   CORRECCIÓN: MENÚ DESPLEGABLE Y TARJETAS DE NOTIFICACIONES
+   ========================================================================== */
+
+.dropdown-menu,
+.notification-card,
+.card-notification {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+    /* Elementos internos de las notificaciones */
+    .dropdown-menu .dropdown-item,
+    .dropdown-menu p,
+    .dropdown-menu span,
+    .dropdown-menu small {
+        color: var(--text-primary);
+    }
+
+    .dropdown-menu .text-muted,
+    .dropdown-menu small {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Efecto hover adaptativo para las opciones del menú desplegable */
+    .dropdown-menu .dropdown-item:hover {
+        background-color: var(--table-hover) !important;
+        color: var(--primary-color) !important;
+    }

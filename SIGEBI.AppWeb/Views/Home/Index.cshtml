@@ -56,6 +56,245 @@
 else
 {
     <!-- ==============================================
+         DASHBOARD: ADMINISTRADOR (4 Tarjetas Simétricas)
+         ============================================== -->
+    @if (esAdministrador)
+    {
+        <div class="mb-5">
+            <h4 class="fw-bold mb-3 text-body-emphasis">
+                <i class="bi bi-speedometer2 text-primary me-2"></i>Visión General del Sistema
+            </h4>
+            <div class="row g-4">
+                <!-- Tarjeta: Gestión de Usuarios -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Acceso y Roles</span>
+                        <h4 class="fw-bold mb-2">Usuarios</h4>
+                        <p class="text-body-secondary small mb-4">Administrar cuentas, roles y permisos de acceso al sistema.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Usuarios" asp-action="Index" class="btn btn-primary w-100 fw-bold rounded-3">
+                                Gestionar Usuarios
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Control de Préstamos -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-journal-check"></i>
+                        </div>
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Control de Préstamos</span>
+                        <h4 class="fw-bold mb-2">Préstamos</h4>
+                        <p class="text-body-secondary small mb-4">Consultar préstamos activos y revisar el historial operativo global.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Prestamos" asp-action="Activos" class="btn btn-success text-white w-100 fw-bold rounded-3" style="background-color: #14733c;">
+                                Ver Préstamos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Reportes & Auditoría -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-bar-chart-fill"></i>
+                        </div>
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Estadísticas y Logs</span>
+                        <h4 class="fw-bold mb-2">Reportes</h4>
+                        <p class="text-body-secondary small mb-4">Visualizar métricas globales de la biblioteca y logs de auditoría.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Reportes" asp-action="Index" class="btn btn-success text-white w-100 fw-bold rounded-3" style="background-color: #14733c;">
+                                Ver Reportes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Gestión de Catálogo -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                        </div>
+                        <span class="d-block text-muted small fw-bold text-uppercase mb-1">Inventario</span>
+                        <h4 class="fw-bold mb-2">Catálogo</h4>
+                        <p class="text-body-secondary small mb-4">Explorar y administrar el inventario de recursos bibliográficos.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Catalogo" asp-action="Index" class="btn w-100 fw-bold rounded-3" style="background-color: #ffc107; color: #664400;">
+                                Explorar Catálogo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ==============================================
+         DASHBOARD: BIBLIOTECARIO
+         ============================================== -->
+    @if (esBibliotecario)
+    {
+        <div class="mb-4">
+            <h4 class="fw-bold mb-3 text-body-emphasis">
+                <i class="bi bi-clipboard2-check text-success me-2"></i>Operaciones Diarias
+            </h4>
+            <div class="row g-4">
+
+                <!-- Acción: Préstamos -->
+                <div class="col-sm-6 col-xl-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-arrow-up-right-square-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Préstamos</h4>
+                        <p class="text-body-secondary small mb-4">Consultar préstamos activos y el historial de transacciones.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Prestamos" asp-action="Activos" class="btn btn-primary w-100 fw-bold rounded-3">
+                                Ir a Préstamos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acción: Solicitudes -->
+                <div class="col-sm-6 col-xl-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-success mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Solicitudes</h4>
+                        <p class="text-body-secondary small mb-4">Gestionar solicitudes de préstamos: aprobaciones y consultas de estado.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Solicitudes" asp-action="Index" class="btn w-100 fw-bold rounded-3" style="background-color: #ffc107; color: #664400;">
+                                Ver Solicitudes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acción: Devoluciones -->
+                <div class="col-sm-6 col-xl-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Devoluciones</h4>
+                        <p class="text-body-secondary small mb-4">Reingresar recursos al catálogo y liberar disponibilidad.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Devoluciones" asp-action="Index" class="btn btn-success text-white w-100 fw-bold rounded-3" style="background-color: #14733c;">
+                                Ir a Devoluciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acción: Penalizaciones -->
+                <div class="col-sm-6 col-xl-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-danger mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-exclamation-octagon-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Penalizaciones</h4>
+                        <p class="text-body-secondary small mb-4">Administrar sanciones y bloqueos aplicados a los lectores.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Penalizaciones" asp-action="Index" class="btn btn-danger text-white w-100 fw-bold rounded-3" style="background-color: #b42318;">
+                                Ver Penalizaciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acción: Lectores -->
+                <div class="col-sm-6 col-xl-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon mx-auto mb-3 shadow-sm" style="color: #063f52; background: #bdeff8;">
+                            <i class="bi bi-person-vcard-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Lectores</h4>
+                        <p class="text-body-secondary small mb-4">Consultar el estado de cuenta de los docentes y estudiantes.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Usuarios" asp-action="Index" class="btn btn-outline-secondary w-100 fw-bold rounded-3 border-2">
+                                Ver Lectores
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+
+    <!-- ==============================================
+         DASHBOARD: AUDITOR (3 Tarjetas Simétricas)
+         ============================================== -->
+    @if (esAuditor && !esAdministrador && !esBibliotecario)
+    {
+        <div class="mb-4">
+            <h4 class="fw-bold mb-3 text-body-emphasis">
+                <i class="bi bi-shield-check text-danger me-2"></i>Panel de Auditoría y Control
+            </h4>
+            <div class="row g-4">
+
+                <!-- Tarjeta 1: Centro de Reportes y Logs -->
+                <div class="col-md-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-success mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-bar-chart-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Reportes y Auditoría</h4>
+                        <p class="text-body-secondary small mb-4">Generar informes estadísticos de inventario, préstamos, penalizaciones y logs del sistema.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Reportes" asp-action="Index" class="btn btn-success text-white w-100 fw-bold rounded-3" style="background-color: #14733c;">
+                                Ver Reportes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Historial de Préstamos -->
+                <div class="col-md-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Historial de Préstamos</h4>
+                        <p class="text-body-secondary small mb-4">Consultar registros globales de préstamos e historial operativo.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Prestamos" asp-action="Historial" class="btn btn-primary w-100 fw-bold rounded-3">
+                                Ver Historial
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3: Catálogo en Modo Lectura -->
+                <div class="col-md-4">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Catálogo</h4>
+                        <p class="text-body-secondary small mb-4">Consultar el inventario de recursos bibliográficos en modo lectura.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Catalogo" asp-action="Index" class="btn w-100 fw-bold rounded-3" style="background-color: #ffc107; color: #664400;">
+                                Ver Catálogo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+
+    <!-- ==============================================
          DASHBOARD: ESTUDIANTES / DOCENTES
          ============================================== -->
     @if (esLector && !esAdministrador && !esBibliotecario && !esAuditor)

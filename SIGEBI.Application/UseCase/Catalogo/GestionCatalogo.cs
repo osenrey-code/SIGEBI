@@ -467,5 +467,20 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 CopiasDisponibles = recurso.CopiasDisponibles
             };
         }
+
+        public async Task<int?> ObtenerPrimerEjemplarDisponibleIdAsync(int recursoId)
+        {
+            
+            var recurso = await _recursos.BuscarConCategoriaAsync(recursoId);
+
+            if (recurso == null || recurso.Ejemplares == null)
+                return null;
+
+            // Busca la primera copia física cuyo estado sea Disponible
+            var ejemplarDisponible = recurso.Ejemplares
+                .FirstOrDefault(e => e.Estado == EstadoEjemplar.Disponible);
+
+            return ejemplarDisponible?.EjemplarId; 
+        }
     }
 }

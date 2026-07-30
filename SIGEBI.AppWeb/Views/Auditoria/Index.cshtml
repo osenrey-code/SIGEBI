@@ -13,7 +13,7 @@
             <p class="hero-description mb-0">Registro y monitoreo inmutable de acciones realizadas en el sistema.</p>
         </div>
         <div>
-            <a asp-controller="Reportes" asp-action="Index" class="btn btn-outline-light text-white fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+            <a asp-controller="Reportes" asp-action="Index" class="btn btn-outline-light fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
                 <i class="bi bi-arrow-left"></i> Volver a Reportes
             </a>
         </div>
@@ -84,23 +84,23 @@
                     foreach (var item in Model)
                     {
                         <tr>
-                            <td class="ps-4 fw-semibold text-body-secondary">#@item.AuditoriaId</td>
+                            <td class="ps-4 fw-semibold text-body-secondary font-monospace">#@item.AuditoriaId</td>
                             <td>
-                                <span class="badge bg-secondary bg-opacity-10 text-body border px-2.5 py-1 font-monospace">
+                                <span class="badge text-bg-secondary px-2.5 py-1 font-monospace">
                                     ID: @item.UsuarioId
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-semibold">
+                                <span class="badge text-bg-primary px-3 py-1.5 rounded-pill fw-semibold">
                                     @item.Accion
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1.5 rounded-pill fw-semibold">
+                                <span class="badge text-bg-info px-3 py-1.5 rounded-pill fw-semibold">
                                     @item.EntidadAfectada
                                 </span>
                             </td>
-                            <td class="small text-wrap text-body-secondary" style="max-width: 300px;">@item.Detalle</td>
+                            <td class="small text-wrap text-body-secondary" style="max-width: 320px;">@item.Detalle</td>
                             <td class="small text-body-secondary pe-4 font-monospace">@item.FechaRegistro.ToString("g")</td>
                         </tr>
                     }

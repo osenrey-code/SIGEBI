@@ -38,5 +38,7 @@ namespace SIGEBI.Application.Interfaces.Service
             EliminarRecursoRequest request,
             int usuarioId
         );
+
+        Task<int?> ObtenerPrimerEjemplarDisponibleIdAsync(int recursoId);
     }
 }

@@ -1,9 +1,10 @@
-﻿//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
-//using SIGEBI.Application.DTOs.Request;
-//using SIGEBI.Application.Interfaces.Service;
-//using SIGEBI.AppWeb.Models.Penalizaciones;
-//using SIGEBI.Domain.Exceptions;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Application.Interfaces.Service;
+using SIGEBI.AppWeb.Models.Penalizaciones;
+using SIGEBI.Domain.Exceptions;
 
 //namespace SIGEBI.AppWeb.Controllers
 //{

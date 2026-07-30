@@ -1,0 +1,106 @@
+﻿@using SIGEBI.Application.DTOs.Response
+@model IEnumerable<CategoriaResponse>
+
+@{
+    ViewData["Title"] = "Gestión de Categorías";
+    var puedeGestionar = User.IsInRole("Administrador") || User.IsInRole("Bibliotecario");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-tags text-primary me-2"></i> Categorías</h2>
+        <p class="text-body-secondary mb-0">Administra las clasificaciones de los recursos bibliográficos.</p>
+    </div>
+    @if (puedeGestionar)
+    {
+        <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearCategoria">
+            <i class="bi bi-plus-lg me-1"></i> Nueva Categoría
+        </button>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Tabla de Categorías -->
+<div class="content-card card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4" style="width: 80px;">ID</th>
+                    <th style="width: 30%;">Nombre</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var cat in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold font-monospace text-body-secondary">#@cat.CategoriaId</td>
+                            <td class="fw-semibold text-body-emphasis">@cat.Nombre</td>
+                            <td class="text-body-secondary">
+                                @(string.IsNullOrWhiteSpace(cat.Descripcion) ? "Sin descripción" : cat.Descripcion)
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-body-secondary">
+                            <i class="bi bi-tags fs-1 d-block mb-2 text-body-tertiary"></i>
+                            <span>No hay categorías registradas en el sistema.</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (puedeGestionar)
+{
+    <!-- Modal para Crear Categoría -->
+    <div class="modal fade" id="modalCrearCategoria" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Registrar Categoría</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="Registrar" method="post">
+                    <div class="modal-body p-4 text-start">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-body-emphasis">Nombre de la Categoría <span class="text-danger">*</span></label>
+                            <input type="text" name="Nombre" class="form-control" placeholder="Ej: Programación, Ficción, Ciencias..." required maxlength="100" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-body-emphasis">Descripción (Opcional)</label>
+                            <textarea name="Descripcion" class="form-control" rows="3" placeholder="Breve descripción de los libros que pertenecen a esta categoría..." maxlength="255"></textarea>
+                        </div>
+                    </div>
+                    <!-- CORREGIDO: Se quitó 'bg-light' y se aplicó 'border-0 pt-0' -->
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary px-4 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 fw-bold"><i class="bi bi-save me-1"></i> Guardar Categoría</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

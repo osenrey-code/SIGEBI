@@ -241,7 +241,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             string identificacion,
             string passwordInicial)
         {
-            return tipo switch
+            return tipo.Trim().ToLower() switch
             {
                 "estudiante" => new Estudiante
                 {
