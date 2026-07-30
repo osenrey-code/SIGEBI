@@ -1,56 +1,64 @@
-﻿//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
-//using SIGEBI.Application.Interfaces.Service;
-//using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SIGEBI.AppWeb.Models.DTOs.Notificaciones;
+using SIGEBI.AppWeb.Services;
 
-//namespace SIGEBI.AppWeb.Controllers
-//{
-//    [Authorize]
-//    public class NotificacionController : Controller
-//    {
-//        private readonly IServicioNotificacion _servicioNotificacion;
+namespace SIGEBI.AppWeb.Controllers
+{
+    [Authorize]
+    public class NotificacionController : Controller
+    {
+        private readonly IApiClient _apiClient;
+        private readonly ILogger<NotificacionController> _logger;
 
-//        public NotificacionController(IServicioNotificacion servicioNotificacion)
-//        {
-//            _servicioNotificacion = servicioNotificacion;
-//        }
+        public NotificacionController(IApiClient apiClient, ILogger<NotificacionController> logger)
+        {
+            _apiClient = apiClient;
+            _logger = logger;
+        }
 
-//        [HttpGet]
-//        public async Task<IActionResult> ObtenerMisNotificaciones()
-//        {
-//            try
-//            {
-//                var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-//                                     ?? User.FindFirst("UsuarioId")?.Value
-//                                     ?? User.FindFirst("sub")?.Value;
+        // Este método alimenta la campanita de notificaciones
+        [HttpGet]
+        public async Task<IActionResult> ObtenerMisNotificaciones()
+        {
+            try
+            {
+                // Apuntamos al endpoint de tu API. 
+                // Como la API usa [Route("api/[controller]")] y [HttpGet("consultar")]
+                // la ruta final es api/notificacion/consultar
+                string endpoint = "api/notificacion/consultar";
 
-//                if (!int.TryParse(usuarioIdClaim, out int usuarioId))
-//                {
-//                    return Json(new List<object>());
-//                }
+                var notificaciones = await _apiClient.GetAsync<IEnumerable<NotificacionResponse>>(endpoint);
 
-//                var notificaciones = await _servicioNotificacion.ObtenerPendientesAsync(usuarioId);
+                // Devolvemos el JSON para que el script del frontend lo renderice
+                return Json(notificaciones ?? new List<NotificacionResponse>());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al consultar las notificaciones desde la API.");
+                // Si hay error, devolvemos una lista vacía para no romper el menú
+                return Json(new List<NotificacionResponse>());
+            }
+        }
 
-//                return Json(notificaciones);
-//            }
-//            catch
-//            {
-//                return Json(new List<object>());
-//            }
-//        }
+        // Este método se dispara cuando el usuario le da a "Marcar leída"
+        [HttpPost]
+        public async Task<IActionResult> MarcarLeida(int id)
+        {
+            try
+            {
+                // Apuntamos al endpoint de tu API para marcar como leída
+                string endpoint = $"api/notificacion/marcarleida/{id}";
+                await _apiClient.PostAsync(endpoint, new { });
 
-//        [HttpPost]
-//        public async Task<IActionResult> MarcarLeida(int id)
-//        {
-//            try
-//            {
-//                await _servicioNotificacion.MarcarComoLeidaAsync(id);
-//                return Ok();
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(ex.Message);
-//            }
-//        }
-//    }
-//}
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al marcar como leída la notificación {id}.");
+                return BadRequest();
+            }
+        }
+
+    }
+}

@@ -25,5 +25,13 @@ namespace SIGEBI.Api.Controllers
 
             return Ok(notificaciones);
         }
+
+        [HttpPost("marcarleida/{id}")]
+        public async Task<IActionResult> MarcarComoLeida(int id)
+        {
+            await _servicioNotificacion.MarcarComoLeidaAsync(id);
+
+            return Ok();
+        }
     }
 }
