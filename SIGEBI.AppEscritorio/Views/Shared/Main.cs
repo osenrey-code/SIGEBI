@@ -8,9 +8,9 @@ using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
-    public partial class DashboardPrincipalForm : Form
+    public partial class Main : Form
     {
-        public DashboardPrincipalForm()
+        public Main()
         {
             InitializeComponent();
         }

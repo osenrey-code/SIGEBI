@@ -1,6 +1,6 @@
 ﻿namespace SIGEBI.AppEscritorio.Views.Shared
 {
-    partial class DashboardPrincipalForm
+    partial class Main
     {
         /// <summary>
         /// Required designer variable.
