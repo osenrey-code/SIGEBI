@@ -24,5 +24,6 @@
         public int TotalEjemplares { get; set; }
         public int CopiasDisponibles { get; set; }
         public bool EstaDisponible => CopiasDisponibles > 0;
+        public int? EjemplarDisponibleId { get; set; }
     }
 }

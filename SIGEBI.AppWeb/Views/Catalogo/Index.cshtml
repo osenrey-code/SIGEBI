@@ -75,7 +75,7 @@
                     <div class="col tarjeta-libro-item" data-titulo="@item.Titulo.ToLower()" data-autor="@item.Autor.ToLower()" data-isbn="@(item.ISBN?.ToLower() ?? "")">
                         <div class="card h-100 border-0 content-card shadow-sm position-relative overflow-hidden tarjeta-portada rounded-4">
 
-                            <!-- CONTENEDOR DE PORTADA (PROPORCIÓN 2:3 LIMPIA) -->
+                            <!-- CONTENEDOR DE PORTADA -->
                             <div class="portada-wrapper position-relative">
                                 @if (!string.IsNullOrEmpty(item.ImagenUrl))
                                 {
@@ -112,7 +112,7 @@
                                     </div>
                                 </div>
 
-                                <!-- ACCIONES DE ESTUDIANTES Y DOCENTES -->
+                                <!-- ACCIONES -->
                                 <div class="mt-2 pt-2 border-top border-secondary border-opacity-10 d-flex flex-column gap-1">
                                     <a asp-action="Detalles" asp-route-id="@item.RecursoBibliograficoId"
                                        class="btn btn-sm btn-outline-secondary w-100 mb-1 rounded-2 fw-semibold">
@@ -121,7 +121,8 @@
 
                                     @if (item.CopiasDisponibles > 0)
                                     {
-                                        <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-recursoId="@item.RecursoBibliograficoId"
+                                        <!-- Envia el ID real del ejemplar físico disponible -->
+                                        <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-ejemplarId="@item.EjemplarDisponibleId"
                                            class="btn btn-sm btn-primary w-100 rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1">
                                             <i class="bi bi-bookmark-plus"></i> Solicitar
                                         </a>
@@ -151,7 +152,7 @@ else
     </div>
 }
 
-<!-- ESTILOS Y ANIMACIONES DE ESTANTERÍA DIGITAL -->
+<!-- ESTILOS Y ANIMACIONES -->
 <style>
     .portada-wrapper {
         aspect-ratio: 2 / 3;

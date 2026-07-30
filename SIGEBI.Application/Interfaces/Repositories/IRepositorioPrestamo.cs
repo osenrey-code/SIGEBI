@@ -28,6 +28,7 @@ namespace SIGEBI.Application.Interfaces.Repositories
             int? ejemplarId
         );
         Task<bool> ExistePrestamoActivoPorRecursoAsync(int recursoBibliograficoId);
+        
     }
 }
 

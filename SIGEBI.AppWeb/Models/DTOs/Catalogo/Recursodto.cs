@@ -15,5 +15,6 @@
 
         // Propiedad calculada útil para la interfaz
         public bool EstaDisponible => CopiasDisponibles > 0;
+        public int? EjemplarDisponibleId { get; set; }
     }
 }

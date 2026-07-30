@@ -21,4 +21,5 @@ public class RecursoResponse
     public int TotalEjemplares { get; set; }
 
     public int CopiasDisponibles { get; set; }
+    public int? EjemplarDisponibleId { get; set; }
 }

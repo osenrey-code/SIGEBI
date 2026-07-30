@@ -70,7 +70,8 @@ namespace SIGEBI.AppWeb.Controllers
                     AnioPublicado = r.AnioPublicado,
                     ImagenUrl = r.ImagenUrl,
                     TotalEjemplares = r.TotalEjemplares,
-                    CopiasDisponibles = r.CopiasDisponibles
+                    CopiasDisponibles = r.CopiasDisponibles,
+                    EjemplarDisponibleId = r.EjemplarDisponibleId
                 }).ToList();
 
             } catch(Exception ex)
@@ -111,7 +112,8 @@ namespace SIGEBI.AppWeb.Controllers
                     AnioPublicado = recurso.AnioPublicado,
                     ImagenUrl = recurso.ImagenUrl,
                     TotalEjemplares = recurso.TotalEjemplares,
-                    CopiasDisponibles = recurso.CopiasDisponibles
+                    CopiasDisponibles = recurso.CopiasDisponibles,
+                    EjemplarDisponibleId = recurso.EjemplarDisponibleId
                 };
 
                 return View(viewModel);

@@ -434,6 +434,9 @@ namespace SIGEBI.Application.UseCase.Catalogo
         private static RecursoResponse MapearRecurso(
             RecursoBibliografico recurso)
         {
+            var primerDisponible = recurso.Ejemplares?
+             .FirstOrDefault(e => e.Estado == EstadoEjemplar.Disponible);
+
             return new RecursoResponse
             {
                 RecursoBibliograficoId = recurso.RecursoBibliograficoId,
@@ -445,7 +448,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 AnioPublicado = recurso.AnioPublicado,
                 ImagenUrl = recurso.ImagenUrl,
                 TotalEjemplares = recurso.TotalEjemplares,
-                CopiasDisponibles = recurso.CopiasDisponibles
+                CopiasDisponibles = recurso.CopiasDisponibles,
+                EjemplarDisponibleId = primerDisponible?.EjemplarId
             };
         }
 
@@ -453,6 +457,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
             RecursoBibliografico recurso,
             string nombreCategoria)
         {
+            var primerDisponible = recurso.Ejemplares?
+            .FirstOrDefault(e => e.Estado == EstadoEjemplar.Disponible);
             return new RecursoResponse
             {
                 RecursoBibliograficoId = recurso.RecursoBibliograficoId,
@@ -464,7 +470,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 AnioPublicado = recurso.AnioPublicado,
                 ImagenUrl = recurso.ImagenUrl,
                 TotalEjemplares = recurso.TotalEjemplares,
-                CopiasDisponibles = recurso.CopiasDisponibles
+                CopiasDisponibles = recurso.CopiasDisponibles,
+                EjemplarDisponibleId = primerDisponible?.EjemplarId
             };
         }
     }
