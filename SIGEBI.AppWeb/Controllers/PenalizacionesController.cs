@@ -1,99 +1,60 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SIGEBI.Application.DTOs.Request;
-using SIGEBI.Application.DTOs.Response;
-using SIGEBI.Application.Interfaces.Service;
+using SIGEBI.AppWeb.Models.DTOs;
 using SIGEBI.AppWeb.Models.Penalizaciones;
-using SIGEBI.Domain.Exceptions;
+using SIGEBI.AppWeb.Services;
+using System.Security.Claims;
 
 namespace SIGEBI.AppWeb.Controllers
 {
     [Authorize]
-    public class PenalizacionesController : BaseController
+    public class PenalizacionesController : Controller
     {
-        private readonly IGestionPenalizaciones _gestionPenalizaciones;
+        private readonly ApiClient _apiClient;
         private readonly ILogger<PenalizacionesController> _logger;
 
-        public PenalizacionesController(
-            IGestionPenalizaciones gestionPenalizaciones,
-            ILogger<PenalizacionesController> logger)
+        public PenalizacionesController(ApiClient apiClient, ILogger<PenalizacionesController> logger)
         {
-            _gestionPenalizaciones = gestionPenalizaciones;
+            _apiClient = apiClient;
             _logger = logger;
         }
 
-        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
         [HttpGet]
-        public async Task<IActionResult> Index(int? usuarioId, int? prestamoId, string? estado)
+        public async Task<IActionResult> Index()
         {
+            var viewModel = new MisPenalizacionesViewModel();
+
             try
             {
-                var esLector = User.IsInRole("Estudiante") || User.IsInRole("Docente");
-
-                // Si es estudiante o docente, forzamos la consulta a su propio UsuarioId
-                var usuarioIdFiltro = esLector ? ObtenerUsuarioId() : usuarioId;
-
-                var request = new ConsultarPenalizacionesRequest
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
                 {
-                    UsuarioId = usuarioIdFiltro,
-                    PrestamoId = prestamoId,
-                    Estado = estado
-                };
+                    throw new Exception("No se pudo identificar la sesión del usuario actual.");
+                }
 
-                var respuesta = await _gestionPenalizaciones.ConsultarPenalizacionesAsync(request, ObtenerUsuarioId());
+                string endpoint = $"api/penalizaciones/usuario/{userIdClaim}";
+                var misPenalizaciones = await _apiClient.GetAsync<IEnumerable<PenalizacionResponse>>(endpoint);
 
-                var modelo = new PenalizacionFiltroViewModel
+                if (misPenalizaciones != null)
                 {
-                    UsuarioId = usuarioIdFiltro,
-                    PrestamoId = prestamoId,
-                    Estado = estado,
-                    Penalizaciones = respuesta.ToList()
-                };
+                    viewModel.Activas = misPenalizaciones
+                        .Where(p => p.EstaActiva)
+                        .OrderByDescending(p => p.FechaInicio)
+                        .ToList();
 
-                return View(modelo);
-            }
-            catch (BusinessException ex)
-            {
-                TempData["Error"] = ex.Message;
-                return View(new PenalizacionFiltroViewModel());
+                    viewModel.Historial = misPenalizaciones
+                        .Where(p => !p.EstaActiva)
+                        .OrderByDescending(p => p.FechaInicio)
+                        .ToList();
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al consultar las penalizaciones.");
-                TempData["Error"] = "No se pudieron cargar las penalizaciones.";
-                return View(new PenalizacionFiltroViewModel());
-            }
-        }
-
-        [Authorize(Roles = "Administrador,Bibliotecario")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Resolver(int penalizacionId, string motivo)
-        {
-            try
-            {
-                var request = new ResolverPenalizacionRequest
-                {
-                    PenalizacionId = penalizacionId,
-                    MotivoResolucion = motivo
-                };
-
-                await _gestionPenalizaciones.ResolverPenalizacionAsync(request, ObtenerUsuarioId());
-
-                TempData["Success"] = $"La penalización #{penalizacionId} ha sido resuelta exitosamente.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (BusinessException ex)
-            {
+                _logger.LogError(ex, "Error al consultar el historial de penalizaciones.");
                 TempData["Error"] = ex.Message;
-                return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al resolver la penalización {Id}", penalizacionId);
-                TempData["Error"] = "Ocurrió un error al procesar la resolución de la penalización.";
-                return RedirectToAction(nameof(Index));
-            }
+
+            return View(viewModel);
         }
     }
 }
