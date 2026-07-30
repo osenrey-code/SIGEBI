@@ -22,6 +22,6 @@
         public int TotalEjemplares { get; set; }
         public int CopiasDisponibles { get; set; }
 
-        // Colección de ejemplares asociada
-        public IEnumerable<EjemplarItemResponse> Ejemplares { get; set; } = new List<EjemplarItemResponse>();
-    }
+    public int CopiasDisponibles { get; set; }
+    public int? EjemplarDisponibleId { get; set; }
+}

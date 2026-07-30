@@ -44,12 +44,28 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             return await _context.Solicitudes
                 .AsNoTracking()
-                // Se removió .Include(s => s.SolicitudId) que causaba la excepción
                 .Include(s => s.Usuario)
                 .Include(s => s.Ejemplar)
                     .ThenInclude(e => e!.RecursoBibliografico)
                 .OrderByDescending(s => s.FechaSolicitud)
                 .ToListAsync();
+        }
+
+        public async Task<bool> ExisteSolicitudPendienteOActivaAsync(int usuarioId, int ejemplarId)
+        {
+            var recursoId = await _context.Ejemplares
+            .Where(e => e.EjemplarId == ejemplarId)
+            .Select(e => e.RecursoBibliograficoId)
+            .FirstOrDefaultAsync();
+
+            if (recursoId == 0) return false;
+
+            return await _dbSet.AnyAsync(s =>
+                s.UsuarioId == usuarioId &&
+                s.Ejemplar != null &&
+                s.Ejemplar.RecursoBibliograficoId == recursoId &&
+                (s.Estado == EstadoSolicitud.Pendiente || s.Estado == EstadoSolicitud.Aprobada)
+            );
         }
     }
 }

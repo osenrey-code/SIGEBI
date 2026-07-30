@@ -57,6 +57,13 @@ namespace SIGEBI.Application.UseCase.Prestamos
             if (usuario is null)
                 throw new BusinessException("El usuario solicitante no existe.");
 
+            bool yaTieneSolicitud = await _solicitudes.ExisteSolicitudPendienteOActivaAsync(usuarioId, request.EjemplarId);
+
+            if (yaTieneSolicitud)
+            {
+                throw new BusinessException("Ya tienes una solicitud pendiente o aprobada para este ejemplar.");
+            }
+
             var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
 
             if (ejemplar is null)

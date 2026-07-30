@@ -1,12 +1,7 @@
-﻿@using System.Security.Claims
-@model SIGEBI.AppWeb.Models.Catalogo.CatalogoViewModel
+﻿@model SIGEBI.AppWeb.Models.ViewModels.Catalogo.CatalogoIndexViewModel
 
 @{
     ViewData["Title"] = "Catálogo de Recursos Bibliográficos";
-
-    var esAdministrador = User.IsInRole("Administrador");
-    var esBibliotecario = User.IsInRole("Bibliotecario");
-    var puedeGestionar = esAdministrador || esBibliotecario;
 }
 
 <!-- HERO SECTION -->
@@ -15,45 +10,38 @@
         <div>
             <span class="hero-badge">Módulo de Catálogo</span>
             <h1 class="fw-bold mb-2"><i class="bi bi-bookshelf me-2"></i>Catálogo de Recursos</h1>
-            <p class="hero-description mb-0">Consulta la disponibilidad de libros organizada por categorías y gestiona préstamos.</p>
+            <p class="hero-description mb-0">Consulta la disponibilidad de libros organizada por categorías y gestiona tus préstamos.</p>
         </div>
-
-        @if (puedeGestionar)
-        {
-            <div>
-                <a asp-action="Crear" class="btn btn-light text-primary fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
-                    <i class="bi bi-plus-lg"></i> Nuevo Registro
-                </a>
-            </div>
-        }
     </div>
 </div>
 
-<!-- ALERTAS DE SISTEMA (ESTÁNDAR GUÍA DE ARQUITECTURA) -->
-@if (TempData["Error"] != null)
+<!-- ALERTAS DE SISTEMA -->
+@if (TempData["Success"] != null)
 {
-    <div class="alert alert-danger border-0 bg-danger-subtle text-danger rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
-        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
-        <span class="fw-semibold text-center mb-0">@TempData["Error"]</span>
+    <div class="alert alert-success border-0 bg-success-subtle text-success alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success border-0 bg-success-subtle text-success rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
-        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
-        <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
+    <div class="alert alert-danger border-0 bg-danger-subtle text-danger alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Error"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
 
 <!-- Buscador de Recursos -->
-<div class="content-card card shadow-sm rounded-4 mb-5">
+<div class="content-card card shadow-sm rounded-4 border-0 mb-5">
     <div class="card-body p-3">
         <form method="get" asp-action="Index" class="row g-2 align-items-center">
             <div class="col-md-9">
                 <div class="input-group input-group-lg">
                     <span class="input-group-text border-end-0 bg-transparent"><i class="bi bi-search text-body-secondary"></i></span>
-                    <input type="text" id="inputBuscador" name="busqueda" class="form-control border-start-0 fs-6 shadow-none" placeholder="Buscar por título, autor o ISBN..." value="@Model.Busqueda" onkeyup="filtrarEstanteriaLocal()" />
+                    <input type="text" id="inputBuscador" name="Titulo" class="form-control border-start-0 fs-6 shadow-none" placeholder="Buscar por título, autor o ISBN..." value="@Model?.Titulo" onkeyup="filtrarEstanteriaLocal()" />
                 </div>
             </div>
             <div class="col-md-3 d-flex gap-2">
@@ -67,7 +55,7 @@
 </div>
 
 <!-- ESTANTERÍA DE RECURSOS (AGRUPADOS POR CATEGORÍA) -->
-@if (Model.Recursos != null && Model.Recursos.Any())
+@if (Model?.Recursos != null && Model.Recursos.Any())
 {
     var gruposCategoria = Model.Recursos.GroupBy(x => string.IsNullOrWhiteSpace(x.Categoria) ? "Sin Categoría" : x.Categoria);
 
@@ -88,7 +76,7 @@
                     <div class="col tarjeta-libro-item" data-titulo="@item.Titulo.ToLower()" data-autor="@item.Autor.ToLower()" data-isbn="@(item.ISBN?.ToLower() ?? "")">
                         <div class="card h-100 border-0 content-card shadow-sm position-relative overflow-hidden tarjeta-portada rounded-4">
 
-                            <!-- CONTENEDOR DE PORTADA (PROPORCIÓN 2:3 LIMPIA) -->
+                            <!-- CONTENEDOR DE PORTADA -->
                             <div class="portada-wrapper position-relative">
                                 @if (!string.IsNullOrEmpty(item.ImagenUrl))
                                 {
@@ -113,7 +101,7 @@
                                         <i class="bi bi-person me-1"></i>@item.Autor
                                     </p>
                                     <p class="font-monospace text-body-tertiary extra-small mb-2">
-                                        ISBN: @item.ISBN
+                                        ISBN: @(string.IsNullOrWhiteSpace(item.ISBN) ? "-" : item.ISBN)
                                     </p>
 
                                     <!-- DISPONIBILIDAD -->
@@ -125,53 +113,26 @@
                                     </div>
                                 </div>
 
-                                <!-- ACCIONES SEGÚN ROL DE USUARIO -->
+                                <!-- ACCIONES -->
                                 <div class="mt-2 pt-2 border-top border-secondary border-opacity-10 d-flex flex-column gap-1">
+                                    <a asp-action="Detalles" asp-route-id="@item.RecursoBibliograficoId"
+                                       class="btn btn-sm btn-outline-secondary w-100 mb-1 rounded-2 fw-semibold">
+                                        <i class="bi bi-eye me-1"></i> Detalle
+                                    </a>
 
-                                    @if (puedeGestionar)
+                                    @if (item.CopiasDisponibles > 0)
                                     {
-                                        <div class="d-flex justify-content-between align-items-center gap-1">
-                                            <a asp-action="Detalles" asp-route-id="@item.RecursoBibliograficoId"
-                                               class="btn btn-sm btn-outline-primary w-100 rounded-2" title="Ver Detalles">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a asp-action="Editar" asp-route-id="@item.RecursoBibliograficoId"
-                                               class="btn btn-sm btn-outline-secondary w-100 rounded-2" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a asp-action="Historial" asp-route-id="@item.RecursoBibliograficoId"
-                                               class="btn btn-sm btn-outline-info w-100 rounded-2" title="Historial">
-                                                <i class="bi bi-clock-history"></i>
-                                            </a>
-                                            @if (esAdministrador)
-                                            {
-                                                <button type="button" class="btn btn-sm btn-outline-danger w-100 rounded-2"
-                                                        onclick="prepararEliminacion(@item.RecursoBibliograficoId, '@item.Titulo')" title="Eliminar">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            }
-                                        </div>
+                                        <!-- Envia el ID real del ejemplar físico disponible -->
+                                        <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-ejemplarId="@item.EjemplarDisponibleId"
+                                           class="btn btn-sm btn-primary w-100 rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1">
+                                            <i class="bi bi-bookmark-plus"></i> Solicitar
+                                        </a>
                                     }
                                     else
                                     {
-                                        <a asp-action="Detalles" asp-route-id="@item.RecursoBibliograficoId"
-                                           class="btn btn-sm btn-outline-secondary w-100 mb-1 rounded-2 fw-semibold">
-                                            <i class="bi bi-eye me-1"></i> Detalle
-                                        </a>
-
-                                        @if (item.CopiasDisponibles > 0)
-                                        {
-                                            <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-recursoId="@item.RecursoBibliograficoId"
-                                               class="btn btn-sm btn-primary w-100 rounded-2 fw-bold d-flex align-items-center justify-content-center gap-1">
-                                                <i class="bi bi-bookmark-plus"></i> Solicitar
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-2 fw-semibold opacity-50" disabled>
-                                                Agotado
-                                            </button>
-                                        }
+                                        <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-2 fw-semibold opacity-50" disabled>
+                                            Agotado
+                                        </button>
                                     }
                                 </div>
                             </div>
@@ -189,47 +150,6 @@ else
         <i class="bi bi-journal-x fs-1 d-block mb-3 text-body-tertiary"></i>
         <h4 class="fw-bold text-body-emphasis">No se encontraron recursos bibliográficos</h4>
         <p class="text-body-secondary mb-0">No hay libros registrados que coincidan con el criterio de búsqueda.</p>
-    </div>
-}
-
-<!-- MODAL DE ELIMINACIÓN (EXCLUSIVO ADMINISTRADOR) -->
-@if (esAdministrador)
-{
-    <div class="modal fade" id="modalEliminarRecurso" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="modal-header bg-danger text-white border-0 py-3">
-                    <h5 class="modal-title fw-bold" id="modalEliminarLabel">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar Recurso Bibliográfico
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form asp-action="Eliminar" method="post">
-                    @Html.AntiForgeryToken()
-                    <div class="modal-body p-4">
-                        <input type="hidden" id="eliminarRecursoId" name="recursoBibliograficoId" />
-
-                        <p class="mb-3 text-body-emphasis fw-semibold">
-                            ¿Estás seguro de que deseas dar de baja el recurso <span id="eliminarRecursoTitulo" class="text-danger fw-bold"></span>?
-                        </p>
-                        <p class="text-body-secondary small mb-4">
-                            Esta acción registrará la baja en el historial de auditoría del sistema. El recurso solo podrá ser eliminado si no tiene préstamos activos.
-                        </p>
-
-                        <div class="mb-3">
-                            <label for="motivoBaja" class="form-label fw-bold text-body-emphasis">Motivo de la Baja (Obligatorio)</label>
-                            <textarea id="motivoBaja" name="motivo" class="form-control" rows="3" placeholder="Ej. Material sumamente deteriorado, pérdida o baja del catálogo." required></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 pt-0 px-4 pb-4">
-                        <button type="button" class="btn btn-outline-secondary fw-semibold rounded-3" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger fw-semibold px-4 rounded-3">
-                            <i class="bi bi-trash me-1"></i> Confirmar Eliminación
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
     </div>
 }
 
@@ -262,14 +182,14 @@ else
         transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
-        .tarjeta-portada:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
-        }
+    .tarjeta-portada:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+    }
 
-            .tarjeta-portada:hover .portada-img {
-                transform: scale(1.05);
-            }
+    .tarjeta-portada:hover .portada-img {
+        transform: scale(1.05);
+    }
 
     .line-clamp-1 {
         display: -webkit-box;
@@ -319,18 +239,4 @@ else
             });
         }
     </script>
-
-    @if (esAdministrador)
-    {
-        <script>
-            function prepararEliminacion(id, titulo) {
-                document.getElementById('eliminarRecursoId').value = id;
-                document.getElementById('eliminarRecursoTitulo').innerText = "'" + titulo + "'";
-                document.getElementById('motivoBaja').value = '';
-
-                var modal = new bootstrap.Modal(document.getElementById('modalEliminarRecurso'));
-                modal.show();
-            }
-        </script>
-    }
 }

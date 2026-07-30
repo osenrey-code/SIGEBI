@@ -13,5 +13,6 @@ namespace SIGEBI.Application.Interfaces.Repositories
         Task<IEnumerable<Solicitud>> ObtenerTodasAsync();
         Task<IEnumerable<Solicitud>> ObtenerPendientesAsync();
         Task ActualizarAsync(Solicitud solicitud);
+        Task<bool> ExisteSolicitudPendienteOActivaAsync(int usuarioId, int ejemplarId);
     }
 }
