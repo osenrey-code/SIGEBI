@@ -33,12 +33,12 @@ namespace SIGEBI.AppWeb.Services
         }
 
         public async Task<byte[]> GetByteArrayAsync(string endpoint)
-        {
+            {
             AgregarTokenAutorizacion();
             var response = await _httpClient.GetAsync(endpoint);
             await ValidarRespuestaAsync(response);
             return await response.Content.ReadAsByteArrayAsync();
-        }
+            }
 
         public async Task<TResponse?> PostAsync<TRequest, TResponse>(string endpoint, TRequest data)
         {
@@ -92,7 +92,7 @@ namespace SIGEBI.AppWeb.Services
         }
 
         private static async Task ValidarRespuestaAsync(HttpResponseMessage response)
-        {
+            {
             if (response.IsSuccessStatusCode) return;
 
             var jsonContent = await response.Content.ReadAsStringAsync();
@@ -130,7 +130,7 @@ namespace SIGEBI.AppWeb.Services
                         {
                             throw new Exception(msg);
                         }
-                    }
+        }
 
 
                     if (root.TryGetProperty("errors", out var errorsProp) && errorsProp.ValueKind == JsonValueKind.Object)
@@ -141,7 +141,7 @@ namespace SIGEBI.AppWeb.Services
                             {
                                 var primerError = prop.Value.EnumerateArray().FirstOrDefault().GetString();
                                 if (!string.IsNullOrWhiteSpace(primerError))
-                                {
+        {
                                     throw new Exception(primerError);
                                 }
                             }
@@ -155,7 +155,7 @@ namespace SIGEBI.AppWeb.Services
             {
                 throw new Exception($"Error HTTP {(int)response.StatusCode}: {jsonContent}");
             }
-        }
+            }
 
 
         public class ApiErrorResponse

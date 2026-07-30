@@ -1,5 +1,4 @@
-﻿@using System.Security.Claims
-@model SIGEBI.AppWeb.Models.ViewModels.Penalizaciones.PenalizacionFiltroViewModel;
+﻿@model SIGEBI.AppWeb.Models.Penalizaciones.PenalizacionFiltroViewModel
 
 @{
     ViewData["Title"] = "Gestión de Penalizaciones";
@@ -8,8 +7,12 @@
     var esBibliotecario = User.IsInRole("Bibliotecario");
     var esLector = User.IsInRole("Estudiante") || User.IsInRole("Docente");
     var puedeResolver = esAdministrador || esBibliotecario;
+
+    var mensajeError = TempData["Error"] ?? TempData["ErrorMessage"];
+    var mensajeExito = TempData["Success"] ?? TempData["SuccessMessage"];
 }
 
+<!-- HERO SECTION -->
 <div class="page-hero p-4 p-lg-5 mb-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
@@ -20,18 +23,20 @@
     </div>
 </div>
 
-@if (TempData["SuccessMessage"] != null)
+<!-- 🔔 ALERTAS CENTRADAS Y SIN VIÑETAS (ESTÁNDAR GUÍA DE ARQUITECTURA) -->
+@if (mensajeError != null)
 {
-    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="alert alert-danger border-0 bg-danger-subtle text-danger rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@mensajeError</span>
     </div>
 }
-@if (TempData["ErrorMessage"] != null)
+
+@if (mensajeExito != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="alert alert-success border-0 bg-success-subtle text-success rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@mensajeExito</span>
     </div>
 }
 
