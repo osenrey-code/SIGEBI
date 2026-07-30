@@ -13,6 +13,14 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
+        public override async Task<IEnumerable<RecursoBibliografico>> ObtenerTodosAsync()
+        {
+            return await _dbSet
+                .Include(r => r.Categoria)
+                .Include(r => r.Ejemplares)
+                .ToListAsync();
+        }
+
         public async Task<RecursoBibliografico?> BuscarPorIsbnAsync(string isbn)
         {
             return await _dbSet
