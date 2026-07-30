@@ -1,15 +1,20 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace SIGEBI.AppWeb.Services
 {
-    public class ApiClient
+    public class ApiClient : IApiClient
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ApiClient(HttpClient httpClient)
+        public ApiClient(HttpClient httpclient, IHttpContextAccessor httpContextAccessor)
         {
-            _httpClient = httpClient;
+            _httpClient = httpclient;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task DeleteAsync(string endpoint)
@@ -27,16 +32,23 @@ namespace SIGEBI.AppWeb.Services
             return await response.Content.ReadFromJsonAsync<T>();
         }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorMsg = await response.Content.ReadAsStringAsync();
-                throw new Exception(string.IsNullOrWhiteSpace(errorMsg) ? $"Error HTTP {response.StatusCode}" : errorMsg);
-            }
-
-            return await response.Content.ReadFromJsonAsync<T>();
+        public async Task<byte[]> GetByteArrayAsync(string endpoint)
+        {
+            AgregarTokenAutorizacion();
+            var response = await _httpClient.GetAsync(endpoint);
+            await ValidarRespuestaAsync(response);
+            return await response.Content.ReadAsByteArrayAsync();
         }
 
         public async Task<TResponse?> PostAsync<TRequest, TResponse>(string endpoint, TRequest data)
+        {
+            AgregarTokenAutorizacion();
+            var response = await _httpClient.PostAsJsonAsync(endpoint, data);
+            await ValidarRespuestaAsync(response);
+            return await response.Content.ReadFromJsonAsync<TResponse>();
+        }
+
+        public async Task PostAsync<TRequest>(string endpoint, TRequest data)
         {
             AgregarTokenAutorizacion();
             var response = await _httpClient.PostAsJsonAsync(endpoint, data);
@@ -71,26 +83,81 @@ namespace SIGEBI.AppWeb.Services
                          ?? context.GetTokenAsync("acces_token").GetAwaiter().GetResult();
                 }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorMsg = await response.Content.ReadAsStringAsync();
-                throw new Exception(string.IsNullOrWhiteSpace(errorMsg) ? $"Error HTTP {response.StatusCode}" : errorMsg);
+                if (!string.IsNullOrEmpty(token))
+                {
+                    _httpClient.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", token);
+                }
             }
-
-            return await response.Content.ReadFromJsonAsync<TResponse>();
         }
 
-        public async Task PostAsync<TRequest>(string endpoint, TRequest data)
+        private static async Task ValidarRespuestaAsync(HttpResponseMessage response)
         {
-            var response = await _httpClient.PostAsJsonAsync(endpoint, data);
+            if (response.IsSuccessStatusCode) return;
 
-            if (!response.IsSuccessStatusCode)
+            var jsonContent = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(jsonContent))
             {
-                var errorMsg = await response.Content.ReadAsStringAsync();
-                throw new Exception(string.IsNullOrWhiteSpace(errorMsg) ? $"Error HTTP {response.StatusCode}" : errorMsg);
+                throw new Exception($"Error HTTP {(int)response.StatusCode}: {response.ReasonPhrase}");
             }
 
-      
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var error = JsonSerializer.Deserialize<ApiErrorResponse>(jsonContent, options);
+                if (!string.IsNullOrWhiteSpace(error?.Mensaje))
+                {
+                    throw new Exception(error.Mensaje);
+                }
+
+                using var doc = JsonDocument.Parse(jsonContent);
+                var root = doc.RootElement;
+
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    if (root.TryGetProperty("mensaje", out var msgProp) ||
+                        root.TryGetProperty("message", out msgProp) ||
+                        root.TryGetProperty("detail", out msgProp) ||
+                        root.TryGetProperty("title", out msgProp))
+                    {
+                        var msg = msgProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(msg))
+                        {
+                            throw new Exception(msg);
+                        }
+                    }
+
+
+                    if (root.TryGetProperty("errors", out var errorsProp) && errorsProp.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var prop in errorsProp.EnumerateObject())
+                        {
+                            if (prop.Value.ValueKind == JsonValueKind.Array)
+                            {
+                                var primerError = prop.Value.EnumerateArray().FirstOrDefault().GetString();
+                                if (!string.IsNullOrWhiteSpace(primerError))
+                                {
+                                    throw new Exception(primerError);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                throw new Exception($"Error HTTP {(int)response.StatusCode}: {response.ReasonPhrase}");
+            }
+            catch (JsonException)
+            {
+                throw new Exception($"Error HTTP {(int)response.StatusCode}: {jsonContent}");
+            }
+        }
+
+
         public class ApiErrorResponse
         {
             public int StatusCode { get; set; }
