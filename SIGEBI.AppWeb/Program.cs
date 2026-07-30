@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using SIGEBI.Application.Dependency;
 using SIGEBI.AppWeb.Services;
-using SIGEBI.Infrastructure;
+using SIGEBI.AppWeb.Handlers;
 
 namespace SIGEBI.AppWeb
 {
@@ -12,7 +11,6 @@ namespace SIGEBI.AppWeb
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllersWithViews();
-
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddTransient<JwtBearerHandler>();
             var apiBase = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:54538/";
@@ -32,11 +30,6 @@ namespace SIGEBI.AppWeb
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
                     options.SlidingExpiration = true;
                 });
-
-            builder.Services.AddHttpClient<ApiClient>(client =>
-            {
-                client.BaseAddress = new Uri("https://localhost:7063/");
-            });
 
             var app = builder.Build();
 
