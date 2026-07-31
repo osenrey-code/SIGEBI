@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Handlers;
 using SIGEBI.AppEscritorio.Services.Auth;
 using SIGEBI.AppEscritorio.Services.Implementaciones;
+using SIGEBI.AppEscritorio.Services.Interfaces; 
 using SIGEBI.AppEscritorio.Views;
 using SIGEBI.AppEscritorio.Views.Administrador;
 using SIGEBI.AppEscritorio.Views.Auditor;
@@ -13,7 +14,6 @@ namespace SIGEBI.AppEscritorio.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        // General
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddApiServices(configuration);
@@ -41,16 +41,19 @@ namespace SIGEBI.AppEscritorio.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddTransient<IAuthService, AuthService>();
+
+            services.AddTransient<ICatalogoService, CatalogoService>();
+
             return services;
         }
 
         public static IServiceCollection AddFormViews(this IServiceCollection services)
         {
             services.AddTransient<LoginForm>();
+            services.AddTransient<CatalogoForm>();
+            services.AddTransient<GestionarRecursoForm>();
 
             return services;
         }
-
-        
     }
 }

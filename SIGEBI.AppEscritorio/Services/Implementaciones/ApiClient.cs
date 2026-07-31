@@ -60,6 +60,20 @@ namespace SIGEBI.AppEscritorio.Services.Implementaciones
             await ValidarRespuestaAsync(response);
         }
 
+        public async Task<TResponse?> PostFormAsync<TResponse>(string endpoint, MultipartFormDataContent content)
+        {
+            var response = await _httpClient.PostAsync(endpoint, content);
+            await ValidarRespuestaAsync(response);
+            return await response.Content.ReadFromJsonAsync<TResponse>();
+        }
+
+        public async Task<TResponse?> PutFormAsync<TResponse>(string endpoint, MultipartFormDataContent content)
+        {
+            var response = await _httpClient.PutAsync(endpoint, content);
+            await ValidarRespuestaAsync(response);
+            return await response.Content.ReadFromJsonAsync<TResponse>();
+        }
+
         private static async Task ValidarRespuestaAsync(HttpResponseMessage response)
         {
             if (response.IsSuccessStatusCode) return;

@@ -13,5 +13,7 @@ namespace SIGEBI.AppEscritorio.Services.Implementaciones
         Task PatchAsync<TRequest>(string endpoint, TRequest data);
         Task DeleteAsync(string endpoint);
         Task<byte[]> GetByteArrayAsync(string endpoint);
+        Task<TResponse?> PostFormAsync<TResponse>(string endpoint, MultipartFormDataContent content);
+        Task<TResponse?> PutFormAsync<TResponse>(string endpoint, MultipartFormDataContent content);
     }
 }
