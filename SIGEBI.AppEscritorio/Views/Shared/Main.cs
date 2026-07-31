@@ -106,6 +106,58 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
         }
 
+        #region Funciones para abrir Formularios dentro del Panel Principal
+
+        private void AbrirFormularioEnPanel(Form formularioHijo)
+        {
+            // Cerramos el formulario anterior si hay alguno abierto
+            if (_formularioActivo != null)
+            {
+                _formularioActivo.Close();
+            }
+
+            _formularioActivo = formularioHijo;
+
+            // Configuramos el formulario para que se comporte como un control
+            formularioHijo.TopLevel = false;
+            formularioHijo.FormBorderStyle = FormBorderStyle.None;
+            formularioHijo.Dock = DockStyle.Fill;
+
+            // Ocultamos las tarjetas del dashboard
+            CambiarVisibilidadDashboard(false);
+
+            // Añadimos y mostramos
+            pnlContent.Controls.Add(formularioHijo);
+            pnlContent.Tag = formularioHijo;
+            formularioHijo.BringToFront();
+            formularioHijo.Show();
+        }
+
+        private void MostrarDashboard()
+        {
+            // Cerramos cualquier formulario hijo que esté abierto
+            if (_formularioActivo != null)
+            {
+                _formularioActivo.Close();
+                _formularioActivo = null;
+            }
+
+            // Volvemos a mostrar las tarjetas
+            CambiarVisibilidadDashboard(true);
+        }
+
+        private void CambiarVisibilidadDashboard(bool visible)
+        {
+            lblWelcomeHeader.Visible = visible;
+            lblWelcomeSub.Visible = visible;
+            pnlCard1.Visible = visible;
+            pnlCard2.Visible = visible;
+            pnlCard3.Visible = visible;
+            pnlCard4.Visible = visible;
+        }
+
+        #endregion
+
         #region Renderizado del Logo del Libro en Vector (GDI+)
 
         private void PicSidebarLogo_Paint(object? sender, PaintEventArgs e)
@@ -321,6 +373,10 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuCatalogo_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuCatalogo, "Catálogo de Libros");
+
+            // Le pedimos al Inyector de Dependencias que nos entregue un CatalogoForm con todos sus servicios listos
+            var catalogoForm = Program.ServiceProvider.GetRequiredService<CatalogoForm>();
+            AbrirFormularioEnPanel(catalogoForm);
         }
 
         private void btnMenuPrestamos_Click(object sender, EventArgs e)
