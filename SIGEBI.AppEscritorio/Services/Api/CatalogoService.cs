@@ -2,6 +2,7 @@
 using SIGEBI.AppEscritorio.Dtos.Catalogo.Response;
 using SIGEBI.AppEscritorio.Services.Interfaces;
 using System.Net.Http.Headers;
+using SIGEBI.AppEscritorio.Services.Api;
 
 namespace SIGEBI.AppEscritorio.Services.Implementaciones
 {

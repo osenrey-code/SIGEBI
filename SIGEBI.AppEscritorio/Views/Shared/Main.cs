@@ -1,5 +1,5 @@
 ﻿using SIGEBI.AppEscritorio.Session;
-using SIGEBI.AppEscritorio.Views.Usuario; // <-- Importante para UsuarioForm
+using SIGEBI.AppEscritorio.Views.Usuario;
 using Microsoft.Extensions.DependencyInjection;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
@@ -13,7 +13,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private static readonly Color ColorInactiveSidebar = Color.FromArgb(30, 41, 59);
 
         private Form? _formularioActivo = null;
-        private Control[]? _controlesDashboardIniciales;
 
         public Main()
         {
@@ -51,10 +50,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void Main_Load(object sender, EventArgs e)
         {
-            // Guardar los controles iniciales del Dashboard para poder restaurarlos al volver a Inicio
-            _controlesDashboardIniciales = new Control[pnlContent.Controls.Count];
-            pnlContent.Controls.CopyTo(_controlesDashboardIniciales, 0);
-
             CargarDatosUsuario();
             GestionPermisos();
         }
@@ -123,7 +118,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             formularioHijo.FormBorderStyle = FormBorderStyle.None;
             formularioHijo.Dock = DockStyle.Fill;
 
-            // Ocultamos las tarjetas del dashboard
+            // Ocultamos las tarjetas del dashboard de forma segura
             CambiarVisibilidadDashboard(false);
 
             // Añadimos y mostramos
@@ -304,25 +299,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         #region Eventos de Botones de Navegación Lateral y Cambio de Pantalla
 
-        private void AbrirFormularioEnPanel(Form formHijo)
-        {
-            if (_formularioActivo != null)
-            {
-                _formularioActivo.Close();
-            }
-
-            _formularioActivo = formHijo;
-            formHijo.TopLevel = false;
-            formHijo.FormBorderStyle = FormBorderStyle.None;
-            formHijo.Dock = DockStyle.Fill;
-
-            pnlContent.Controls.Clear();
-            pnlContent.Controls.Add(formHijo);
-            pnlContent.Tag = formHijo;
-            formHijo.BringToFront();
-            formHijo.Show();
-        }
-
         private void SeleccionarBotonMenu(Button botonActivo, string tituloSeccion)
         {
             lblPageTitle.Text = tituloSeccion;
@@ -349,18 +325,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuDashboard_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuDashboard, "Panel Principal");
-
-            if (_formularioActivo != null)
-            {
-                _formularioActivo.Close();
-                _formularioActivo = null;
-            }
-
-            pnlContent.Controls.Clear();
-            if (_controlesDashboardIniciales != null)
-            {
-                pnlContent.Controls.AddRange(_controlesDashboardIniciales);
-            }
+            MostrarDashboard(); // Restaura las tarjetas limpiamente
         }
 
         private void btnMenuUsuarios_Click(object sender, EventArgs e)
@@ -373,8 +338,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuCatalogo_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuCatalogo, "Catálogo de Libros");
-
-            // Le pedimos al Inyector de Dependencias que nos entregue un CatalogoForm con todos sus servicios listos
             var catalogoForm = Program.ServiceProvider.GetRequiredService<CatalogoForm>();
             AbrirFormularioEnPanel(catalogoForm);
         }

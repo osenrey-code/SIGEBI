@@ -11,6 +11,7 @@ using SIGEBI.AppEscritorio.Views.Auditor;
 using SIGEBI.AppEscritorio.Views.Bibliotecario;
 using SIGEBI.AppEscritorio.Views.Shared;
 using SIGEBI.AppEscritorio.Views.Usuario;
+using SIGEBI.AppEscritorio.Services.Usuario;
 
 namespace SIGEBI.AppEscritorio.Extensions
 {
@@ -45,6 +46,7 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<IAuthService, AuthService>();
 
             services.AddTransient<ICatalogoService, CatalogoService>();
+            services.AddTransient<IUsuarioService, UsuarioService>();
 
             return services;
         }
