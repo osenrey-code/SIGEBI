@@ -1,13 +1,10 @@
 ﻿using SIGEBI.AppEscritorio.Services.Auth;
+using SIGEBI.AppEscritorio.Session;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -30,7 +27,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             this.Load += (s, e) => AplicarBordesRedondeados();
             this.Resize += (s, e) => AplicarBordesRedondeados();
 
-            // Desactivar bordes por defecto de WinForms que causan líneas blancas
+            // Desactivar bordes por defecto de WinForms
             btnIngresar.FlatAppearance.BorderSize = 0;
             btnIngresar.FlatAppearance.BorderColor = Color.FromArgb(15, 23, 42);
             btnIngresar.FlatAppearance.MouseDownBackColor = Color.FromArgb(15, 23, 42);
@@ -40,18 +37,18 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             btnIngresar.Paint += BtnIngresar_Paint;
             picLogo.Paint += PicLogo_Paint;
 
-            // La ventana ya no tiene barra de título de Windows: la hacemos arrastrable
+            // Arrastre sin barra de título
             HabilitarArrastre(pnlBranding);
             HabilitarArrastre(lblLoginHeader);
             HabilitarArrastre(lblLoginSubtext);
 
-            // Línea de acento bajo cada campo: se ilumina al recibir foco
+            // Línea de acento bajo cada campo
             txtIdentificacion.Enter += (s, e) => pnlIdentificacionLine.BackColor = ColorLineaActiva;
             txtIdentificacion.Leave += (s, e) => pnlIdentificacionLine.BackColor = ColorLineaInactiva;
             txtPassword.Enter += (s, e) => pnlPasswordLine.BackColor = ColorLineaActiva;
             txtPassword.Leave += (s, e) => pnlPasswordLine.BackColor = ColorLineaInactiva;
 
-            // Efecto hover para los botones de la barra de título propia
+            // Efecto hover para botones de título
             btnClose.MouseEnter += btnClose_MouseEnter;
             btnClose.MouseLeave += btnClose_MouseLeave;
             btnMinimize.MouseEnter += btnMinimize_MouseEnter;
@@ -80,7 +77,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             var pic = (PictureBox)sender!;
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // 1. Dibujar Contenedor Azul Redondeado estilo 'App Badge'
             var rectBadge = new Rectangle(0, 0, pic.Width - 1, pic.Height - 1);
             using (var pathBadge = CrearRutaRedondeada(rectBadge, 14))
             using (var brushBadge = new LinearGradientBrush(rectBadge, Color.FromArgb(59, 130, 246), Color.FromArgb(37, 99, 235), 45f))
@@ -88,7 +84,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 e.Graphics.FillPath(brushBadge, pathBadge);
             }
 
-            // 2. Dibujar el Icono del Libro Blanco
             using (var penBook = new Pen(Color.White, 3f))
             {
                 penBook.StartCap = LineCap.Round;
@@ -98,15 +93,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 int cx = pic.Width / 2;
                 int cy = pic.Height / 2;
 
-                // Lomo Central
                 e.Graphics.DrawLine(penBook, cx, cy - 10, cx, cy + 12);
 
-                // Hoja Izquierda
                 e.Graphics.DrawArc(penBook, cx - 16, cy - 12, 16, 8, 180, 180);
                 e.Graphics.DrawLine(penBook, cx - 16, cy - 8, cx - 16, cy + 10);
                 e.Graphics.DrawArc(penBook, cx - 16, cy + 6, 16, 8, 0, 180);
 
-                // Hoja Derecha
                 e.Graphics.DrawArc(penBook, cx, cy - 12, 16, 8, 180, 180);
                 e.Graphics.DrawLine(penBook, cx + 16, cy - 8, cx + 16, cy + 10);
                 e.Graphics.DrawArc(penBook, cx, cy + 6, 16, 8, 0, 180);
@@ -123,10 +115,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-            // 1. Limpiar completamente el área del botón con el color de fondo exacto del formulario
             e.Graphics.Clear(this.BackColor);
 
-            // 2. Definir un rectángulo interno inset (con margen de 1px) para evitar artefactos del marco
             var rect = new Rectangle(1, 1, btn.Width - 3, btn.Height - 3);
             int radio = 10;
 
@@ -145,7 +135,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 }
             }
 
-            // 3. Dibujar el texto centrado
             TextRenderer.DrawText(e.Graphics, btn.Text, btn.Font, btn.ClientRectangle, btn.ForeColor,
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         }
@@ -191,15 +180,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         #region Botones de la barra de título propia
 
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-
-        private void btnMinimize_Click(object sender, EventArgs e)
-        {
-            this.WindowState = FormWindowState.Minimized;
-        }
+        private void btnClose_Click(object sender, EventArgs e) => Application.Exit();
+        private void btnMinimize_Click(object sender, EventArgs e) => this.WindowState = FormWindowState.Minimized;
 
         private void btnClose_MouseEnter(object? sender, EventArgs e)
         {
@@ -249,6 +231,22 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 return;
             }
 
+            // 🛑 VALIDACIÓN DE ROLES CON ACCESO A LA APP DE ESCRITORIO
+            string rol = resultado.TipoUsuario ?? string.Empty;
+            if (rol != "Administrador" && rol != "Bibliotecario" && rol != "PersonalBibliotecario" && rol != "Auditor")
+            {
+                MessageBox.Show(
+                    "El rol de Estudiante/Docente no tiene acceso al sistema administrativo de escritorio.\nPor favor, utilice la plataforma web.",
+                    "Acceso Restringido",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                UserSession.Instancia.CerrarSesion();
+                txtPassword.Clear();
+                txtPassword.Focus();
+                return; // ⛔ Detiene el flujo y se queda en la pantalla de Login
+            }
+
             NavegarAFormularioPrincipal(resultado.TipoUsuario!);
         }
 
@@ -256,7 +254,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         {
             this.Hide();
 
-            Form mainForm = new Main();
+            // Resolver Main desde el ServiceProvider
+            var mainForm = Program.ServiceProvider.GetRequiredService<Main>();
 
             mainForm.ShowDialog();
             this.Close();
@@ -267,7 +266,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             btnIngresar.Enabled = !cargando;
             txtIdentificacion.Enabled = !cargando;
             txtPassword.Enabled = !cargando;
-            btnIngresar.Invalidate(); // Fuerza el redibujado instantáneo del botón
+            btnIngresar.Invalidate();
             this.Cursor = cargando ? Cursors.WaitCursor : Cursors.Default;
         }
 

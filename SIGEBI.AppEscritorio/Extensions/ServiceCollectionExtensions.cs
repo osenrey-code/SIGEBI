@@ -54,6 +54,7 @@ namespace SIGEBI.AppEscritorio.Extensions
         public static IServiceCollection AddFormViews(this IServiceCollection services)
         {
             services.AddTransient<LoginForm>();
+            services.AddTransient<Main>();
             services.AddTransient<CatalogoForm>();
             services.AddTransient<GestionarRecursoForm>();
 

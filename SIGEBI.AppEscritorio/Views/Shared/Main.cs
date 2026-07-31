@@ -1,8 +1,11 @@
 ﻿using SIGEBI.AppEscritorio.Session;
 using SIGEBI.AppEscritorio.Views.Usuario;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
@@ -29,7 +32,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             // Renderizado del logo del libro en la barra lateral
             picSidebarLogo.Paint += PicSidebarLogo_Paint;
 
-            // Renderizado vectorial milimétricamente centrado para la botonera del título
+            // Renderizado vectorial de la botonera del título
             btnMinimize.Paint += BtnControlTitulo_Paint;
             btnMaximize.Paint += BtnControlTitulo_Paint;
             btnClose.Paint += BtnControlTitulo_Paint;
@@ -39,7 +42,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             HabilitarArrastre(pnlBrand);
             HabilitarArrastre(lblBrandTitle);
 
-            // Involucrar redibujado dinámico al pasar el mouse (hover)
+            // Hover dinámico
             btnClose.MouseEnter += (s, e) => btnClose.Invalidate();
             btnClose.MouseLeave += (s, e) => btnClose.Invalidate();
             btnMaximize.MouseEnter += (s, e) => btnMaximize.Invalidate();
@@ -50,8 +53,18 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void Main_Load(object sender, EventArgs e)
         {
+            // 🛑 Si el rol no tiene permisos administrativos, forzar el cierre de Main
+            if (!GestionPermisos())
+            {
+                this.BeginInvoke(new Action(() =>
+                {
+                    UserSession.Instancia.CerrarSesion();
+                    this.Close();
+                }));
+                return;
+            }
+
             CargarDatosUsuario();
-            GestionPermisos();
         }
 
         private void CargarDatosUsuario()
@@ -64,7 +77,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             this.Text = $"SIGEBI - Panel Principal | Usuario: {nombre} ({rol})";
         }
 
-        private void GestionPermisos()
+        private bool GestionPermisos()
         {
             string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
 
@@ -76,7 +89,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPrestamos.Visible = true;
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = true;
-                    break;
+                    return true;
 
                 case "Bibliotecario" or "PersonalBibliotecario":
                     btnMenuDashboard.Visible = true;
@@ -84,7 +97,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPrestamos.Visible = true;
                     btnMenuUsuarios.Visible = false;
                     btnMenuAuditoria.Visible = false;
-                    break;
+                    return true;
 
                 case "Auditor":
                     btnMenuDashboard.Visible = true;
@@ -92,12 +105,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPrestamos.Visible = false;
                     btnMenuUsuarios.Visible = false;
                     btnMenuAuditoria.Visible = true;
-                    break;
+                    return true;
 
                 default:
-                    MessageBox.Show("No posee un rol válido para acceder a las funciones del sistema.",
+                    MessageBox.Show("No posee un rol válido para acceder a las funciones del sistema de escritorio.",
                                     "Acceso Restringido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    break;
+                    return false; // ⛔ Retorna false para impedir la carga del Main
             }
         }
 
@@ -105,7 +118,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void AbrirFormularioEnPanel(Form formularioHijo)
         {
-            // Cerramos el formulario anterior si hay alguno abierto
             if (_formularioActivo != null)
             {
                 _formularioActivo.Close();
@@ -113,15 +125,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
             _formularioActivo = formularioHijo;
 
-            // Configuramos el formulario para que se comporte como un control
             formularioHijo.TopLevel = false;
             formularioHijo.FormBorderStyle = FormBorderStyle.None;
             formularioHijo.Dock = DockStyle.Fill;
 
-            // Ocultamos las tarjetas del dashboard de forma segura
             CambiarVisibilidadDashboard(false);
 
-            // Añadimos y mostramos
             pnlContent.Controls.Add(formularioHijo);
             pnlContent.Tag = formularioHijo;
             formularioHijo.BringToFront();
@@ -130,14 +139,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void MostrarDashboard()
         {
-            // Cerramos cualquier formulario hijo que esté abierto
             if (_formularioActivo != null)
             {
                 _formularioActivo.Close();
                 _formularioActivo = null;
             }
 
-            // Volvemos a mostrar las tarjetas
             CambiarVisibilidadDashboard(true);
         }
 
@@ -202,14 +209,13 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         #endregion
 
-        #region Renderizado Vectorial Alinear Botones de Título (Minimizar, Maximizar, Cerrar)
+        #region Renderizado Vectorial Alinear Botones de Título
 
         private void BtnControlTitulo_Paint(object? sender, PaintEventArgs e)
         {
             var btn = (Button)sender!;
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // Detectar estado Hover
             Point mousePos = btn.PointToClient(Cursor.Position);
             bool estaHover = btn.ClientRectangle.Contains(mousePos);
 
@@ -225,25 +231,22 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
 
             int cx = btn.Width / 2;
-            int cy = btn.Height / 2; // Exacto punto Y central
+            int cy = btn.Height / 2;
 
             using (var pen = new Pen(colorIcono, 1.5f))
             {
                 if (btn == btnMinimize)
                 {
-                    // Guión vectorizado exacto en el eje Y central
                     e.Graphics.DrawLine(pen, cx - 5, cy, cx + 5, cy);
                 }
                 else if (btn == btnMaximize)
                 {
                     if (this.WindowState == FormWindowState.Normal)
                     {
-                        // Cuadrado alineado en (cx, cy)
                         e.Graphics.DrawRectangle(pen, cx - 5, cy - 5, 10, 10);
                     }
                     else
                     {
-                        // Cuadrados dobles (Restaurar)
                         e.Graphics.DrawRectangle(pen, cx - 3, cy - 6, 7, 7);
                         using (var fillFront = new SolidBrush(colorFondo == Color.Transparent ? Color.FromArgb(30, 41, 59) : colorFondo))
                         {
@@ -254,7 +257,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 }
                 else if (btn == btnClose)
                 {
-                    // Cruz 'X' centrada
                     e.Graphics.DrawLine(pen, cx - 5, cy - 5, cx + 5, cy + 5);
                     e.Graphics.DrawLine(pen, cx - 5, cy + 5, cx + 5, cy - 5);
                 }
@@ -325,7 +327,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuDashboard_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuDashboard, "Panel Principal");
-            MostrarDashboard(); // Restaura las tarjetas limpiamente
+            MostrarDashboard();
         }
 
         private void btnMenuUsuarios_Click(object sender, EventArgs e)
@@ -338,8 +340,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuCatalogo_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuCatalogo, "Catálogo de Libros");
-            var catalogoForm = Program.ServiceProvider.GetRequiredService<CatalogoForm>();
-            AbrirFormularioEnPanel(catalogoForm);
+             var catalogoForm = Program.ServiceProvider.GetRequiredService<CatalogoForm>();
+             AbrirFormularioEnPanel(catalogoForm);
         }
 
         private void btnMenuPrestamos_Click(object sender, EventArgs e)
@@ -373,10 +375,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         #region Botones de Titulo: Minimizar, Maximizar/Restaurar y Cerrar
 
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
+        private void btnClose_Click(object sender, EventArgs e) => Application.Exit();
 
         private void btnMaximize_Click(object sender, EventArgs e)
         {
