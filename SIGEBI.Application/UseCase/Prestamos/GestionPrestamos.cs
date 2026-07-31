@@ -57,6 +57,33 @@ namespace SIGEBI.Application.UseCase.Prestamos
             if (usuario is null)
                 throw new BusinessException("El usuario solicitante no existe.");
 
+            var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
+
+            if (ejemplar is null)
+            {
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    $"El ejemplar físico ID {request.EjemplarId} no existe."
+                );
+
+                throw new BusinessException("El ejemplar físico solicitado no existe.");
+            }
+
+            bool tienePrestamoActivo = await _prestamos.TienePrestamoActivoDeRecursoAsync(
+                usuario.UsuarioId,
+                ejemplar.RecursoBibliograficoId
+            );
+
+            if (tienePrestamoActivo)
+            {
+                await RegistrarAuditoriaSolicitudDenegadaAsync(
+                    usuario.UsuarioId,
+                    $"El usuario ya posee un préstamo activo del recurso ID {ejemplar.RecursoBibliograficoId}."
+                );
+
+                throw new BusinessException("Ya posees un préstamo activo de este libro. Debes devolverlo antes de solicitar otra copia.");
+            }
+
             bool yaTieneSolicitud = await _solicitudes.ExisteSolicitudPendienteOActivaAsync(usuarioId, request.EjemplarId);
 
             if (yaTieneSolicitud)
@@ -64,9 +91,9 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 throw new BusinessException("Ya tienes una solicitud pendiente o aprobada para este ejemplar.");
             }
 
-            var ejemplar = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
+            var ejemplar2 = await _ejemplares.ObtenerPorIdAsync(request.EjemplarId);
 
-            if (ejemplar is null)
+            if (ejemplar2 is null)
             {
                 await RegistrarAuditoriaSolicitudDenegadaAsync(
                     usuario.UsuarioId,

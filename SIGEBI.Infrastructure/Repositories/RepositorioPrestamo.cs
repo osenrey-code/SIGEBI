@@ -92,6 +92,16 @@ namespace SIGEBI.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<bool> TienePrestamoActivoDeRecursoAsync(int usuarioId, int recursoBibliograficoId)
+        {
+            return await _dbSet.AnyAsync(p =>
+                p.UsuarioId == usuarioId &&
+                p.Estado == EstadoPrestamo.Activo && // Asegúrate de usar tu Enum de EstadoPrestamo
+                p.Ejemplar != null &&
+                p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId
+            );
+        }
+
         public async Task<IEnumerable<Prestamo>> ObtenerActivosVencidosAsync(DateTime fechaEvaluacion)
         {
             return await _context.Prestamos

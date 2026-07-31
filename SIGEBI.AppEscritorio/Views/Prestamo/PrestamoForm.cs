@@ -16,6 +16,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
         private Button btnTabSolicitudes = null!;
         private Button btnTabActivos = null!;
         private Button btnTabHistorial = null!;
+        private Button btnRefrescar = null!; // 👈 Botón para refrescar datos
 
         // Contenedor principal de vistas
         private Panel pnlContenedor = null!;
@@ -71,9 +72,26 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             btnTabActivos.Click += (s, e) => SeleccionarPestana("Activos");
             btnTabHistorial.Click += (s, e) => SeleccionarPestana("Historial");
 
+            // 🔄 Botón de Refrescar alineado a la derecha
+            btnRefrescar = new Button
+            {
+                Text = "🔄  Refrescar",
+                Size = new Size(130, 38),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Location = new Point(pnlNavegacion.Width - 130, 3),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                BackColor = Color.FromArgb(51, 65, 85),
+                ForeColor = Color.White
+            };
+            btnRefrescar.FlatAppearance.BorderSize = 0;
+            btnRefrescar.Click += async (s, e) => await CargarDatosPestanaActualAsync();
+
             pnlNavegacion.Controls.Add(btnTabSolicitudes);
             pnlNavegacion.Controls.Add(btnTabActivos);
             pnlNavegacion.Controls.Add(btnTabHistorial);
+            pnlNavegacion.Controls.Add(btnRefrescar); // 👈 Añadido a la navegación
 
             // 2. Contenedor Dinámico para las Tablas
             pnlContenedor = new Panel
@@ -227,7 +245,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(15, 23, 42);
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(148, 163, 184);
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
-            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(15, 23, 42); // Evita color azul al hacer clic en headers
+            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(15, 23, 42);
             dgv.ColumnHeadersHeight = 42;
 
             // Estilo de las celdas y filas

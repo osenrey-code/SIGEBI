@@ -20,7 +20,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             _catalogoService = catalogoService;
             _serviceProvider = serviceProvider;
 
-            // Aplicamos el diseño moderno inmediatamente al cargar
             AplicarDisenoModerno();
         }
 
@@ -28,64 +27,145 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void AplicarDisenoModerno()
         {
-            // Colores base extraídos de tu menú lateral
-            Color fondoPrincipal = Color.FromArgb(15, 23, 42);       // Fondo oscuro
-            Color fondoPaneles = Color.FromArgb(30, 41, 59);         // Oscuro un poco más claro
-            Color textoSecundario = Color.FromArgb(148, 163, 184);   // Gris claro
-            Color colorPrimario = Color.FromArgb(37, 99, 235);       // Azul vibrante
-            Color colorPeligro = Color.FromArgb(239, 68, 68);        // Rojo
-            Color colorAdvertencia = Color.FromArgb(245, 158, 11);   // Naranja/Amarillo
+            // Paleta de Colores Dark Slate
+            Color fondoPrincipal = Color.FromArgb(15, 23, 42);      // #0F172A
+            Color fondoPaneles = Color.FromArgb(30, 41, 59);        // #1E293B
+            Color textoSecundario = Color.FromArgb(148, 163, 184);  // Gris claro
+            Color colorPrimario = Color.FromArgb(37, 99, 235);      // Azul
+            Color colorPeligro = Color.FromArgb(239, 68, 68);       // Rojo
+            Color colorAdvertencia = Color.FromArgb(245, 158, 11);  // Naranja/Amarillo
+            Color colorRefrescar = Color.FromArgb(51, 65, 85);     // Gris pizarra
 
-            // 1. Fondos Generales
+            // 1. Configuración de la Ventana
             this.BackColor = fondoPrincipal;
-            pnlBotones.BackColor = fondoPrincipal;
-            pnlBotones.Padding = new Padding(10, 10, 10, 10); // Un poco de espacio
+            this.Dock = DockStyle.Fill;
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.Padding = new Padding(15);
 
-            // 2. Estilos de Botones
-            ConfigurarBoton(btnNuevo, colorPrimario, Color.White);
-            ConfigurarBoton(btnEditar, colorAdvertencia, Color.White);
-            ConfigurarBoton(btnEliminar, colorPeligro, Color.White);
-            ConfigurarBoton(btnRecargar, fondoPaneles, Color.White);
+            // 2. Panel Superior de Botones
+            pnlBotones.BackColor = fondoPaneles;
+            pnlBotones.Height = 60;
+            pnlBotones.Padding = new Padding(15, 11, 15, 11);
 
-            // 3. Modernización del DataGridView
-            dgvCatalogo.BackgroundColor = fondoPrincipal;
+            // Estilos de la Botonera
+            ConfigurarBoton(btnNuevo, "➕  Nuevo Recurso", colorPrimario, Color.White, 160);
+            ConfigurarBoton(btnEditar, "✏️  Editar", colorAdvertencia, Color.White, 110);
+            ConfigurarBoton(btnEliminar, "🗑️  Eliminar", colorPeligro, Color.White, 110);
+            ConfigurarBoton(btnRecargar, "🔄  Refrescar", colorRefrescar, Color.White, 120);
+
+            // 3. Formateo Profesional del DataGridView
+            dgvCatalogo.AutoGenerateColumns = false; // 👈 Evita columnas automáticas feas
+            dgvCatalogo.BackgroundColor = fondoPaneles;
             dgvCatalogo.BorderStyle = BorderStyle.None;
-            dgvCatalogo.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal; // Solo líneas horizontales
-            dgvCatalogo.GridColor = Color.FromArgb(51, 65, 85); // Color de las líneas
-            dgvCatalogo.EnableHeadersVisualStyles = false; // Importante para poder pintar cabeceras
-
-            // Ocultar columna izquierda vacía por defecto
+            dgvCatalogo.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvCatalogo.GridColor = Color.FromArgb(51, 65, 85);
+            dgvCatalogo.EnableHeadersVisualStyles = false;
             dgvCatalogo.RowHeadersVisible = false;
+            dgvCatalogo.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvCatalogo.MultiSelect = false;
+            dgvCatalogo.ReadOnly = true;
 
-            // Configurar Cabeceras de columnas
+            // Cabeceras
             dgvCatalogo.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            dgvCatalogo.ColumnHeadersDefaultCellStyle.BackColor = fondoPaneles;
-            dgvCatalogo.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dgvCatalogo.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            dgvCatalogo.ColumnHeadersDefaultCellStyle.SelectionBackColor = fondoPaneles; // Evitar que cambie al hacer clic
-            dgvCatalogo.ColumnHeadersHeight = 45;
+            dgvCatalogo.ColumnHeadersDefaultCellStyle.BackColor = fondoPrincipal;
+            dgvCatalogo.ColumnHeadersDefaultCellStyle.ForeColor = textoSecundario;
+            dgvCatalogo.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            dgvCatalogo.ColumnHeadersDefaultCellStyle.SelectionBackColor = fondoPrincipal;
+            dgvCatalogo.ColumnHeadersHeight = 42;
 
-            // Configurar Celdas
-            dgvCatalogo.DefaultCellStyle.BackColor = fondoPrincipal;
-            dgvCatalogo.DefaultCellStyle.ForeColor = textoSecundario;
+            // Filas y Celdas
+            dgvCatalogo.DefaultCellStyle.BackColor = fondoPaneles;
+            dgvCatalogo.DefaultCellStyle.ForeColor = Color.White;
+            dgvCatalogo.DefaultCellStyle.Font = new Font("Segoe UI", 9.5f);
             dgvCatalogo.DefaultCellStyle.SelectionBackColor = colorPrimario;
             dgvCatalogo.DefaultCellStyle.SelectionForeColor = Color.White;
-            dgvCatalogo.DefaultCellStyle.Font = new Font("Segoe UI", 9.5F);
-            dgvCatalogo.RowTemplate.Height = 40; // Filas más altas para mejor lectura
+            dgvCatalogo.RowTemplate.Height = 38;
 
-            // Margen para que la tabla no choque con los bordes
-            dgvCatalogo.Margin = new Padding(10);
+            dgvCatalogo.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(24, 34, 49);
+            dgvCatalogo.AlternatingRowsDefaultCellStyle.ForeColor = Color.White;
+            dgvCatalogo.AlternatingRowsDefaultCellStyle.SelectionBackColor = colorPrimario;
+
+            ConfigurarColumnasGrid();
         }
 
-        private void ConfigurarBoton(Button btn, Color bg, Color fg)
+        private void ConfigurarBoton(Button btn, string texto, Color bg, Color fg, int ancho)
         {
+            btn.Text = texto;
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderSize = 0;
             btn.BackColor = bg;
             btn.ForeColor = fg;
-            btn.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            btn.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
             btn.Cursor = Cursors.Hand;
-            btn.Height = 38;
+            btn.Size = new Size(ancho, 38);
+        }
+
+        private void ConfigurarColumnasGrid()
+        {
+            dgvCatalogo.Columns.Clear();
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "RecursoBibliograficoId",
+                HeaderText = "ID",
+                Width = 65,
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            });
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "ISBN",
+                HeaderText = "ISBN",
+                Width = 140,
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            });
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "Titulo",
+                HeaderText = "Título del Recurso",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                FillWeight = 180
+            });
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "Autor",
+                HeaderText = "Autor",
+                Width = 150
+            });
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "Categoria",
+                HeaderText = "Categoría",
+                Width = 130,
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            });
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "AnioPublicacion",
+                HeaderText = "Año",
+                Width = 75,
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            });
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "TotalEjemplares",
+                HeaderText = "Ejemplares",
+                Width = 95,
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+            });
+
+            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "CopiasDisponibles",
+                HeaderText = "Disponibles",
+                Width = 100,
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) }
+            });
         }
 
         #endregion
@@ -99,12 +179,17 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         {
             try
             {
+                this.Cursor = Cursors.WaitCursor;
                 var recursos = await _catalogoService.ConsultarTodosAsync();
                 dgvCatalogo.DataSource = recursos?.ToList();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error al cargar", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error al cargar el catálogo: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
             }
         }
 
@@ -132,7 +217,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
             else
             {
-                MessageBox.Show("Por favor, seleccione un recurso de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Por favor, seleccione un recurso de la lista para editar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -140,21 +225,34 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         {
             if (dgvCatalogo.CurrentRow?.DataBoundItem is RecursoResponse recursoSeleccionado)
             {
-                var confirmacion = MessageBox.Show($"¿Desea eliminar '{recursoSeleccionado.Titulo}'?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var confirmacion = MessageBox.Show(
+                    $"¿Está seguro de que desea eliminar el recurso '{recursoSeleccionado.Titulo}'?\nEsta acción no se puede deshacer.",
+                    "Confirmar Eliminación",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
 
                 if (confirmacion == DialogResult.Yes)
                 {
                     try
                     {
-                        await _catalogoService.EliminarRecursoAsync(recursoSeleccionado.RecursoBibliograficoId, "Eliminado desde sistema de escritorio");
+                        this.Cursor = Cursors.WaitCursor;
+                        await _catalogoService.EliminarRecursoAsync(recursoSeleccionado.RecursoBibliograficoId, "Eliminado desde el panel de escritorio");
                         MessageBox.Show("Recurso eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         await CargarDatosAsync();
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show($"No se pudo eliminar el recurso: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        this.Cursor = Cursors.Default;
                     }
                 }
+            }
+            else
+            {
+                MessageBox.Show("Por favor, seleccione un recurso de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

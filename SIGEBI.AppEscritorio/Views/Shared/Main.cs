@@ -12,11 +12,13 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 {
     public partial class Main : Form
     {
-        private static readonly Color ColorHoverBotonSidebar = Color.FromArgb(51, 65, 85);
-        private static readonly Color ColorActiveSidebar = Color.FromArgb(37, 99, 235);
-        private static readonly Color ColorInactiveSidebar = Color.FromArgb(30, 41, 59);
+        private static readonly Color ColorHoverBotonSidebar = Color.FromArgb(51, 65, 85);   // #334155
+        private static readonly Color ColorActiveSidebar = Color.FromArgb(37, 99, 235);     // #2563EB
+        private static readonly Color ColorInactiveSidebar = Color.FromArgb(30, 41, 59);   // #1E293B
+        private static readonly Color ColorAccentBar = Color.FromArgb(59, 130, 246);        // #3B82F6
 
         private Form? _formularioActivo = null;
+        private Button? _botonMenuSeleccionado = null;
 
         public Main()
         {
@@ -43,18 +45,21 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             HabilitarArrastre(pnlBrand);
             HabilitarArrastre(lblBrandTitle);
 
-            // Hover dinámico
+            // Hover dinámico en controles de ventana
             btnClose.MouseEnter += (s, e) => btnClose.Invalidate();
             btnClose.MouseLeave += (s, e) => btnClose.Invalidate();
             btnMaximize.MouseEnter += (s, e) => btnMaximize.Invalidate();
             btnMaximize.MouseLeave += (s, e) => btnMaximize.Invalidate();
             btnMinimize.MouseEnter += (s, e) => btnMinimize.Invalidate();
             btnMinimize.MouseLeave += (s, e) => btnMinimize.Invalidate();
+
+            // Configuración visual de la barra de navegación lateral y botón de salida
+            ConfigurarEstilosSidebar();
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
-            // 🛑 Si el rol no tiene permisos administrativos, forzar el cierre de Main
+            // 🛑 Validar permisos según el rol activo
             if (!GestionPermisos())
             {
                 this.BeginInvoke(new Action(() =>
@@ -66,17 +71,143 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
 
             CargarDatosUsuario();
+
+            // Seleccionar por defecto la vista principal del Dashboard
+            SeleccionarBotonMenu(btnMenuDashboard, "Panel Principal");
         }
 
         private void CargarDatosUsuario()
         {
             var sesion = UserSession.Instancia;
-            string nombre = string.IsNullOrWhiteSpace(sesion.NombreCompleto) ? "Usuario Desconocido" : sesion.NombreCompleto;
+            string nombre = string.IsNullOrWhiteSpace(sesion.NombreCompleto) ? "Usuario" : sesion.NombreCompleto;
             string rol = string.IsNullOrWhiteSpace(sesion.TipoUsuario) ? "Sin Rol" : sesion.TipoUsuario;
 
-            lblUsuarioLogueado.Text = $"Usuario: {nombre} | Rol: {rol}";
+            // Insignia de usuario superior estilizada
+            lblUsuarioLogueado.Text = $"👤  {nombre}   │   Rol: {rol}";
             this.Text = $"SIGEBI - Panel Principal | Usuario: {nombre} ({rol})";
+
+            ConfigurarDashboardProfesional(nombre, rol);
         }
+
+        private void ConfigurarDashboardProfesional(string nombreUsuario, string rol)
+        {
+            lblWelcomeHeader.Text = $"¡Bienvenido de nuevo, {nombreUsuario}! 👋";
+            lblWelcomeSub.Text = "Panel de control central de SIGEBI. Seleccione un módulo lateral o un acceso rápido.";
+
+            // 1. Tarjeta 1: Acceso Directo a Catálogo
+            lblCard1Title.Text = "📚 Gestión de Catálogo";
+            lblCard1Val.Text = "Explorar ➔";
+            lblCard1Val.Font = new Font("Segoe UI", 12f, FontStyle.Bold);
+            lblCard1Val.ForeColor = Color.FromArgb(59, 130, 246);
+            ConfigurarTarjetaComoBoton(pnlCard1, btnMenuCatalogo_Click);
+
+            // 2. Tarjeta 2: Acceso Directo a Préstamos
+            lblCard2Title.Text = "🔄 Préstamos y Solicitudes";
+            lblCard2Val.Text = "Gestionar ➔";
+            lblCard2Val.Font = new Font("Segoe UI", 12f, FontStyle.Bold);
+            lblCard2Val.ForeColor = Color.FromArgb(34, 197, 94);
+            ConfigurarTarjetaComoBoton(pnlCard2, btnMenuPrestamos_Click);
+
+            // 3. Tarjeta 3: Información de Rol
+            lblCard3Title.Text = "👤 Rol Asignado";
+            lblCard3Val.Text = rol;
+            lblCard3Val.Font = new Font("Segoe UI", 13f, FontStyle.Bold);
+            lblCard3Val.ForeColor = Color.FromArgb(168, 85, 247);
+
+            // 4. Tarjeta 4: Estado del Sistema
+            lblCard4Title.Text = "⚡ Estado del Servicio";
+            lblCard4Val.Text = "● En Línea";
+            lblCard4Val.Font = new Font("Segoe UI", 13f, FontStyle.Bold);
+            lblCard4Val.ForeColor = Color.FromArgb(34, 197, 94);
+        }
+
+        private void ConfigurarTarjetaComoBoton(Panel tarjeta, EventHandler accionClic)
+        {
+            tarjeta.Cursor = Cursors.Hand;
+            tarjeta.Click += accionClic;
+
+            foreach (Control control in tarjeta.Controls)
+            {
+                control.Cursor = Cursors.Hand;
+                control.Click += accionClic;
+            }
+
+            tarjeta.MouseEnter += (s, e) => tarjeta.BackColor = Color.FromArgb(51, 65, 85);
+            tarjeta.MouseLeave += (s, e) => tarjeta.BackColor = Color.FromArgb(30, 41, 59);
+        }
+
+        #region Estilizado del Menú Lateral y Botón de Cierre de Sesión
+
+        private void ConfigurarEstilosSidebar()
+        {
+            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuPrestamos, btnMenuUsuarios, btnMenuAuditoria };
+
+            foreach (var btn in botonesMenu)
+            {
+                btn.Paint += BotonSidebar_Paint;
+            }
+
+            EstilarBotonCerrarSesion();
+        }
+
+        private void BotonSidebar_Paint(object? sender, PaintEventArgs e)
+        {
+            if (sender is Button btn && btn == _botonMenuSeleccionado)
+            {
+                // Dibujar indicador lateral azul de 4px cuando el botón está activo
+                using var brushBarra = new SolidBrush(ColorAccentBar);
+                e.Graphics.FillRectangle(brushBarra, 0, 0, 4, btn.Height);
+            }
+        }
+
+        private void EstilarBotonCerrarSesion()
+        {
+            btnCerrarSesion.FlatStyle = FlatStyle.Flat;
+            btnCerrarSesion.FlatAppearance.BorderSize = 0;
+            btnCerrarSesion.BackColor = Color.FromArgb(24, 30, 45); // Fondo oscuro suave
+            btnCerrarSesion.ForeColor = Color.FromArgb(239, 68, 68); // Rojo carmesí brillante
+            btnCerrarSesion.Font = new Font("Segoe UI", 10f, FontStyle.Bold);
+            btnCerrarSesion.Text = "🚪   Cerrar Sesión";
+            btnCerrarSesion.Cursor = Cursors.Hand;
+
+            // Animación Hover al pasar el cursor sobre Cerrar Sesión
+            btnCerrarSesion.MouseEnter += (s, e) =>
+            {
+                btnCerrarSesion.BackColor = Color.FromArgb(69, 26, 26); // Rojo borgoña profundo
+                btnCerrarSesion.ForeColor = Color.FromArgb(248, 113, 113);
+            };
+
+            btnCerrarSesion.MouseLeave += (s, e) =>
+            {
+                btnCerrarSesion.BackColor = Color.FromArgb(24, 30, 45);
+                btnCerrarSesion.ForeColor = Color.FromArgb(239, 68, 68);
+            };
+        }
+
+        private void SeleccionarBotonMenu(Button botonActivo, string tituloSeccion)
+        {
+            lblPageTitle.Text = tituloSeccion;
+
+            ResetearBotonMenu(btnMenuDashboard);
+            ResetearBotonMenu(btnMenuCatalogo);
+            ResetearBotonMenu(btnMenuPrestamos);
+            ResetearBotonMenu(btnMenuUsuarios);
+            ResetearBotonMenu(btnMenuAuditoria);
+
+            _botonMenuSeleccionado = botonActivo;
+            botonActivo.BackColor = ColorActiveSidebar;
+            botonActivo.ForeColor = Color.White;
+            botonActivo.Invalidate(); // Forzar redibujado de la barra acentuada
+        }
+
+        private void ResetearBotonMenu(Button btn)
+        {
+            btn.BackColor = ColorInactiveSidebar;
+            btn.ForeColor = Color.FromArgb(148, 163, 184);
+            btn.Invalidate();
+        }
+
+        #endregion
 
         private bool GestionPermisos()
         {
@@ -111,7 +242,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 default:
                     MessageBox.Show("No posee un rol válido para acceder a las funciones del sistema de escritorio.",
                                     "Acceso Restringido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return false; // ⛔ Retorna false para impedir la carga del Main
+                    return false;
             }
         }
 
@@ -302,58 +433,34 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         #region Eventos de Botones de Navegación Lateral y Cambio de Pantalla
 
-        private void SeleccionarBotonMenu(Button botonActivo, string tituloSeccion)
-        {
-            lblPageTitle.Text = tituloSeccion;
-
-            btnMenuDashboard.BackColor = ColorInactiveSidebar;
-            btnMenuDashboard.ForeColor = Color.FromArgb(148, 163, 184);
-
-            btnMenuCatalogo.BackColor = ColorInactiveSidebar;
-            btnMenuCatalogo.ForeColor = Color.FromArgb(148, 163, 184);
-
-            btnMenuPrestamos.BackColor = ColorInactiveSidebar;
-            btnMenuPrestamos.ForeColor = Color.FromArgb(148, 163, 184);
-
-            btnMenuUsuarios.BackColor = ColorInactiveSidebar;
-            btnMenuUsuarios.ForeColor = Color.FromArgb(148, 163, 184);
-
-            btnMenuAuditoria.BackColor = ColorInactiveSidebar;
-            btnMenuAuditoria.ForeColor = Color.FromArgb(148, 163, 184);
-
-            botonActivo.BackColor = ColorActiveSidebar;
-            botonActivo.ForeColor = Color.White;
-        }
-
-        private void btnMenuDashboard_Click(object sender, EventArgs e)
+        private void btnMenuDashboard_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuDashboard, "Panel Principal");
             MostrarDashboard();
         }
 
-        private void btnMenuUsuarios_Click(object sender, EventArgs e)
+        private void btnMenuUsuarios_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuUsuarios, "Gestión de Usuarios");
             var frmUsuarios = Program.ServiceProvider.GetRequiredService<UsuarioForm>();
             AbrirFormularioEnPanel(frmUsuarios);
         }
 
-        private void btnMenuCatalogo_Click(object sender, EventArgs e)
+        private void btnMenuCatalogo_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuCatalogo, "Catálogo de Libros");
-             var catalogoForm = Program.ServiceProvider.GetRequiredService<CatalogoForm>();
-             AbrirFormularioEnPanel(catalogoForm);
+            var catalogoForm = Program.ServiceProvider.GetRequiredService<CatalogoForm>();
+            AbrirFormularioEnPanel(catalogoForm);
         }
 
-        private void btnMenuPrestamos_Click(object sender, EventArgs e)
+        private void btnMenuPrestamos_Click(object? sender, EventArgs e)
         {
-            SeleccionarBotonMenu(btnMenuPrestamos, "Préstamos y Devoluciones");
-
+            SeleccionarBotonMenu(btnMenuPrestamos, "Préstamos y Solicitudes");
             var prestamoForm = Program.ServiceProvider.GetRequiredService<PrestamoForm>();
             AbrirFormularioEnPanel(prestamoForm);
         }
 
-        private void btnMenuAuditoria_Click(object sender, EventArgs e)
+        private void btnMenuAuditoria_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuAuditoria, "Auditoría y Reportes");
         }

@@ -27,7 +27,7 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpGet("historial")]
-        [Authorize(Roles = "Docente,Administrador,Auditor")]
+        [Authorize(Roles = "Docente,Administrador,Auditor,Bibliotecario")]
         public async Task<IActionResult> HistorialPrestamo([FromQuery] ConsultarHistorialPrestamosRequest request)
         {
             var historial = await _prestamos.ConsultarHistorialAsync(request);

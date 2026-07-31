@@ -53,19 +53,11 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<bool> ExisteSolicitudPendienteOActivaAsync(int usuarioId, int ejemplarId)
         {
-            var recursoId = await _context.Ejemplares
-            .Where(e => e.EjemplarId == ejemplarId)
-            .Select(e => e.RecursoBibliograficoId)
-            .FirstOrDefaultAsync();
-
-            if (recursoId == 0) return false;
-
-            return await _dbSet.AnyAsync(s =>
-                s.UsuarioId == usuarioId &&
-                s.Ejemplar != null &&
-                s.Ejemplar.RecursoBibliograficoId == recursoId &&
-                (s.Estado == EstadoSolicitud.Pendiente || s.Estado == EstadoSolicitud.Aprobada)
-            );
+              return await _dbSet.AnyAsync(s =>
+              s.UsuarioId == usuarioId &&
+              s.EjemplarId == ejemplarId &&
+             (s.Estado == EstadoSolicitud.Pendiente || s.Estado == EstadoSolicitud.Aprobada)
+              );  
         }
     }
 }
