@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Session;
 using SIGEBI.AppEscritorio.Views.Prestamo;
+using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Usuario;
 using System;
 using System.Drawing;
@@ -101,8 +102,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             lblCard1Val.ForeColor = Color.FromArgb(59, 130, 246);
             ConfigurarTarjetaComoBoton(pnlCard1, btnMenuCatalogo_Click);
 
-            // 2. Tarjeta 2: Acceso Directo a Préstamos
-            lblCard2Title.Text = "🔄 Préstamos y Solicitudes";
+            // 2. Tarjeta 2: Acceso Directo a Préstamos (Solo el Bibliotecario gestiona solicitudes)
+            bool esBibliotecario = (rol == "Bibliotecario" || rol == "PersonalBibliotecario");
+            lblCard2Title.Text = esBibliotecario ? "🔄 Préstamos y Solicitudes" : "🔄 Préstamos";
             lblCard2Val.Text = "Gestionar ➔";
             lblCard2Val.Font = new Font("Segoe UI", 12f, FontStyle.Bold);
             lblCard2Val.ForeColor = Color.FromArgb(34, 197, 94);
@@ -219,6 +221,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
                     btnMenuPrestamos.Visible = true;
+                    btnMenuPrestamos.Text = "🔄  Préstamos"; // 👈 Renombrado a Préstamos
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = true;
                     return true;
@@ -227,14 +230,16 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
                     btnMenuPrestamos.Visible = true;
-                    btnMenuUsuarios.Visible = false;
+                    btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes"; // 👈 Exclusivo para el bibliotecario
+                    btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = false;
                     return true;
 
                 case "Auditor":
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
-                    btnMenuPrestamos.Visible = false;
+                    btnMenuPrestamos.Visible = true;
+                    btnMenuPrestamos.Text = "🔄  Préstamos"; // 👈 Renombrado a Préstamos
                     btnMenuUsuarios.Visible = false;
                     btnMenuAuditoria.Visible = true;
                     return true;
@@ -455,7 +460,11 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void btnMenuPrestamos_Click(object? sender, EventArgs e)
         {
-            SeleccionarBotonMenu(btnMenuPrestamos, "Préstamos y Solicitudes");
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+            bool esBibliotecario = (rol == "Bibliotecario" || rol == "PersonalBibliotecario");
+            string tituloSeccion = esBibliotecario ? "Préstamos y Solicitudes" : "Préstamos";
+
+            SeleccionarBotonMenu(btnMenuPrestamos, tituloSeccion);
             var prestamoForm = Program.ServiceProvider.GetRequiredService<PrestamoForm>();
             AbrirFormularioEnPanel(prestamoForm);
         }
@@ -463,6 +472,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuAuditoria_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuAuditoria, "Auditoría y Reportes");
+            var reporteForm = Program.ServiceProvider.GetRequiredService<ReporteForm>();
+            AbrirFormularioEnPanel(reporteForm);
         }
 
         private void btnCerrarSesion_Click(object sender, EventArgs e)

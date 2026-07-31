@@ -2,7 +2,9 @@
 using SIGEBI.AppEscritorio.Services.Usuario;
 using SIGEBI.AppEscritorio.Session;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq; // 👈 Necesario para el filtrado LINQ por rol
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -24,9 +26,11 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
 
         private async void UsuarioForm_Load(object sender, EventArgs e)
         {
-            cmbFiltroTipo.SelectedIndex = 0;
-            cmbFiltroEstado.SelectedIndex = 0;
             AplicarPermisosPorRol();
+
+            if (cmbFiltroTipo.Items.Count > 0) cmbFiltroTipo.SelectedIndex = 0;
+            if (cmbFiltroEstado.Items.Count > 0) cmbFiltroEstado.SelectedIndex = 0;
+
             await CargarUsuariosAsync();
         }
 
@@ -148,12 +152,24 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
 
         private void AplicarPermisosPorRol()
         {
-            bool esAdmin = UserSession.Instancia.TipoUsuario == "Administrador";
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+            bool esAdmin = rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
 
+            // Visibilidad de botones de acción
             btnNuevoUsuario.Visible = esAdmin;
             btnEditar.Visible = esAdmin;
             btnEstadoAccion.Visible = esAdmin;
             btnResetearPass.Visible = esAdmin;
+
+            // 🔒 Si el usuario es Bibliotecario, limitar las opciones del ComboBox de filtro
+            if (rol.Equals("Bibliotecario", StringComparison.OrdinalIgnoreCase) ||
+                rol.Equals("PersonalBibliotecario", StringComparison.OrdinalIgnoreCase))
+            {
+                cmbFiltroTipo.Items.Clear();
+                cmbFiltroTipo.Items.Add("Todos");
+                cmbFiltroTipo.Items.Add("Estudiante");
+                cmbFiltroTipo.Items.Add("Docente");
+            }
         }
 
         public async Task CargarUsuariosAsync()
@@ -170,6 +186,18 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
                 };
 
                 var usuarios = await _usuarioService.ConsultarUsuariosAsync(filtro);
+
+                // 🔒 Restricción estricta de seguridad: Bibliotecarios solo ven Estudiantes y Docentes
+                string rolActual = UserSession.Instancia.TipoUsuario ?? string.Empty;
+                if (rolActual.Equals("Bibliotecario", StringComparison.OrdinalIgnoreCase) ||
+                    rolActual.Equals("PersonalBibliotecario", StringComparison.OrdinalIgnoreCase))
+                {
+                    usuarios = usuarios
+                        ?.Where(u => u.TipoUsuario.Equals("Estudiante", StringComparison.OrdinalIgnoreCase) ||
+                                     u.TipoUsuario.Equals("Docente", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+
                 dgvUsuarios.DataSource = usuarios;
 
                 ActualizarEstadoBotonera();

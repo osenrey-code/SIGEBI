@@ -1,5 +1,6 @@
 ﻿using SIGEBI.AppEscritorio.Dtos.Prestamos;
 using SIGEBI.AppEscritorio.Services.Prestamo;
+using SIGEBI.AppEscritorio.Session; // 👈 Manejo de sesión para validación de roles
 using System;
 using System.Drawing;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
         private Button btnTabSolicitudes = null!;
         private Button btnTabActivos = null!;
         private Button btnTabHistorial = null!;
-        private Button btnRefrescar = null!; // 👈 Botón para refrescar datos
+        private Button btnRefrescar = null!;
 
         // Contenedor principal de vistas
         private Panel pnlContenedor = null!;
@@ -47,6 +48,30 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
         private async void PrestamoForm_Load(object sender, EventArgs e)
         {
             await CargarDatosPestanaActualAsync();
+        }
+
+        private void ValidarPermisosPorRol()
+        {
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+
+            // 🔒 1. Caso Auditor: Solo consulta el Historial General
+            if (rol == "Auditor")
+            {
+                btnTabSolicitudes.Visible = false;
+                btnTabActivos.Visible = false;
+
+                btnTabHistorial.Location = new Point(0, 0);
+                _pestanaActiva = "Historial";
+            }
+            // 🔒 2. Caso Administrador: Consulta Préstamos Activos e Historial (no aprueba solicitudes)
+            else if (rol == "Administrador")
+            {
+                btnTabSolicitudes.Visible = false;
+
+                btnTabActivos.Location = new Point(0, 0);
+                btnTabHistorial.Location = new Point(205, 0);
+                _pestanaActiva = "Activos";
+            }
         }
 
         private void ConfigurarDiseñoProfesional()
@@ -91,7 +116,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             pnlNavegacion.Controls.Add(btnTabSolicitudes);
             pnlNavegacion.Controls.Add(btnTabActivos);
             pnlNavegacion.Controls.Add(btnTabHistorial);
-            pnlNavegacion.Controls.Add(btnRefrescar); // 👈 Añadido a la navegación
+            pnlNavegacion.Controls.Add(btnRefrescar);
 
             // 2. Contenedor Dinámico para las Tablas
             pnlContenedor = new Panel
@@ -107,7 +132,11 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             this.Controls.Add(pnlContenedor);
             this.Controls.Add(pnlNavegacion);
 
-            SeleccionarPestana("Solicitudes");
+            // 3. Aplicar filtro de permisos por rol antes de cargar la pestaña
+            ValidarPermisosPorRol();
+
+            // Cargar la pestaña activa según el rol
+            SeleccionarPestana(_pestanaActiva);
         }
 
         private Button CrearBotonPestaña(string texto, int posicionX)

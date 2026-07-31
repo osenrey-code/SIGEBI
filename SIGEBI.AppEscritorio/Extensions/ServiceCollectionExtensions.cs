@@ -1,19 +1,18 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Handlers;
+using SIGEBI.AppEscritorio.Services;
 using SIGEBI.AppEscritorio.Services.Api;
 using SIGEBI.AppEscritorio.Services.Auth;
 using SIGEBI.AppEscritorio.Services.Catalogo;
 using SIGEBI.AppEscritorio.Services.Interfaces;
 using SIGEBI.AppEscritorio.Services.Prestamo;
+using SIGEBI.AppEscritorio.Services.Reporte;
 using SIGEBI.AppEscritorio.Services.Usuario;
-using SIGEBI.AppEscritorio.Views;
-using SIGEBI.AppEscritorio.Views.Administrador;
-using SIGEBI.AppEscritorio.Views.Auditor;
-using SIGEBI.AppEscritorio.Views.Bibliotecario;
 using SIGEBI.AppEscritorio.Views.Prestamo;
 using SIGEBI.AppEscritorio.Views.Shared;
 using SIGEBI.AppEscritorio.Views.Usuario;
+using SIGEBI.AppEscritorio.Views.Reportes;
 
 namespace SIGEBI.AppEscritorio.Extensions
 {
@@ -49,6 +48,7 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<ICatalogoService, CatalogoService>();
             services.AddTransient<IUsuarioService, UsuarioService>();
             services.AddTransient<IPrestamoService, PrestamoService>();
+            services.AddTransient<IReporteService, ReporteService>();
 
             return services;
         }
@@ -61,6 +61,7 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<GestionarRecursoForm>();
             services.AddTransient<PrestamoForm>();
             services.AddTransient<UsuarioForm>();
+            services.AddTransient<ReporteForm>();
 
             return services;
 
