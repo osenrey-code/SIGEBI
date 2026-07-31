@@ -26,15 +26,6 @@ namespace SIGEBI.Api.Controllers
             return Ok(prestamo);
         }
 
-        [HttpPost("aprobar")]
-        [Authorize(Roles = "Administrador,Bibliotecario")]
-        public async Task<IActionResult> AprobarPrestamo([FromBody] AprobarSolicitudRequest request)
-        {
-            int usuarioId = ObtenerUsuarioId();
-            await _prestamos.AprobarPrestamoAsync(request, usuarioId);
-            return Ok(new { Mensaje = "Prestamo aprobado de manera exitosa." });
-        }
-
         [HttpGet("historial")]
         [Authorize(Roles = "Docente,Administrador,Auditor")]
         public async Task<IActionResult> HistorialPrestamo([FromQuery] ConsultarHistorialPrestamosRequest request)

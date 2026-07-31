@@ -143,7 +143,7 @@
             this.btnMenuPrestamos.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuPrestamos.Size = new System.Drawing.Size(240, 48);
             this.btnMenuPrestamos.TabIndex = 3;
-            this.btnMenuPrestamos.Text = "🔄  Préstamos y Devoluciones";
+            this.btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes";
             this.btnMenuPrestamos.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuPrestamos.UseVisualStyleBackColor = true;
             this.btnMenuPrestamos.Click += new System.EventHandler(this.btnMenuPrestamos_Click);
@@ -161,7 +161,7 @@
             this.btnMenuCatalogo.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuCatalogo.Size = new System.Drawing.Size(240, 48);
             this.btnMenuCatalogo.TabIndex = 2;
-            this.btnMenuCatalogo.Text = "📚  Catálogo de Libros";
+            this.btnMenuCatalogo.Text = "📚  Gestión de Catálogo";
             this.btnMenuCatalogo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuCatalogo.UseVisualStyleBackColor = true;
             this.btnMenuCatalogo.Click += new System.EventHandler(this.btnMenuCatalogo_Click);

@@ -4,7 +4,7 @@ using SIGEBI.AppEscritorio.Services.Interfaces;
 using System.Net.Http.Headers;
 using SIGEBI.AppEscritorio.Services.Api;
 
-namespace SIGEBI.AppEscritorio.Services.Implementaciones
+namespace SIGEBI.AppEscritorio.Services.Catalogo
 {
     public class CatalogoService : ICatalogoService
     {

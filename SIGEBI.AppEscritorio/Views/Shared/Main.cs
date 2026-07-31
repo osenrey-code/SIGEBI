@@ -1,6 +1,7 @@
-﻿using SIGEBI.AppEscritorio.Session;
+﻿using Microsoft.Extensions.DependencyInjection;
+using SIGEBI.AppEscritorio.Session;
+using SIGEBI.AppEscritorio.Views.Prestamo;
 using SIGEBI.AppEscritorio.Views.Usuario;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -347,6 +348,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuPrestamos_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuPrestamos, "Préstamos y Devoluciones");
+
+            var prestamoForm = Program.ServiceProvider.GetRequiredService<PrestamoForm>();
+            AbrirFormularioEnPanel(prestamoForm);
         }
 
         private void btnMenuAuditoria_Click(object sender, EventArgs e)
