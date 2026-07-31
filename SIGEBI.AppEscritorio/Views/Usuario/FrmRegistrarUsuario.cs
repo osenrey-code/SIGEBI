@@ -6,18 +6,15 @@ using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Usuario
 {
-    public partial class FrmEditarUsuario : Form
+    public partial class FrmRegistrarUsuario : Form
     {
         private readonly IUsuarioService _usuarioService;
-        private readonly int _usuarioId;
 
-        public FrmEditarUsuario(IUsuarioService usuarioService, int usuarioId, string nombreActual)
+        public FrmRegistrarUsuario(IUsuarioService usuarioService)
         {
             InitializeComponent();
             _usuarioService = usuarioService;
-            _usuarioId = usuarioId;
-
-            txtNombreCompleto.Text = nombreActual;
+            cmbTipo.SelectedIndex = 0;
 
             HabilitarArrastre(pnlTopBar);
             AplicarBordesRedondeados();
@@ -53,9 +50,11 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
 
         private async void btnGuardar_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNombreCompleto.Text))
+            if (string.IsNullOrWhiteSpace(txtIdentificacion.Text) ||
+                string.IsNullOrWhiteSpace(txtNombreCompleto.Text) ||
+                string.IsNullOrWhiteSpace(txtCorreo.Text))
             {
-                MessageBox.Show("El nombre completo es obligatorio.", "Campo Requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Por favor complete todos los campos obligatorios.", "Campos Requeridos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -64,20 +63,23 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
                 this.Cursor = Cursors.WaitCursor;
                 btnGuardar.Enabled = false;
 
-                var dto = new ActualizarUsuarioDto
+                var dto = new RegistrarUsuarioDto
                 {
-                    NombreCompleto = txtNombreCompleto.Text.Trim()
+                    Identificacion = txtIdentificacion.Text.Trim(),
+                    NombreCompleto = txtNombreCompleto.Text.Trim(),
+                    Correo = txtCorreo.Text.Trim(),
+                    Tipo = cmbTipo.SelectedItem?.ToString() ?? "Estudiante"
                 };
 
-                await _usuarioService.ActualizarAsync(_usuarioId, dto);
-                MessageBox.Show("Usuario actualizado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                await _usuarioService.RegistrarAsync(dto);
+                MessageBox.Show("Usuario registrado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al actualizar: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Error al registrar: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             finally
             {

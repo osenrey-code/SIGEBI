@@ -6,18 +6,18 @@ using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Usuario
 {
-    public partial class FrmEditarUsuario : Form
+    public partial class FrmResetearPasswordAdmin : Form
     {
         private readonly IUsuarioService _usuarioService;
         private readonly int _usuarioId;
 
-        public FrmEditarUsuario(IUsuarioService usuarioService, int usuarioId, string nombreActual)
+        public FrmResetearPasswordAdmin(IUsuarioService usuarioService, int usuarioId, string nombreUsuario)
         {
             InitializeComponent();
             _usuarioService = usuarioService;
             _usuarioId = usuarioId;
 
-            txtNombreCompleto.Text = nombreActual;
+            lblTitle.Text = $"🔑 Resetear Pass - {nombreUsuario}";
 
             HabilitarArrastre(pnlTopBar);
             AplicarBordesRedondeados();
@@ -51,38 +51,37 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
         }
         #endregion
 
-        private async void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnResetear_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNombreCompleto.Text))
+            if (string.IsNullOrWhiteSpace(txtNuevaPassword.Text))
             {
-                MessageBox.Show("El nombre completo es obligatorio.", "Campo Requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Debe ingresar la nueva contraseña.", "Campo Requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
                 this.Cursor = Cursors.WaitCursor;
-                btnGuardar.Enabled = false;
+                btnResetear.Enabled = false;
 
-                var dto = new ActualizarUsuarioDto
+                var dto = new ResetearPasswordAdminDto
                 {
-                    NombreCompleto = txtNombreCompleto.Text.Trim()
+                    NuevaPassword = txtNuevaPassword.Text.Trim()
                 };
 
-                await _usuarioService.ActualizarAsync(_usuarioId, dto);
-                MessageBox.Show("Usuario actualizado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                await _usuarioService.ResetPasswordAdminAsync(_usuarioId, dto);
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al actualizar: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Error al restablecer contraseña: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             finally
             {
                 this.Cursor = Cursors.Default;
-                btnGuardar.Enabled = true;
+                btnResetear.Enabled = true;
             }
         }
 

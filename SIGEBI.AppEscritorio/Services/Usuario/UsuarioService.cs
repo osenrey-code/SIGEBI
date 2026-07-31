@@ -12,39 +12,63 @@ namespace SIGEBI.AppEscritorio.Services.Usuario
             _apiClient = apiClient;
         }
 
-        public Task<bool> Activar(int id)
+        public async Task<bool> ActivarAsync(int id)
         {
-            throw new NotImplementedException();
+            await _apiClient.PatchAsync($"api/usuarios/{id}/activar", new { });
+            return true;
         }
 
-        public Task<bool> Actualizar(int id, ActualizarUsuarioDto request)
+        public async Task<bool> ActualizarAsync(int id, ActualizarUsuarioDto request)
         {
-            throw new NotImplementedException();
+            await _apiClient.PutAsync($"api/usuarios/{id}/actualizar", request);
+            return true; 
         }
 
-        public Task<bool> CambiarMiPasswordAsync(CambiarPasswordDto request)
+        public async Task<bool> CambiarMiPasswordAsync(CambiarPasswordDto request)
         {
-            throw new NotImplementedException();
+            await _apiClient.PatchAsync("api/usuarios/cambiar-mi-password", request);
+            return true;
         }
 
-        public Task<List<UsuarioDto>> ConsultarUsuariosAsync(ConsultarUsuariosFiltroDto filtro)
+        public async Task<List<UsuarioDto>> ConsultarUsuariosAsync(ConsultarUsuariosFiltroDto filtro)
         {
-            throw new NotImplementedException();
+            var queryParams = new List<string>();
+            
+            if (!string.IsNullOrWhiteSpace(filtro.Nombre))
+                queryParams.Add($"nombre={Uri.EscapeDataString(filtro.Nombre)}");
+
+            if (!string.IsNullOrWhiteSpace(filtro.Identificacion))
+                queryParams.Add($"Identificacion={Uri.EscapeDataString(filtro.Identificacion)}");
+
+            if (!string.IsNullOrWhiteSpace(filtro.TipoUsuario) && filtro.TipoUsuario != "Todos")
+                queryParams.Add($"TipoUsuario={Uri.EscapeDataString(filtro.TipoUsuario!)}");
+
+            if (!string.IsNullOrWhiteSpace(filtro.Estado) && filtro.Estado != "Todos")
+                queryParams.Add($"Estado={Uri.EscapeDataString(filtro.Estado)}");
+
+            string url = "api/usuarios/consultar";
+            if (queryParams.Count > 0)
+                url += "?" + string.Join("&", queryParams);
+
+            var resultado = await _apiClient.GetTAsync<List<UsuarioDto>>(url);
+            return resultado ?? new List<UsuarioDto>();
         }
 
-        public Task<bool> Desactivar(int id, DesactivarUsuarioDto request)
+        public async Task<bool> DesactivarAsync(int id, DesactivarUsuarioDto request)
         {
-            throw new NotImplementedException();
+            await _apiClient.PatchAsync($"api/usuarios/{id}/desactivar", request);
+            return true;
         }
 
-        public Task<UsuarioDto?> RegistrarAsync(RegistrarUsuarioDto request)
+        public async Task<UsuarioDto?> RegistrarAsync(RegistrarUsuarioDto request)
         {
-            throw new NotImplementedException();
+            return await _apiClient.PostAsync<RegistrarUsuarioDto, UsuarioDto>("api/usuarios/registrar", request);
         }
 
-        public Task<bool> ResetPasswordAdminAsync(int id, ResetearPasswordAdminDto request)
+        public async Task<bool> ResetPasswordAdminAsync(int id, ResetearPasswordAdminDto request)
         {
-            throw new NotImplementedException();
+            await _apiClient.PatchAsync($"api/usuarios/{id}/resetear-password-admin", request);
+            return true;
         }
     }
 }

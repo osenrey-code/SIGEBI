@@ -1,5 +1,5 @@
 ﻿using SIGEBI.AppEscritorio.Dtos.Auth;
-using SIGEBI.AppEscritorio.Services.Implementaciones;
+using SIGEBI.AppEscritorio.Services.Api;
 using SIGEBI.AppEscritorio.Session;
 
 namespace SIGEBI.AppEscritorio.Services.Auth

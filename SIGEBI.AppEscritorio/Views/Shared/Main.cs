@@ -1,18 +1,19 @@
 ﻿using SIGEBI.AppEscritorio.Session;
+using SIGEBI.AppEscritorio.Views.Usuario; // <-- Importante para UsuarioForm
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
-namespace SIGEBI.AppEscritorio.Views.Shared 
+namespace SIGEBI.AppEscritorio.Views.Shared
 {
     public partial class Main : Form
     {
         private static readonly Color ColorHoverBotonSidebar = Color.FromArgb(51, 65, 85);
         private static readonly Color ColorActiveSidebar = Color.FromArgb(37, 99, 235);
         private static readonly Color ColorInactiveSidebar = Color.FromArgb(30, 41, 59);
+
+        private Form? _formularioActivo = null;
+        private Control[]? _controlesDashboardIniciales;
 
         public Main()
         {
@@ -50,6 +51,10 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void Main_Load(object sender, EventArgs e)
         {
+            // Guardar los controles iniciales del Dashboard para poder restaurarlos al volver a Inicio
+            _controlesDashboardIniciales = new Control[pnlContent.Controls.Count];
+            pnlContent.Controls.CopyTo(_controlesDashboardIniciales, 0);
+
             CargarDatosUsuario();
             GestionPermisos();
         }
@@ -245,7 +250,26 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         #endregion
 
-        #region Eventos de Botones de Navegación Lateral
+        #region Eventos de Botones de Navegación Lateral y Cambio de Pantalla
+
+        private void AbrirFormularioEnPanel(Form formHijo)
+        {
+            if (_formularioActivo != null)
+            {
+                _formularioActivo.Close();
+            }
+
+            _formularioActivo = formHijo;
+            formHijo.TopLevel = false;
+            formHijo.FormBorderStyle = FormBorderStyle.None;
+            formHijo.Dock = DockStyle.Fill;
+
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(formHijo);
+            pnlContent.Tag = formHijo;
+            formHijo.BringToFront();
+            formHijo.Show();
+        }
 
         private void SeleccionarBotonMenu(Button botonActivo, string tituloSeccion)
         {
@@ -273,6 +297,25 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuDashboard_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuDashboard, "Panel Principal");
+
+            if (_formularioActivo != null)
+            {
+                _formularioActivo.Close();
+                _formularioActivo = null;
+            }
+
+            pnlContent.Controls.Clear();
+            if (_controlesDashboardIniciales != null)
+            {
+                pnlContent.Controls.AddRange(_controlesDashboardIniciales);
+            }
+        }
+
+        private void btnMenuUsuarios_Click(object sender, EventArgs e)
+        {
+            SeleccionarBotonMenu(btnMenuUsuarios, "Gestión de Usuarios");
+            var frmUsuarios = Program.ServiceProvider.GetRequiredService<UsuarioForm>();
+            AbrirFormularioEnPanel(frmUsuarios);
         }
 
         private void btnMenuCatalogo_Click(object sender, EventArgs e)
@@ -283,11 +326,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void btnMenuPrestamos_Click(object sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuPrestamos, "Préstamos y Devoluciones");
-        }
-
-        private void btnMenuUsuarios_Click(object sender, EventArgs e)
-        {
-            SeleccionarBotonMenu(btnMenuUsuarios, "Gestión de Usuarios");
         }
 
         private void btnMenuAuditoria_Click(object sender, EventArgs e)

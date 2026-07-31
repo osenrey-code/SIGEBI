@@ -1,18 +1,92 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
+﻿using SIGEBI.AppEscritorio.Dtos.Usuarios;
+using SIGEBI.AppEscritorio.Services.Usuario;
+using System;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Usuario
 {
     public partial class FrmDesactivarUsuario : Form
     {
-        public FrmDesactivarUsuario()
+        private readonly IUsuarioService _usuarioService;
+        private readonly int _usuarioId;
+
+        public FrmDesactivarUsuario(IUsuarioService usuarioService, int usuarioId, string nombreUsuario)
         {
             InitializeComponent();
+            _usuarioService = usuarioService;
+            _usuarioId = usuarioId;
+
+            lblTitle.Text = $"🚫 Desactivar a {nombreUsuario}";
+
+            HabilitarArrastre(pnlTopBar);
+            AplicarBordesRedondeados();
         }
+
+        #region Arrastre y Bordes Redondeados
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
+
+        private void AplicarBordesRedondeados()
+        {
+            this.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 14, 18));
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
+        private void HabilitarArrastre(Control control)
+        {
+            control.MouseDown += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Left)
+                {
+                    ReleaseCapture();
+                    SendMessage(this.Handle, 0xA1, 0x2, 0);
+                }
+            };
+        }
+        #endregion
+
+        private async void btnDesactivar_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtMotivo.Text))
+            {
+                MessageBox.Show("El motivo de la desactivación es obligatorio.", "Campo Requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                this.Cursor = Cursors.WaitCursor;
+                btnDesactivar.Enabled = false;
+
+                var dto = new DesactivarUsuarioDto
+                {
+                    Motivo = txtMotivo.Text.Trim()
+                };
+
+                await _usuarioService.DesactivarAsync(_usuarioId, dto);
+                MessageBox.Show("Usuario desactivado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al desactivar: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+                btnDesactivar.Enabled = true;
+            }
+        }
+
+        private void btnCancelar_Click(object sender, EventArgs e) => this.Close();
+        private void btnClose_Click(object sender, EventArgs e) => this.Close();
     }
 }
