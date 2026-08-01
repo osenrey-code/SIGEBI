@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Dtos.Catalogo.Response;
 using SIGEBI.AppEscritorio.Services.Interfaces;
+using SIGEBI.AppEscritorio.Session; // 👈 Importante para validar el rol del usuario
 using System;
 using System.Drawing;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             Color colorPrimario = Color.FromArgb(37, 99, 235);      // Azul
             Color colorPeligro = Color.FromArgb(239, 68, 68);       // Rojo
             Color colorAdvertencia = Color.FromArgb(245, 158, 11);  // Naranja/Amarillo
-            Color colorRefrescar = Color.FromArgb(51, 65, 85);     // Gris pizarra
+            Color colorRefrescar = Color.FromArgb(51, 65, 85);      // Gris pizarra
 
             // 1. Configuración de la Ventana
             this.BackColor = fondoPrincipal;
@@ -172,7 +173,21 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private async void CatalogoForm_Load(object sender, EventArgs e)
         {
+            ValidarPermisosPorRol(); // 👈 Oculta los botones de gestión si el usuario es Auditor
             await CargarDatosAsync();
+        }
+
+        private void ValidarPermisosPorRol()
+        {
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+
+            // 🔒 El Auditor solo tiene permisos de lectura/consulta en el catálogo
+            if (rol == "Auditor")
+            {
+                btnNuevo.Visible = false;
+                btnEditar.Visible = false;
+                btnEliminar.Visible = false;
+            }
         }
 
         private async Task CargarDatosAsync()

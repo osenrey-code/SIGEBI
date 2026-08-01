@@ -1,6 +1,8 @@
 ﻿using SIGEBI.AppEscritorio.Dtos.Prestamos;
+using SIGEBI.AppEscritorio.Services.Devolucion; 
 using SIGEBI.AppEscritorio.Services.Prestamo;
-using SIGEBI.AppEscritorio.Session; // 👈 Manejo de sesión para validación de roles
+using SIGEBI.AppEscritorio.Session; 
+using SIGEBI.AppEscritorio.Views.Devolucion; 
 using System;
 using System.Drawing;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
     public partial class PrestamoForm : Form
     {
         private readonly IPrestamoService _prestamoService;
+        private readonly IDevolucionService _devolucionService;
 
         // Barra de Navegación Superior (Tabs Personalizados)
         private Panel pnlNavegacion = null!;
@@ -28,9 +31,11 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
         private Button btnAprobar = null!;
         private SolicitudDto? _solicitudSeleccionada;
 
-        // Vista 2: Activos
+        // Vista 2: Activos (Con Botón de Registrar Devolución)
         private Panel pnlVistaActivos = null!;
         private DataGridView dgvActivos = null!;
+        private Button btnRegistrarDevolucion = null!;
+        private PrestamoDto? _prestamoActivoSeleccionado;
 
         // Vista 3: Historial
         private Panel pnlVistaHistorial = null!;
@@ -38,10 +43,11 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
 
         private string _pestanaActiva = "Solicitudes";
 
-        public PrestamoForm(IPrestamoService prestamoService)
+        public PrestamoForm(IPrestamoService prestamoService, IDevolucionService devolucionService)
         {
             InitializeComponent();
             _prestamoService = prestamoService;
+            _devolucionService = devolucionService;
             ConfigurarDiseñoProfesional();
         }
 
@@ -230,10 +236,53 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
 
         private void ConstruirVistaActivos()
         {
-            pnlVistaActivos = new Panel { Dock = DockStyle.Fill, Visible = false, Padding = new Padding(15) };
+            pnlVistaActivos = new Panel { Dock = DockStyle.Fill, Visible = false };
+
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+            bool esBibliotecario = (rol == "Bibliotecario" || rol == "PersonalBibliotecario");
+
+            // Panel superior de acciones para Registrar Devolución
+            var pnlAccionesActivos = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 60,
+                BackColor = Color.FromArgb(30, 41, 59),
+                Padding = new Padding(15, 10, 15, 10),
+                Visible = esBibliotecario 
+            };
+
+            btnRegistrarDevolucion = new Button
+            {
+                Text = "↩️  Registrar Devolución",
+                BackColor = Color.FromArgb(37, 99, 235), // Azul primario
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                Size = new Size(200, 38),
+                Location = new Point(15, 10),
+                Cursor = Cursors.Hand,
+                Enabled = false
+            };
+            btnRegistrarDevolucion.FlatAppearance.BorderSize = 0;
+            btnRegistrarDevolucion.Click += BtnRegistrarDevolucion_Click;
+            pnlAccionesActivos.Controls.Add(btnRegistrarDevolucion);
+
             dgvActivos = CrearDataGridView();
             ConfigurarColumnasPrestamos(dgvActivos);
-            pnlVistaActivos.Controls.Add(dgvActivos);
+
+            dgvActivos.SelectionChanged += (s, e) =>
+            {
+                _prestamoActivoSeleccionado = dgvActivos.SelectedRows.Count > 0
+                    ? dgvActivos.SelectedRows[0].DataBoundItem as PrestamoDto
+                    : null;
+                btnRegistrarDevolucion.Enabled = _prestamoActivoSeleccionado != null;
+            };
+
+            var pnlWrapper = new Panel { Dock = DockStyle.Fill, Padding = new Padding(15) };
+            pnlWrapper.Controls.Add(dgvActivos);
+
+            pnlVistaActivos.Controls.Add(pnlWrapper);
+            pnlVistaActivos.Controls.Add(pnlAccionesActivos);
             pnlContenedor.Controls.Add(pnlVistaActivos);
         }
 
@@ -462,6 +511,23 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
                 finally
                 {
                     this.Cursor = Cursors.Default;
+                }
+            }
+        }
+
+        // 🚀 Evento para abrir el modal de Devolución tomando los datos de la fila seleccionada
+        private async void BtnRegistrarDevolucion_Click(object? sender, EventArgs e)
+        {
+            if (_prestamoActivoSeleccionado == null) return;
+
+            using (var frmModal = new RegistrarDevolucion(
+                _devolucionService,
+                _prestamoActivoSeleccionado.PrestamoId,
+                _prestamoActivoSeleccionado.TituloRecurso))
+            {
+                if (frmModal.ShowDialog() == DialogResult.OK)
+                {
+                    await CargarDatosPestanaActualAsync();
                 }
             }
         }

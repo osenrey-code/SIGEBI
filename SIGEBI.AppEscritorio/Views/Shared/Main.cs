@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Session;
+using SIGEBI.AppEscritorio.Views.Devolucion; // 👈 Referencia a la vista de Devoluciones
 using SIGEBI.AppEscritorio.Views.Prestamo;
 using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Usuario;
@@ -142,11 +143,15 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void ConfigurarEstilosSidebar()
         {
-            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuPrestamos, btnMenuUsuarios, btnMenuAuditoria };
+            // 👈 Se incluye btnMenuDevoluciones en la barra lateral
+            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuPrestamos, btnMenuDevoluciones, btnMenuUsuarios, btnMenuAuditoria };
 
             foreach (var btn in botonesMenu)
             {
-                btn.Paint += BotonSidebar_Paint;
+                if (btn != null)
+                {
+                    btn.Paint += BotonSidebar_Paint;
+                }
             }
 
             EstilarBotonCerrarSesion();
@@ -193,6 +198,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             ResetearBotonMenu(btnMenuDashboard);
             ResetearBotonMenu(btnMenuCatalogo);
             ResetearBotonMenu(btnMenuPrestamos);
+            ResetearBotonMenu(btnMenuDevoluciones);
             ResetearBotonMenu(btnMenuUsuarios);
             ResetearBotonMenu(btnMenuAuditoria);
 
@@ -202,8 +208,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             botonActivo.Invalidate(); // Forzar redibujado de la barra acentuada
         }
 
-        private void ResetearBotonMenu(Button btn)
+        private void ResetearBotonMenu(Button? btn)
         {
+            if (btn == null) return;
             btn.BackColor = ColorInactiveSidebar;
             btn.ForeColor = Color.FromArgb(148, 163, 184);
             btn.Invalidate();
@@ -221,7 +228,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
                     btnMenuPrestamos.Visible = true;
-                    btnMenuPrestamos.Text = "🔄  Préstamos"; // 👈 Renombrado a Préstamos
+                    btnMenuPrestamos.Text = "🔄  Préstamos";
+                    btnMenuDevoluciones.Visible = true;
+                    btnMenuDevoluciones.Text = "↩️  Devoluciones";
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = true;
                     return true;
@@ -230,7 +239,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
                     btnMenuPrestamos.Visible = true;
-                    btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes"; // 👈 Exclusivo para el bibliotecario
+                    btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes";
+                    btnMenuDevoluciones.Visible = true;
+                    btnMenuDevoluciones.Text = "↩️  Devoluciones";
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = false;
                     return true;
@@ -239,7 +250,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
                     btnMenuPrestamos.Visible = true;
-                    btnMenuPrestamos.Text = "🔄  Préstamos"; // 👈 Renombrado a Préstamos
+                    btnMenuPrestamos.Text = "🔄  Préstamos";
+                    btnMenuDevoluciones.Visible = true;
+                    btnMenuDevoluciones.Text = "↩️  Devoluciones";
                     btnMenuUsuarios.Visible = false;
                     btnMenuAuditoria.Visible = true;
                     return true;
@@ -467,6 +480,14 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             SeleccionarBotonMenu(btnMenuPrestamos, tituloSeccion);
             var prestamoForm = Program.ServiceProvider.GetRequiredService<PrestamoForm>();
             AbrirFormularioEnPanel(prestamoForm);
+        }
+
+        // 🚀 Evento para el módulo de Devoluciones
+        private void btnMenuDevoluciones_Click(object? sender, EventArgs e)
+        {
+            SeleccionarBotonMenu(btnMenuDevoluciones, "Historial de Devoluciones");
+            var devolucionForm = Program.ServiceProvider.GetRequiredService<DevolucionForm>();
+            AbrirFormularioEnPanel(devolucionForm);
         }
 
         private void btnMenuAuditoria_Click(object? sender, EventArgs e)

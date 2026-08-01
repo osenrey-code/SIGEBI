@@ -5,14 +5,16 @@ using SIGEBI.AppEscritorio.Services;
 using SIGEBI.AppEscritorio.Services.Api;
 using SIGEBI.AppEscritorio.Services.Auth;
 using SIGEBI.AppEscritorio.Services.Catalogo;
+using SIGEBI.AppEscritorio.Services.Devolucion;
 using SIGEBI.AppEscritorio.Services.Interfaces;
 using SIGEBI.AppEscritorio.Services.Prestamo;
 using SIGEBI.AppEscritorio.Services.Reporte;
 using SIGEBI.AppEscritorio.Services.Usuario;
+using SIGEBI.AppEscritorio.Views.Devolucion;
 using SIGEBI.AppEscritorio.Views.Prestamo;
+using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Shared;
 using SIGEBI.AppEscritorio.Views.Usuario;
-using SIGEBI.AppEscritorio.Views.Reportes;
 
 namespace SIGEBI.AppEscritorio.Extensions
 {
@@ -49,6 +51,7 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<IUsuarioService, UsuarioService>();
             services.AddTransient<IPrestamoService, PrestamoService>();
             services.AddTransient<IReporteService, ReporteService>();
+            services.AddTransient<IDevolucionService, DevolucionService>();
 
             return services;
         }
@@ -62,7 +65,7 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<PrestamoForm>();
             services.AddTransient<UsuarioForm>();
             services.AddTransient<ReporteForm>();
-
+            services.AddTransient<DevolucionForm>();
             return services;
 
         }
