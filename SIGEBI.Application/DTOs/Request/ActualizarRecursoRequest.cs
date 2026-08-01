@@ -13,4 +13,5 @@ public class ActualizarRecursoRequest
     public int AnioPublicado { get; set; }
 
     public string? ImagenUrl { get; set; }
+    public int CantidadEjemplares { get; set; }
 }

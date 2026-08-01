@@ -144,7 +144,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 "Solo un bibliotecario o administrador puede actualizar recursos."
             );
 
-            var recurso = await _recursos.ObtenerporIdAsync(
+            var recurso = await _recursos.BuscarConCategoriaAsync(
                 request.RecursoBibliograficoId
             );
 
@@ -159,6 +159,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 throw new BusinessException("La categoría indicada no existe.");
 
             string tituloAnterior = recurso.Titulo;
+            int cantidadEjemplaresAnterior = recurso.TotalEjemplares;
 
             recurso.ActualizarInformacion(
                 titulo,
@@ -168,13 +169,25 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 imagenUrl
             );
 
+            if (request.CantidadEjemplares > recurso.TotalEjemplares)
+            {
+                int ejemplaresNuevos = request.CantidadEjemplares - recurso.TotalEjemplares;
+                recurso.AgregarEjemplares(ejemplaresNuevos);
+            }
+
             await _recursos.ActualizarAsync(recurso);
+
+            string detalleAuditoria = $"Se actualizó el recurso ID {recurso.RecursoBibliograficoId}. Título anterior: '{tituloAnterior}', nuevo título: '{recurso.Titulo}'.";
+            if (recurso.TotalEjemplares > cantidadEjemplaresAnterior)
+            {
+                detalleAuditoria += $" Se incrementó la cantidad de ejemplares de {cantidadEjemplaresAnterior} a {recurso.TotalEjemplares}.";
+            }
 
             await _auditoria.RegistrarAsync(
                 UsuarioId: usuarioId,
                 Accion: "Actualizar Recurso",
                 EntidadAfectada: "RecursosBibliograficos",
-                detalles: $"Se actualizó el recurso ID {recurso.RecursoBibliograficoId}. Título anterior: '{tituloAnterior}', nuevo título: '{recurso.Titulo}'."
+                detalles: detalleAuditoria
             );
 
             await _db.SaveChangesAsync();

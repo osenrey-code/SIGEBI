@@ -41,7 +41,7 @@
             // lblISBN
             // 
             this.lblISBN.AutoSize = true;
-            this.lblISBN.Location = new System.Drawing.Point(25, 25);
+            this.lblISBN.Location = new System.Drawing.Point(30, 65);
             this.lblISBN.Name = "lblISBN";
             this.lblISBN.Size = new System.Drawing.Size(35, 15);
             this.lblISBN.TabIndex = 0;
@@ -49,31 +49,31 @@
             // 
             // txtISBN
             // 
-            this.txtISBN.Location = new System.Drawing.Point(25, 45);
+            this.txtISBN.Location = new System.Drawing.Point(30, 90);
             this.txtISBN.Name = "txtISBN";
-            this.txtISBN.Size = new System.Drawing.Size(250, 23);
+            this.txtISBN.Size = new System.Drawing.Size(260, 23);
             this.txtISBN.TabIndex = 1;
             // 
             // lblTitulo
             // 
             this.lblTitulo.AutoSize = true;
-            this.lblTitulo.Location = new System.Drawing.Point(25, 80);
+            this.lblTitulo.Location = new System.Drawing.Point(30, 145);
             this.lblTitulo.Name = "lblTitulo";
-            this.lblTitulo.Size = new System.Drawing.Size(40, 15);
+            this.lblTitulo.Size = new System.Drawing.Size(43, 15);
             this.lblTitulo.TabIndex = 2;
             this.lblTitulo.Text = "Título:";
             // 
             // txtTitulo
             // 
-            this.txtTitulo.Location = new System.Drawing.Point(25, 100);
+            this.txtTitulo.Location = new System.Drawing.Point(30, 170);
             this.txtTitulo.Name = "txtTitulo";
-            this.txtTitulo.Size = new System.Drawing.Size(250, 23);
+            this.txtTitulo.Size = new System.Drawing.Size(260, 23);
             this.txtTitulo.TabIndex = 3;
             // 
             // lblAutor
             // 
             this.lblAutor.AutoSize = true;
-            this.lblAutor.Location = new System.Drawing.Point(25, 135);
+            this.lblAutor.Location = new System.Drawing.Point(30, 225);
             this.lblAutor.Name = "lblAutor";
             this.lblAutor.Size = new System.Drawing.Size(40, 15);
             this.lblAutor.TabIndex = 4;
@@ -81,15 +81,15 @@
             // 
             // txtAutor
             // 
-            this.txtAutor.Location = new System.Drawing.Point(25, 155);
+            this.txtAutor.Location = new System.Drawing.Point(30, 250);
             this.txtAutor.Name = "txtAutor";
-            this.txtAutor.Size = new System.Drawing.Size(250, 23);
+            this.txtAutor.Size = new System.Drawing.Size(260, 23);
             this.txtAutor.TabIndex = 5;
             // 
             // lblCategoria
             // 
             this.lblCategoria.AutoSize = true;
-            this.lblCategoria.Location = new System.Drawing.Point(25, 190);
+            this.lblCategoria.Location = new System.Drawing.Point(30, 305);
             this.lblCategoria.Name = "lblCategoria";
             this.lblCategoria.Size = new System.Drawing.Size(61, 15);
             this.lblCategoria.TabIndex = 6;
@@ -99,15 +99,15 @@
             // 
             this.cmbCategoria.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbCategoria.FormattingEnabled = true;
-            this.cmbCategoria.Location = new System.Drawing.Point(25, 210);
+            this.cmbCategoria.Location = new System.Drawing.Point(30, 330);
             this.cmbCategoria.Name = "cmbCategoria";
-            this.cmbCategoria.Size = new System.Drawing.Size(250, 23);
+            this.cmbCategoria.Size = new System.Drawing.Size(260, 23);
             this.cmbCategoria.TabIndex = 7;
             // 
             // lblAnio
             // 
             this.lblAnio.AutoSize = true;
-            this.lblAnio.Location = new System.Drawing.Point(25, 245);
+            this.lblAnio.Location = new System.Drawing.Point(30, 385);
             this.lblAnio.Name = "lblAnio";
             this.lblAnio.Size = new System.Drawing.Size(95, 15);
             this.lblAnio.TabIndex = 8;
@@ -115,7 +115,7 @@
             // 
             // numAnio
             // 
-            this.numAnio.Location = new System.Drawing.Point(25, 265);
+            this.numAnio.Location = new System.Drawing.Point(30, 410);
             this.numAnio.Maximum = new decimal(new int[] {
             2050,
             0,
@@ -138,7 +138,7 @@
             // lblEjemplares
             // 
             this.lblEjemplares.AutoSize = true;
-            this.lblEjemplares.Location = new System.Drawing.Point(155, 245);
+            this.lblEjemplares.Location = new System.Drawing.Point(170, 385);
             this.lblEjemplares.Name = "lblEjemplares";
             this.lblEjemplares.Size = new System.Drawing.Size(68, 15);
             this.lblEjemplares.TabIndex = 10;
@@ -146,7 +146,12 @@
             // 
             // numEjemplares
             // 
-            this.numEjemplares.Location = new System.Drawing.Point(155, 265);
+            this.numEjemplares.Location = new System.Drawing.Point(170, 410);
+            this.numEjemplares.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
             this.numEjemplares.Minimum = new decimal(new int[] {
             1,
             0,
@@ -164,9 +169,9 @@
             // picPortada
             // 
             this.picPortada.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.picPortada.Location = new System.Drawing.Point(315, 45);
+            this.picPortada.Location = new System.Drawing.Point(330, 65);
             this.picPortada.Name = "picPortada";
-            this.picPortada.Size = new System.Drawing.Size(200, 243);
+            this.picPortada.Size = new System.Drawing.Size(240, 295);
             this.picPortada.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.picPortada.TabIndex = 12;
             this.picPortada.TabStop = false;
@@ -174,42 +179,42 @@
             // btnSeleccionarFoto
             // 
             this.btnSeleccionarFoto.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnSeleccionarFoto.Location = new System.Drawing.Point(315, 298);
+            this.btnSeleccionarFoto.Location = new System.Drawing.Point(330, 375);
             this.btnSeleccionarFoto.Name = "btnSeleccionarFoto";
-            this.btnSeleccionarFoto.Size = new System.Drawing.Size(200, 30);
+            this.btnSeleccionarFoto.Size = new System.Drawing.Size(240, 40);
             this.btnSeleccionarFoto.TabIndex = 13;
             this.btnSeleccionarFoto.Text = "Seleccionar Portada...";
             this.btnSeleccionarFoto.UseVisualStyleBackColor = true;
             this.btnSeleccionarFoto.Click += new System.EventHandler(this.btnSeleccionarFoto_Click);
             // 
-            // btnCancelar
-            // 
-            this.btnCancelar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnCancelar.Location = new System.Drawing.Point(295, 360);
-            this.btnCancelar.Name = "btnCancelar";
-            this.btnCancelar.Size = new System.Drawing.Size(100, 35);
-            this.btnCancelar.TabIndex = 14;
-            this.btnCancelar.Text = "Cancelar";
-            this.btnCancelar.UseVisualStyleBackColor = true;
-            this.btnCancelar.Click += new System.EventHandler(this.btnCancelar_Click);
-            // 
             // btnGuardar
             // 
             this.btnGuardar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnGuardar.Location = new System.Drawing.Point(415, 360);
+            this.btnGuardar.Location = new System.Drawing.Point(470, 475);
             this.btnGuardar.Name = "btnGuardar";
-            this.btnGuardar.Size = new System.Drawing.Size(100, 35);
+            this.btnGuardar.Size = new System.Drawing.Size(100, 40);
             this.btnGuardar.TabIndex = 15;
             this.btnGuardar.Text = "Guardar";
             this.btnGuardar.UseVisualStyleBackColor = true;
             this.btnGuardar.Click += new System.EventHandler(this.btnGuardar_Click);
             // 
+            // btnCancelar
+            // 
+            this.btnCancelar.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnCancelar.Location = new System.Drawing.Point(350, 475);
+            this.btnCancelar.Name = "btnCancelar";
+            this.btnCancelar.Size = new System.Drawing.Size(100, 40);
+            this.btnCancelar.TabIndex = 14;
+            this.btnCancelar.Text = "Cancelar";
+            this.btnCancelar.UseVisualStyleBackColor = true;
+            this.btnCancelar.Click += new System.EventHandler(this.btnCancelar_Click);
+            // 
             // GestionarRecursoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(540, 420);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
+            this.ClientSize = new System.Drawing.Size(600, 540);
             this.Controls.Add(this.btnGuardar);
             this.Controls.Add(this.btnCancelar);
             this.Controls.Add(this.btnSeleccionarFoto);
@@ -226,6 +231,7 @@
             this.Controls.Add(this.lblTitulo);
             this.Controls.Add(this.txtISBN);
             this.Controls.Add(this.lblISBN);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "GestionarRecursoForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Gestionar Recurso";

@@ -109,5 +109,27 @@ namespace SIGEBI.Domain.Entities
             Ejemplares.Add(nuevoEjemplar);
             
         }
+
+        public void AgregarEjemplares(int cantidad)
+        {
+            Guard.GreaterThan(cantidad, 0, "la cantidad de ejemplares ");
+
+            int siguiente = Ejemplares.Count + 1;
+
+            for (int i = 0; i < cantidad; i++)
+            {
+                int secuencia = siguiente + i;
+                string identificador = $"{ISBN}-{secuencia:D3}";
+
+                while (Ejemplares.Any(e => e.Identificador == identificador))
+                {
+                    secuencia++;
+                    identificador = $"{ISBN}-{secuencia:D3}";
+                }
+
+                var nuevoEjemplar = new Ejemplar(RecursoBibliograficoId, identificador);
+                Ejemplares.Add(nuevoEjemplar);
+            }
+        }
     }
 }

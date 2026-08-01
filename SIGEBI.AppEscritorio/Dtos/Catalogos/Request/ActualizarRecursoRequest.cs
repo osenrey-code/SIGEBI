@@ -7,7 +7,7 @@
         public string Autor { get; set; } = string.Empty;
         public int CategoriaId { get; set; }
         public int AnioPublicado { get; set; }
-
+        public int CantidadEjemplares { get; set; }
         public string? ImagenUrlActual { get; set; }
 
         // Exclusivo de WinForms: Ruta local del nuevo archivo a subir

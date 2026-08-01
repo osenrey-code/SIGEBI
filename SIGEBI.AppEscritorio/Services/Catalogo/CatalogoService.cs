@@ -77,6 +77,7 @@ namespace SIGEBI.AppEscritorio.Services.Catalogo
             form.Add(new StringContent(request.Autor), "Autor");
             form.Add(new StringContent(request.CategoriaId.ToString()), "CategoriaId");
             form.Add(new StringContent(request.AnioPublicado.ToString()), "AnioPublicado");
+            form.Add(new StringContent(request.CantidadEjemplares.ToString()), "CantidadEjemplares");
 
             if (!string.IsNullOrWhiteSpace(request.ImagenUrlActual))
             {

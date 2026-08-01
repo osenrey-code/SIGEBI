@@ -2,6 +2,7 @@
 using SIGEBI.AppEscritorio.Dtos.Catalogo.Response;
 using SIGEBI.AppEscritorio.Services.Categoria;
 using SIGEBI.AppEscritorio.Services.Interfaces;
+using SIGEBI.AppEscritorio.Session; 
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 
@@ -11,12 +12,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
     public partial class GestionarRecursoForm : Form
     {
         private readonly ICatalogoService _catalogoService;
-        private readonly ICategoriaService _categoriaService; 
+        private readonly ICategoriaService _categoriaService;
         private int _recursoIdActual = 0;
         private string _rutaImagenSeleccionada = string.Empty;
         private string _urlImagenActual = string.Empty;
 
-        //  PALETA DE COLORES
+        // 🎨 PALETA DE COLORES
         private readonly Color bgForm = Color.FromArgb(30, 41, 59);       // Fondo de la ventana
         private readonly Color bgInputs = Color.FromArgb(15, 23, 42);     // Fondo de los inputs
         private readonly Color textPrimary = Color.White;                 // Texto principal
@@ -28,7 +29,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         {
             InitializeComponent();
             _catalogoService = catalogoService;
-            _categoriaService = categoriaService; // 👈 Asignación de la inyección de dependencias
+            _categoriaService = categoriaService;
 
             // Configuración inicial de la ventana
             this.FormBorderStyle = FormBorderStyle.None;
@@ -39,7 +40,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             this.Load += async (s, e) =>
             {
                 ForzarLayoutPerfecto();
-                await CargarCategoriasAsync(); // 👈 Carga asíncrona real desde la BD
+                await CargarCategoriasAsync();
             };
 
             picPortada.Paint += PicPortada_Paint;
@@ -239,7 +240,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         // ------------------ LÓGICA DE NEGOCIO ------------------
 
-        // 🟢 Carga real y dinámica desde la base de datos mediante la API
         private async Task CargarCategoriasAsync()
         {
             try
@@ -271,7 +271,18 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
             numAnio.Value = recurso.AnioPublicado;
             numEjemplares.Value = recurso.TotalEjemplares;
-            numEjemplares.Enabled = false;
+
+            // 🔒 REGLA DE NEGOCIO: Habilitar modificación de ejemplares ÚNICAMENTE para Administradores
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+            bool esAdministrador = rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
+
+            numEjemplares.Enabled = esAdministrador;
+
+            if (esAdministrador)
+            {
+                // Se fija como valor mínimo la cantidad actual para asegurar que sólo se pueda AUMENTAR
+                numEjemplares.Minimum = recurso.TotalEjemplares;
+            }
 
             _urlImagenActual = recurso.ImagenUrl ?? string.Empty;
             btnGuardar.Text = "Actualizar";
@@ -318,6 +329,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                         Autor = txtAutor.Text.Trim(),
                         CategoriaId = cmbCategoria.SelectedValue != null ? (int)cmbCategoria.SelectedValue : 0,
                         AnioPublicado = (int)numAnio.Value,
+                        CantidadEjemplares = (int)numEjemplares.Value, // 👈 Envía la nueva cantidad de ejemplares al actualizar
                         ImagenUrlActual = _urlImagenActual,
                         RutaNuevaImagenLocal = _rutaImagenSeleccionada
                     };

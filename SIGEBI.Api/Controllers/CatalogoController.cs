@@ -88,6 +88,7 @@ namespace SIGEBI.Api.Controllers
                 Autor = apiRequest.Autor,
                 CategoriaId = apiRequest.CategoriaId,
                 AnioPublicado = apiRequest.AnioPublicado,
+                CantidadEjemplares = apiRequest.CantidadEjemplares,
                 ImagenUrl = imagenUrl
             };
 
