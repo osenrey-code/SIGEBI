@@ -1,13 +1,16 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Session;
+using SIGEBI.AppEscritorio.Views.Categorias; // 👈 Referencia al módulo de Categorías
 using SIGEBI.AppEscritorio.Views.Devolucion;
-using SIGEBI.AppEscritorio.Views.Penalizaciones; 
+using SIGEBI.AppEscritorio.Views.Penalizaciones;
 using SIGEBI.AppEscritorio.Views.Prestamo;
 using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Usuario;
+using System;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-
+using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
@@ -141,7 +144,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void ConfigurarEstilosSidebar()
         {
-            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuPrestamos, btnMenuDevoluciones, btnMenuPenalizaciones, btnMenuUsuarios, btnMenuAuditoria };
+            // 👈 Se incluye btnMenuCategorias en el arreglo de pintura de la barra lateral
+            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuCategorias, btnMenuPrestamos, btnMenuDevoluciones, btnMenuPenalizaciones, btnMenuUsuarios, btnMenuAuditoria };
 
             foreach (var btn in botonesMenu)
             {
@@ -194,6 +198,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
             ResetearBotonMenu(btnMenuDashboard);
             ResetearBotonMenu(btnMenuCatalogo);
+            ResetearBotonMenu(btnMenuCategorias); // 👈 Limpieza del estado del botón Categorías
             ResetearBotonMenu(btnMenuPrestamos);
             ResetearBotonMenu(btnMenuDevoluciones);
             ResetearBotonMenu(btnMenuPenalizaciones);
@@ -225,11 +230,13 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 case "Administrador":
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
+                    btnMenuCategorias.Visible = true; // 👈 Únicamente visible para Administrador
+                    btnMenuCategorias.Text = "🏷️  Categorías";
                     btnMenuPrestamos.Visible = true;
                     btnMenuPrestamos.Text = "🔄  Préstamos";
                     btnMenuDevoluciones.Visible = true;
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
-                    btnMenuPenalizaciones.Visible = true; // 👈 Visible
+                    btnMenuPenalizaciones.Visible = true;
                     btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = true;
@@ -238,11 +245,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 case "Bibliotecario" or "PersonalBibliotecario":
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
+                    btnMenuCategorias.Visible = false; // 🔒 Oculto para Bibliotecario
                     btnMenuPrestamos.Visible = true;
                     btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes";
                     btnMenuDevoluciones.Visible = true;
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
-                    btnMenuPenalizaciones.Visible = true; // 👈 Visible
+                    btnMenuPenalizaciones.Visible = true;
                     btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = false;
@@ -251,11 +259,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 case "Auditor":
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
+                    btnMenuCategorias.Visible = false; // 🔒 Oculto para Auditor
                     btnMenuPrestamos.Visible = true;
                     btnMenuPrestamos.Text = "🔄  Préstamos";
                     btnMenuDevoluciones.Visible = true;
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
-                    btnMenuPenalizaciones.Visible = false; // 🔒 Oculto para Auditor
+                    btnMenuPenalizaciones.Visible = false;
                     btnMenuUsuarios.Visible = false;
                     btnMenuAuditoria.Visible = true;
                     return true;
@@ -474,6 +483,14 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             AbrirFormularioEnPanel(catalogoForm);
         }
 
+        // 🚀 Evento para abrir el módulo de Categorías
+        private void btnMenuCategorias_Click(object? sender, EventArgs e)
+        {
+            SeleccionarBotonMenu(btnMenuCategorias, "Gestión de Categorías");
+            var categoriaForm = Program.ServiceProvider.GetRequiredService<CategoriaForm>();
+            AbrirFormularioEnPanel(categoriaForm);
+        }
+
         private void btnMenuPrestamos_Click(object? sender, EventArgs e)
         {
             string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
@@ -492,7 +509,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             AbrirFormularioEnPanel(devolucionForm);
         }
 
-        // 🚀 Evento para el módulo de Penalizaciones
         private void btnMenuPenalizaciones_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuPenalizaciones, "Gestión de Penalizaciones");

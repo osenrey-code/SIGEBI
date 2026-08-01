@@ -1,52 +1,51 @@
 ﻿using SIGEBI.AppEscritorio.Dtos.Catalogo.Request;
 using SIGEBI.AppEscritorio.Dtos.Catalogo.Response;
+using SIGEBI.AppEscritorio.Services.Categoria;
 using SIGEBI.AppEscritorio.Services.Interfaces;
-using System;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
     public partial class GestionarRecursoForm : Form
     {
         private readonly ICatalogoService _catalogoService;
+        private readonly ICategoriaService _categoriaService; 
         private int _recursoIdActual = 0;
         private string _rutaImagenSeleccionada = string.Empty;
         private string _urlImagenActual = string.Empty;
 
-        // 🎨 NUEVA PALETA INVERTIDA (Para que resalte sobre el Main)
-        private readonly Color bgForm = Color.FromArgb(30, 41, 59);       // Fondo de la ventana (Más claro que el Main)
-        private readonly Color bgInputs = Color.FromArgb(15, 23, 42);     // Fondo de los inputs (Más oscuros, efecto hundido)
+        //  PALETA DE COLORES
+        private readonly Color bgForm = Color.FromArgb(30, 41, 59);       // Fondo de la ventana
+        private readonly Color bgInputs = Color.FromArgb(15, 23, 42);     // Fondo de los inputs
         private readonly Color textPrimary = Color.White;                 // Texto principal
         private readonly Color textMuted = Color.FromArgb(148, 163, 184); // Textos secundarios
-        private readonly Color primaryColor = Color.FromArgb(59, 130, 246); // Azul del logo
-        private readonly Color borderColor = Color.FromArgb(71, 85, 105); // Color del borde flotante
+        private readonly Color primaryColor = Color.FromArgb(59, 130, 246); // Azul
+        private readonly Color borderColor = Color.FromArgb(71, 85, 105); // Color del borde
 
-        public GestionarRecursoForm(ICatalogoService catalogoService)
+        public GestionarRecursoForm(ICatalogoService catalogoService, ICategoriaService categoriaService)
         {
             InitializeComponent();
             _catalogoService = catalogoService;
+            _categoriaService = categoriaService; // 👈 Asignación de la inyección de dependencias
 
-            // Cargamos las categorías en el ComboBox al iniciar
-            CargarCategorias();
-
-            // Destruimos la ventana de Windows
+            // Configuración inicial de la ventana
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterParent;
             this.BackColor = bgForm;
-
-            // Le damos más altura para que los campos de abajo no se recorten
             this.Size = new Size(600, 540);
 
-            // Magia de Diseño
-            this.Load += (s, e) => ForzarLayoutPerfecto();
+            this.Load += async (s, e) =>
+            {
+                ForzarLayoutPerfecto();
+                await CargarCategoriasAsync(); // 👈 Carga asíncrona real desde la BD
+            };
+
             picPortada.Paint += PicPortada_Paint;
         }
 
-        #region Renderizado y Layout Perfecto (Anti-Toyos)
+        #region Renderizado y Layout Perfecto
 
         private void ForzarLayoutPerfecto()
         {
@@ -57,7 +56,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             Font fontLabel = new Font("Segoe UI Semibold", 9.5F);
             Font fontInput = new Font("Segoe UI", 11F);
 
-            // 2. POSICIONES ABSOLUTAS (Para que nada se mueva)
+            // 2. POSICIONES ABSOLUTAS
             int colIzquierda = 30;
             int colDerecha = 330;
             int anchoInput = 260;
@@ -127,9 +126,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 CrearLineaUnderline(input);
             }
 
-            EstilizarBotonPildora(btnGuardar, primaryColor, Color.White);
-            EstilizarBotonPildora(btnCancelar, bgInputs, Color.White);
-            EstilizarBotonPildora(btnSeleccionarFoto, bgInputs, Color.White);
+            EstilitarBotonPildora(btnGuardar, primaryColor, Color.White);
+            EstilitarBotonPildora(btnCancelar, bgInputs, Color.White);
+            EstilitarBotonPildora(btnSeleccionarFoto, bgInputs, Color.White);
         }
 
         private void CrearBarraTituloCustom()
@@ -170,7 +169,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 e.Graphics.DrawRectangle(penDashed, 1, 1, picPortada.Width - 3, picPortada.Height - 3);
             }
 
-            // Texto limpio sin emojis raros para evitar el cuadrito blanco
             string texto = "Seleccione una\nportada para\nel recurso";
             using (Font font = new Font("Segoe UI", 10F, FontStyle.Italic))
             using (Brush brush = new SolidBrush(textMuted))
@@ -180,7 +178,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
         }
 
-        // Borde flotante para despegar el formulario del fondo del Main
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -191,7 +188,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
         }
 
-        private void EstilizarBotonPildora(Button btn, Color bg, Color fg)
+        private void EstilitarBotonPildora(Button btn, Color bg, Color fg)
         {
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderSize = 0;
@@ -242,18 +239,22 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         // ------------------ LÓGICA DE NEGOCIO ------------------
 
-        private void CargarCategorias()
+        // 🟢 Carga real y dinámica desde la base de datos mediante la API
+        private async Task CargarCategoriasAsync()
         {
-            var categorias = new[]
+            try
             {
-                new { Id = 1, Nombre = "Programacion" },
-                new { Id = 2, Nombre = "Tecnologia 2026" }
-            };
+                var categorias = await _categoriaService.ConsultarCategoriasAsync();
 
-            cmbCategoria.DataSource = categorias;
-            cmbCategoria.DisplayMember = "Nombre";
-            cmbCategoria.ValueMember = "Id";
-            cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbCategoria.DataSource = categorias;
+                cmbCategoria.DisplayMember = "Nombre";
+                cmbCategoria.ValueMember = "CategoriaId";
+                cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar categorías: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public void CargarDatosParaEdicion(RecursoResponse recurso)
@@ -266,7 +267,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             txtTitulo.Text = recurso.Titulo;
             txtAutor.Text = recurso.Autor;
 
-            // Asignamos la categoría actual del recurso
             cmbCategoria.SelectedValue = recurso.CategoriaId;
 
             numAnio.Value = recurso.AnioPublicado;
@@ -302,7 +302,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                         ISBN = txtISBN.Text.Trim(),
                         Titulo = txtTitulo.Text.Trim(),
                         Autor = txtAutor.Text.Trim(),
-                        CategoriaId = (int)cmbCategoria.SelectedValue, // Captura dinámica del Combo
+                        CategoriaId = cmbCategoria.SelectedValue != null ? (int)cmbCategoria.SelectedValue : 0,
                         AnioPublicado = (int)numAnio.Value,
                         CantidadEjemplares = (int)numEjemplares.Value,
                         RutaImagenLocal = _rutaImagenSeleccionada
@@ -316,7 +316,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                         RecursoBibliograficoId = _recursoIdActual,
                         Titulo = txtTitulo.Text.Trim(),
                         Autor = txtAutor.Text.Trim(),
-                        CategoriaId = (int)cmbCategoria.SelectedValue,
+                        CategoriaId = cmbCategoria.SelectedValue != null ? (int)cmbCategoria.SelectedValue : 0,
                         AnioPublicado = (int)numAnio.Value,
                         ImagenUrlActual = _urlImagenActual,
                         RutaNuevaImagenLocal = _rutaImagenSeleccionada

@@ -21,9 +21,10 @@
             this.btnCerrarSesion = new System.Windows.Forms.Button();
             this.btnMenuAuditoria = new System.Windows.Forms.Button();
             this.btnMenuUsuarios = new System.Windows.Forms.Button();
-            this.btnMenuPenalizaciones = new System.Windows.Forms.Button(); 
+            this.btnMenuPenalizaciones = new System.Windows.Forms.Button();
             this.btnMenuDevoluciones = new System.Windows.Forms.Button();
             this.btnMenuPrestamos = new System.Windows.Forms.Button();
+            this.btnMenuCategorias = new System.Windows.Forms.Button(); // 👈 Declaración de Categorías
             this.btnMenuCatalogo = new System.Windows.Forms.Button();
             this.btnMenuDashboard = new System.Windows.Forms.Button();
             this.pnlBrand = new System.Windows.Forms.Panel();
@@ -68,9 +69,10 @@
             this.pnlSidebar.Controls.Add(this.btnCerrarSesion);
             this.pnlSidebar.Controls.Add(this.btnMenuAuditoria);
             this.pnlSidebar.Controls.Add(this.btnMenuUsuarios);
-            this.pnlSidebar.Controls.Add(this.btnMenuPenalizaciones); 
+            this.pnlSidebar.Controls.Add(this.btnMenuPenalizaciones);
             this.pnlSidebar.Controls.Add(this.btnMenuDevoluciones);
             this.pnlSidebar.Controls.Add(this.btnMenuPrestamos);
+            this.pnlSidebar.Controls.Add(this.btnMenuCategorias); // 👈 Incorporado en pnlSidebar
             this.pnlSidebar.Controls.Add(this.btnMenuCatalogo);
             this.pnlSidebar.Controls.Add(this.btnMenuDashboard);
             this.pnlSidebar.Controls.Add(this.pnlBrand);
@@ -92,7 +94,7 @@
             this.btnCerrarSesion.Name = "btnCerrarSesion";
             this.btnCerrarSesion.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnCerrarSesion.Size = new System.Drawing.Size(240, 50);
-            this.btnCerrarSesion.TabIndex = 8;
+            this.btnCerrarSesion.TabIndex = 9;
             this.btnCerrarSesion.Text = "🚪  Cerrar Sesión";
             this.btnCerrarSesion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnCerrarSesion.UseVisualStyleBackColor = true;
@@ -106,11 +108,11 @@
             this.btnMenuAuditoria.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMenuAuditoria.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnMenuAuditoria.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.btnMenuAuditoria.Location = new System.Drawing.Point(0, 353);
+            this.btnMenuAuditoria.Location = new System.Drawing.Point(0, 401);
             this.btnMenuAuditoria.Name = "btnMenuAuditoria";
             this.btnMenuAuditoria.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuAuditoria.Size = new System.Drawing.Size(240, 48);
-            this.btnMenuAuditoria.TabIndex = 7;
+            this.btnMenuAuditoria.TabIndex = 8;
             this.btnMenuAuditoria.Text = "🛡️  Auditoría y Reportes";
             this.btnMenuAuditoria.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuAuditoria.UseVisualStyleBackColor = true;
@@ -124,11 +126,11 @@
             this.btnMenuUsuarios.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMenuUsuarios.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnMenuUsuarios.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.btnMenuUsuarios.Location = new System.Drawing.Point(0, 305);
+            this.btnMenuUsuarios.Location = new System.Drawing.Point(0, 353);
             this.btnMenuUsuarios.Name = "btnMenuUsuarios";
             this.btnMenuUsuarios.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuUsuarios.Size = new System.Drawing.Size(240, 48);
-            this.btnMenuUsuarios.TabIndex = 6;
+            this.btnMenuUsuarios.TabIndex = 7;
             this.btnMenuUsuarios.Text = "👥  Gestión de Usuarios";
             this.btnMenuUsuarios.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuUsuarios.UseVisualStyleBackColor = true;
@@ -142,11 +144,11 @@
             this.btnMenuPenalizaciones.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMenuPenalizaciones.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnMenuPenalizaciones.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.btnMenuPenalizaciones.Location = new System.Drawing.Point(0, 257);
+            this.btnMenuPenalizaciones.Location = new System.Drawing.Point(0, 305);
             this.btnMenuPenalizaciones.Name = "btnMenuPenalizaciones";
             this.btnMenuPenalizaciones.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuPenalizaciones.Size = new System.Drawing.Size(240, 48);
-            this.btnMenuPenalizaciones.TabIndex = 5;
+            this.btnMenuPenalizaciones.TabIndex = 6;
             this.btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
             this.btnMenuPenalizaciones.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuPenalizaciones.UseVisualStyleBackColor = true;
@@ -160,11 +162,11 @@
             this.btnMenuDevoluciones.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMenuDevoluciones.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnMenuDevoluciones.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.btnMenuDevoluciones.Location = new System.Drawing.Point(0, 209);
+            this.btnMenuDevoluciones.Location = new System.Drawing.Point(0, 257);
             this.btnMenuDevoluciones.Name = "btnMenuDevoluciones";
             this.btnMenuDevoluciones.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuDevoluciones.Size = new System.Drawing.Size(240, 48);
-            this.btnMenuDevoluciones.TabIndex = 4;
+            this.btnMenuDevoluciones.TabIndex = 5;
             this.btnMenuDevoluciones.Text = "↩️  Devoluciones";
             this.btnMenuDevoluciones.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuDevoluciones.UseVisualStyleBackColor = true;
@@ -178,15 +180,33 @@
             this.btnMenuPrestamos.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMenuPrestamos.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnMenuPrestamos.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.btnMenuPrestamos.Location = new System.Drawing.Point(0, 161);
+            this.btnMenuPrestamos.Location = new System.Drawing.Point(0, 209);
             this.btnMenuPrestamos.Name = "btnMenuPrestamos";
             this.btnMenuPrestamos.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuPrestamos.Size = new System.Drawing.Size(240, 48);
-            this.btnMenuPrestamos.TabIndex = 3;
+            this.btnMenuPrestamos.TabIndex = 4;
             this.btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes";
             this.btnMenuPrestamos.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuPrestamos.UseVisualStyleBackColor = true;
             this.btnMenuPrestamos.Click += new System.EventHandler(this.btnMenuPrestamos_Click);
+            // 
+            // btnMenuCategorias
+            // 
+            this.btnMenuCategorias.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnMenuCategorias.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnMenuCategorias.FlatAppearance.BorderSize = 0;
+            this.btnMenuCategorias.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnMenuCategorias.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnMenuCategorias.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
+            this.btnMenuCategorias.Location = new System.Drawing.Point(0, 161);
+            this.btnMenuCategorias.Name = "btnMenuCategorias";
+            this.btnMenuCategorias.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
+            this.btnMenuCategorias.Size = new System.Drawing.Size(240, 48);
+            this.btnMenuCategorias.TabIndex = 3;
+            this.btnMenuCategorias.Text = "🏷️  Categorías";
+            this.btnMenuCategorias.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnMenuCategorias.UseVisualStyleBackColor = true;
+            this.btnMenuCategorias.Click += new System.EventHandler(this.btnMenuCategorias_Click);
             // 
             // btnMenuCatalogo
             // 
@@ -548,9 +568,10 @@
         private System.Windows.Forms.PictureBox picSidebarLogo;
         private System.Windows.Forms.Button btnMenuDashboard;
         private System.Windows.Forms.Button btnMenuCatalogo;
+        private System.Windows.Forms.Button btnMenuCategorias; // 👈 Campo privado del botón
         private System.Windows.Forms.Button btnMenuPrestamos;
         private System.Windows.Forms.Button btnMenuDevoluciones;
-        private System.Windows.Forms.Button btnMenuPenalizaciones; 
+        private System.Windows.Forms.Button btnMenuPenalizaciones;
         private System.Windows.Forms.Button btnMenuUsuarios;
         private System.Windows.Forms.Button btnMenuAuditoria;
         private System.Windows.Forms.Button btnCerrarSesion;
