@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Session;
-using SIGEBI.AppEscritorio.Views.Categorias; // 👈 Referencia al módulo de Categorías
+using SIGEBI.AppEscritorio.Views.Auditoria; // 👈 Referencia al módulo de Auditoría
+using SIGEBI.AppEscritorio.Views.Categorias;
 using SIGEBI.AppEscritorio.Views.Devolucion;
 using SIGEBI.AppEscritorio.Views.Penalizaciones;
 using SIGEBI.AppEscritorio.Views.Prestamo;
-using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Usuario;
 using System;
 using System.Drawing;
@@ -144,7 +144,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void ConfigurarEstilosSidebar()
         {
-            // 👈 Se incluye btnMenuCategorias en el arreglo de pintura de la barra lateral
             Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuCategorias, btnMenuPrestamos, btnMenuDevoluciones, btnMenuPenalizaciones, btnMenuUsuarios, btnMenuAuditoria };
 
             foreach (var btn in botonesMenu)
@@ -162,7 +161,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         {
             if (sender is Button btn && btn == _botonMenuSeleccionado)
             {
-                // Dibujar indicador lateral azul de 4px cuando el botón está activo
                 using var brushBarra = new SolidBrush(ColorAccentBar);
                 e.Graphics.FillRectangle(brushBarra, 0, 0, 4, btn.Height);
             }
@@ -178,7 +176,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             btnCerrarSesion.Text = "🚪    Cerrar Sesión";
             btnCerrarSesion.Cursor = Cursors.Hand;
 
-            // Animación Hover al pasar el cursor sobre Cerrar Sesión
             btnCerrarSesion.MouseEnter += (s, e) =>
             {
                 btnCerrarSesion.BackColor = Color.FromArgb(69, 26, 26);
@@ -198,7 +195,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
             ResetearBotonMenu(btnMenuDashboard);
             ResetearBotonMenu(btnMenuCatalogo);
-            ResetearBotonMenu(btnMenuCategorias); // 👈 Limpieza del estado del botón Categorías
+            ResetearBotonMenu(btnMenuCategorias);
             ResetearBotonMenu(btnMenuPrestamos);
             ResetearBotonMenu(btnMenuDevoluciones);
             ResetearBotonMenu(btnMenuPenalizaciones);
@@ -208,7 +205,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             _botonMenuSeleccionado = botonActivo;
             botonActivo.BackColor = ColorActiveSidebar;
             botonActivo.ForeColor = Color.White;
-            botonActivo.Invalidate(); // Forzar redibujado de la barra acentuada
+            botonActivo.Invalidate();
         }
 
         private void ResetearBotonMenu(Button? btn)
@@ -230,7 +227,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 case "Administrador":
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
-                    btnMenuCategorias.Visible = true; // 👈 Únicamente visible para Administrador
+                    btnMenuCategorias.Visible = true;
                     btnMenuCategorias.Text = "🏷️  Categorías";
                     btnMenuPrestamos.Visible = true;
                     btnMenuPrestamos.Text = "🔄  Préstamos";
@@ -239,13 +236,14 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPenalizaciones.Visible = true;
                     btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
-                    btnMenuAuditoria.Visible = true;
+                    btnMenuAuditoria.Visible = true; // 🟢 Visible para Administrador
+                    btnMenuAuditoria.Text = "🛡️  Log de Auditoría";
                     return true;
 
                 case "Bibliotecario" or "PersonalBibliotecario":
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
-                    btnMenuCategorias.Visible = false; // 🔒 Oculto para Bibliotecario
+                    btnMenuCategorias.Visible = false;
                     btnMenuPrestamos.Visible = true;
                     btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes";
                     btnMenuDevoluciones.Visible = true;
@@ -253,20 +251,21 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPenalizaciones.Visible = true;
                     btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
-                    btnMenuAuditoria.Visible = false;
+                    btnMenuAuditoria.Visible = false; // 🔒 Oculto para Bibliotecarios
                     return true;
 
                 case "Auditor":
                     btnMenuDashboard.Visible = true;
                     btnMenuCatalogo.Visible = true;
-                    btnMenuCategorias.Visible = false; // 🔒 Oculto para Auditor
+                    btnMenuCategorias.Visible = false;
                     btnMenuPrestamos.Visible = true;
                     btnMenuPrestamos.Text = "🔄  Préstamos";
                     btnMenuDevoluciones.Visible = true;
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
                     btnMenuPenalizaciones.Visible = false;
                     btnMenuUsuarios.Visible = false;
-                    btnMenuAuditoria.Visible = true;
+                    btnMenuAuditoria.Visible = true; // 🟢 Visible para Auditor
+                    btnMenuAuditoria.Text = "🛡️  Log de Auditoría";
                     return true;
 
                 default:
@@ -483,7 +482,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             AbrirFormularioEnPanel(catalogoForm);
         }
 
-        // 🚀 Evento para abrir el módulo de Categorías
         private void btnMenuCategorias_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuCategorias, "Gestión de Categorías");
@@ -518,9 +516,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void btnMenuAuditoria_Click(object? sender, EventArgs e)
         {
-            SeleccionarBotonMenu(btnMenuAuditoria, "Auditoría y Reportes");
-            var reporteForm = Program.ServiceProvider.GetRequiredService<ReporteForm>();
-            AbrirFormularioEnPanel(reporteForm);
+            SeleccionarBotonMenu(btnMenuAuditoria, "Log de Auditoría");
+            var auditoriaForm = Program.ServiceProvider.GetRequiredService<AuditoriaForm>();
+            AbrirFormularioEnPanel(auditoriaForm);
         }
 
         private void btnCerrarSesion_Click(object sender, EventArgs e)

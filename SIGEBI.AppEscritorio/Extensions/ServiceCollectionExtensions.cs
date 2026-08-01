@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Handlers;
 using SIGEBI.AppEscritorio.Services;
 using SIGEBI.AppEscritorio.Services.Api;
+using SIGEBI.AppEscritorio.Services.Auditoria;
 using SIGEBI.AppEscritorio.Services.Auth;
 using SIGEBI.AppEscritorio.Services.Catalogo;
 using SIGEBI.AppEscritorio.Services.Categoria;
@@ -20,6 +21,7 @@ using SIGEBI.AppEscritorio.Views.Prestamo;
 using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Shared;
 using SIGEBI.AppEscritorio.Views.Usuario;
+using SIGEBI.AppEscritorio.Views.Auditoria;
 
 namespace SIGEBI.AppEscritorio.Extensions
 {
@@ -59,6 +61,7 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<IDevolucionService, DevolucionService>();
             services.AddTransient<IPenalizacionService, PenalizacionService>();
             services.AddTransient<ICategoriaService, CategoriaService>();
+            services.AddTransient<IAuditoriaService, AuditoriaService>();
 
             return services;
         }
@@ -75,6 +78,7 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<DevolucionForm>();
             services.AddTransient<PenalizacionForm>();
             services.AddTransient<CategoriaForm>();
+            services.AddTransient<AuditoriaForm>();
             return services;
 
         }

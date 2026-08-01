@@ -1,13 +1,8 @@
 ﻿using SIGEBI.AppEscritorio.Dtos.Reporte;
-using SIGEBI.AppEscritorio.Services.Interfaces;
 using SIGEBI.AppEscritorio.Services.Reporte;
 using SIGEBI.AppEscritorio.Session;
-using System;
-using System.Drawing;
-using System.IO;
-using System.Runtime.InteropServices; // 👈 Necesario para uxtheme.dll
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Runtime.InteropServices; 
+
 
 namespace SIGEBI.AppEscritorio.Views.Reportes
 {
