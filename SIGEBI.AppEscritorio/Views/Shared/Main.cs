@@ -1,14 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Session;
-using SIGEBI.AppEscritorio.Views.Devolucion; // 👈 Referencia a la vista de Devoluciones
+using SIGEBI.AppEscritorio.Views.Devolucion;
+using SIGEBI.AppEscritorio.Views.Penalizaciones; 
 using SIGEBI.AppEscritorio.Views.Prestamo;
 using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Usuario;
-using System;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
+
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
@@ -61,7 +60,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void Main_Load(object sender, EventArgs e)
         {
-            // 🛑 Validar permisos según el rol activo
             if (!GestionPermisos())
             {
                 this.BeginInvoke(new Action(() =>
@@ -85,7 +83,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             string rol = string.IsNullOrWhiteSpace(sesion.TipoUsuario) ? "Sin Rol" : sesion.TipoUsuario;
 
             // Insignia de usuario superior estilizada
-            lblUsuarioLogueado.Text = $"👤  {nombre}   │   Rol: {rol}";
+            lblUsuarioLogueado.Text = $"👤  {nombre}    │    Rol: {rol}";
             this.Text = $"SIGEBI - Panel Principal | Usuario: {nombre} ({rol})";
 
             ConfigurarDashboardProfesional(nombre, rol);
@@ -103,7 +101,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             lblCard1Val.ForeColor = Color.FromArgb(59, 130, 246);
             ConfigurarTarjetaComoBoton(pnlCard1, btnMenuCatalogo_Click);
 
-            // 2. Tarjeta 2: Acceso Directo a Préstamos (Solo el Bibliotecario gestiona solicitudes)
+            // 2. Tarjeta 2: Acceso Directo a Préstamos
             bool esBibliotecario = (rol == "Bibliotecario" || rol == "PersonalBibliotecario");
             lblCard2Title.Text = esBibliotecario ? "🔄 Préstamos y Solicitudes" : "🔄 Préstamos";
             lblCard2Val.Text = "Gestionar ➔";
@@ -143,8 +141,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void ConfigurarEstilosSidebar()
         {
-            // 👈 Se incluye btnMenuDevoluciones en la barra lateral
-            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuPrestamos, btnMenuDevoluciones, btnMenuUsuarios, btnMenuAuditoria };
+            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuPrestamos, btnMenuDevoluciones, btnMenuPenalizaciones, btnMenuUsuarios, btnMenuAuditoria };
 
             foreach (var btn in botonesMenu)
             {
@@ -171,16 +168,16 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         {
             btnCerrarSesion.FlatStyle = FlatStyle.Flat;
             btnCerrarSesion.FlatAppearance.BorderSize = 0;
-            btnCerrarSesion.BackColor = Color.FromArgb(24, 30, 45); // Fondo oscuro suave
-            btnCerrarSesion.ForeColor = Color.FromArgb(239, 68, 68); // Rojo carmesí brillante
+            btnCerrarSesion.BackColor = Color.FromArgb(24, 30, 45);
+            btnCerrarSesion.ForeColor = Color.FromArgb(239, 68, 68);
             btnCerrarSesion.Font = new Font("Segoe UI", 10f, FontStyle.Bold);
-            btnCerrarSesion.Text = "🚪   Cerrar Sesión";
+            btnCerrarSesion.Text = "🚪    Cerrar Sesión";
             btnCerrarSesion.Cursor = Cursors.Hand;
 
             // Animación Hover al pasar el cursor sobre Cerrar Sesión
             btnCerrarSesion.MouseEnter += (s, e) =>
             {
-                btnCerrarSesion.BackColor = Color.FromArgb(69, 26, 26); // Rojo borgoña profundo
+                btnCerrarSesion.BackColor = Color.FromArgb(69, 26, 26);
                 btnCerrarSesion.ForeColor = Color.FromArgb(248, 113, 113);
             };
 
@@ -199,6 +196,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             ResetearBotonMenu(btnMenuCatalogo);
             ResetearBotonMenu(btnMenuPrestamos);
             ResetearBotonMenu(btnMenuDevoluciones);
+            ResetearBotonMenu(btnMenuPenalizaciones);
             ResetearBotonMenu(btnMenuUsuarios);
             ResetearBotonMenu(btnMenuAuditoria);
 
@@ -231,6 +229,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPrestamos.Text = "🔄  Préstamos";
                     btnMenuDevoluciones.Visible = true;
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
+                    btnMenuPenalizaciones.Visible = true; // 👈 Visible
+                    btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = true;
                     return true;
@@ -242,6 +242,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPrestamos.Text = "🔄  Préstamos y Solicitudes";
                     btnMenuDevoluciones.Visible = true;
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
+                    btnMenuPenalizaciones.Visible = true; // 👈 Visible
+                    btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
                     btnMenuAuditoria.Visible = false;
                     return true;
@@ -253,6 +255,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPrestamos.Text = "🔄  Préstamos";
                     btnMenuDevoluciones.Visible = true;
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
+                    btnMenuPenalizaciones.Visible = false; // 🔒 Oculto para Auditor
                     btnMenuUsuarios.Visible = false;
                     btnMenuAuditoria.Visible = true;
                     return true;
@@ -482,12 +485,19 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             AbrirFormularioEnPanel(prestamoForm);
         }
 
-        // 🚀 Evento para el módulo de Devoluciones
         private void btnMenuDevoluciones_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuDevoluciones, "Historial de Devoluciones");
             var devolucionForm = Program.ServiceProvider.GetRequiredService<DevolucionForm>();
             AbrirFormularioEnPanel(devolucionForm);
+        }
+
+        // 🚀 Evento para el módulo de Penalizaciones
+        private void btnMenuPenalizaciones_Click(object? sender, EventArgs e)
+        {
+            SeleccionarBotonMenu(btnMenuPenalizaciones, "Gestión de Penalizaciones");
+            var penalizacionForm = Program.ServiceProvider.GetRequiredService<PenalizacionForm>();
+            AbrirFormularioEnPanel(penalizacionForm);
         }
 
         private void btnMenuAuditoria_Click(object? sender, EventArgs e)
