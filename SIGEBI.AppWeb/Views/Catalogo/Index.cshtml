@@ -16,7 +16,7 @@
 </div>
 
 <!-- ALERTAS DE SISTEMA -->
-@if (TempData["Success"] != null)
+@if (!string.IsNullOrWhiteSpace(TempData["Success"]?.ToString()))
 {
     <div class="alert alert-success border-0 bg-success-subtle text-success alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
         <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
@@ -25,7 +25,7 @@
     </div>
 }
 
-@if (TempData["Success"] != null)
+@if (!string.IsNullOrWhiteSpace(TempData["Error"]?.ToString()))
 {
     <div class="alert alert-danger border-0 bg-danger-subtle text-danger alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
         <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
@@ -182,14 +182,14 @@ else
         transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
-    .tarjeta-portada:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
-    }
+        .tarjeta-portada:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+        }
 
-    .tarjeta-portada:hover .portada-img {
-        transform: scale(1.05);
-    }
+            .tarjeta-portada:hover .portada-img {
+                transform: scale(1.05);
+            }
 
     .line-clamp-1 {
         display: -webkit-box;

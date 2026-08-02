@@ -53,11 +53,24 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<bool> ExisteSolicitudPendienteOActivaAsync(int usuarioId, int ejemplarId)
         {
-              return await _dbSet.AnyAsync(s =>
-              s.UsuarioId == usuarioId &&
-              s.EjemplarId == ejemplarId &&
-             (s.Estado == EstadoSolicitud.Pendiente || s.Estado == EstadoSolicitud.Aprobada)
-              );  
+           
+            bool tieneSolicitudPendiente = await _dbSet.AnyAsync(s =>
+                s.UsuarioId == usuarioId &&
+                s.EjemplarId == ejemplarId &&
+                s.Estado == EstadoSolicitud.Pendiente
+            );
+
+            if (tieneSolicitudPendiente)
+                return true;
+
+        
+            bool tienePrestamoActivo = await _context.Set<Prestamo>().AnyAsync(p =>
+                p.UsuarioId == usuarioId &&
+                p.EjemplarId == ejemplarId &&
+                p.Estado == EstadoPrestamo.Activo
+            );
+
+            return tienePrestamoActivo;
         }
     }
 }
