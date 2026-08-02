@@ -1,16 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Session;
-using SIGEBI.AppEscritorio.Views.Auditoria; // 👈 Referencia al módulo de Auditoría
+using SIGEBI.AppEscritorio.Views.Auditoria;
 using SIGEBI.AppEscritorio.Views.Categorias;
 using SIGEBI.AppEscritorio.Views.Devolucion;
 using SIGEBI.AppEscritorio.Views.Penalizaciones;
 using SIGEBI.AppEscritorio.Views.Prestamo;
+using SIGEBI.AppEscritorio.Views.Reportes; 
 using SIGEBI.AppEscritorio.Views.Usuario;
-using System;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
+
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
@@ -144,7 +143,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void ConfigurarEstilosSidebar()
         {
-            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuCategorias, btnMenuPrestamos, btnMenuDevoluciones, btnMenuPenalizaciones, btnMenuUsuarios, btnMenuAuditoria };
+            // 👈 Se incluye btnMenuReportes en la botonera lateral
+            Button[] botonesMenu = { btnMenuDashboard, btnMenuCatalogo, btnMenuCategorias, btnMenuPrestamos, btnMenuDevoluciones, btnMenuPenalizaciones, btnMenuUsuarios, btnMenuReportes, btnMenuAuditoria };
 
             foreach (var btn in botonesMenu)
             {
@@ -200,6 +200,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             ResetearBotonMenu(btnMenuDevoluciones);
             ResetearBotonMenu(btnMenuPenalizaciones);
             ResetearBotonMenu(btnMenuUsuarios);
+            ResetearBotonMenu(btnMenuReportes); // 👈 Limpieza de estado de Reportes
             ResetearBotonMenu(btnMenuAuditoria);
 
             _botonMenuSeleccionado = botonActivo;
@@ -236,6 +237,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPenalizaciones.Visible = true;
                     btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
+                    btnMenuReportes.Visible = true; // 🟢 Visible para Administrador
+                    btnMenuReportes.Text = "📈  Reportes y KPIs";
                     btnMenuAuditoria.Visible = true; // 🟢 Visible para Administrador
                     btnMenuAuditoria.Text = "🛡️  Log de Auditoría";
                     return true;
@@ -251,6 +254,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuPenalizaciones.Visible = true;
                     btnMenuPenalizaciones.Text = "⚠️  Penalizaciones";
                     btnMenuUsuarios.Visible = true;
+                    btnMenuReportes.Visible = true; // 🟢 Visible para Bibliotecarios (para Inventario)
+                    btnMenuReportes.Text = "📈  Reportes";
                     btnMenuAuditoria.Visible = false; // 🔒 Oculto para Bibliotecarios
                     return true;
 
@@ -264,6 +269,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     btnMenuDevoluciones.Text = "↩️  Devoluciones";
                     btnMenuPenalizaciones.Visible = false;
                     btnMenuUsuarios.Visible = false;
+                    btnMenuReportes.Visible = true; // 🟢 Visible para Auditor
+                    btnMenuReportes.Text = "📈  Reportes y KPIs";
                     btnMenuAuditoria.Visible = true; // 🟢 Visible para Auditor
                     btnMenuAuditoria.Text = "🛡️  Log de Auditoría";
                     return true;
@@ -514,6 +521,15 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             AbrirFormularioEnPanel(penalizacionForm);
         }
 
+        // 🚀 Evento para abrir el módulo de Reportes y KPIs
+        private void btnMenuReportes_Click(object? sender, EventArgs e)
+        {
+            SeleccionarBotonMenu(btnMenuReportes, "Reportes y Estadísticas");
+            var reporteForm = Program.ServiceProvider.GetRequiredService<ReporteForm>();
+            AbrirFormularioEnPanel(reporteForm);
+        }
+
+        // 🚀 Evento para abrir el módulo de Log de Auditoría
         private void btnMenuAuditoria_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuAuditoria, "Log de Auditoría");

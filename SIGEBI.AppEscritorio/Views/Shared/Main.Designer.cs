@@ -20,11 +20,12 @@
             this.pnlSidebar = new System.Windows.Forms.Panel();
             this.btnCerrarSesion = new System.Windows.Forms.Button();
             this.btnMenuAuditoria = new System.Windows.Forms.Button();
+            this.btnMenuReportes = new System.Windows.Forms.Button(); // 👈 Declaración de Reportes
             this.btnMenuUsuarios = new System.Windows.Forms.Button();
             this.btnMenuPenalizaciones = new System.Windows.Forms.Button();
             this.btnMenuDevoluciones = new System.Windows.Forms.Button();
             this.btnMenuPrestamos = new System.Windows.Forms.Button();
-            this.btnMenuCategorias = new System.Windows.Forms.Button(); // 👈 Declaración de Categorías
+            this.btnMenuCategorias = new System.Windows.Forms.Button();
             this.btnMenuCatalogo = new System.Windows.Forms.Button();
             this.btnMenuDashboard = new System.Windows.Forms.Button();
             this.pnlBrand = new System.Windows.Forms.Panel();
@@ -68,11 +69,12 @@
             this.pnlSidebar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
             this.pnlSidebar.Controls.Add(this.btnCerrarSesion);
             this.pnlSidebar.Controls.Add(this.btnMenuAuditoria);
+            this.pnlSidebar.Controls.Add(this.btnMenuReportes); // 👈 Añadido a pnlSidebar
             this.pnlSidebar.Controls.Add(this.btnMenuUsuarios);
             this.pnlSidebar.Controls.Add(this.btnMenuPenalizaciones);
             this.pnlSidebar.Controls.Add(this.btnMenuDevoluciones);
             this.pnlSidebar.Controls.Add(this.btnMenuPrestamos);
-            this.pnlSidebar.Controls.Add(this.btnMenuCategorias); // 👈 Incorporado en pnlSidebar
+            this.pnlSidebar.Controls.Add(this.btnMenuCategorias);
             this.pnlSidebar.Controls.Add(this.btnMenuCatalogo);
             this.pnlSidebar.Controls.Add(this.btnMenuDashboard);
             this.pnlSidebar.Controls.Add(this.pnlBrand);
@@ -94,7 +96,7 @@
             this.btnCerrarSesion.Name = "btnCerrarSesion";
             this.btnCerrarSesion.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnCerrarSesion.Size = new System.Drawing.Size(240, 50);
-            this.btnCerrarSesion.TabIndex = 9;
+            this.btnCerrarSesion.TabIndex = 10;
             this.btnCerrarSesion.Text = "🚪  Cerrar Sesión";
             this.btnCerrarSesion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnCerrarSesion.UseVisualStyleBackColor = true;
@@ -108,15 +110,33 @@
             this.btnMenuAuditoria.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMenuAuditoria.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnMenuAuditoria.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.btnMenuAuditoria.Location = new System.Drawing.Point(0, 401);
+            this.btnMenuAuditoria.Location = new System.Drawing.Point(0, 449);
             this.btnMenuAuditoria.Name = "btnMenuAuditoria";
             this.btnMenuAuditoria.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
             this.btnMenuAuditoria.Size = new System.Drawing.Size(240, 48);
-            this.btnMenuAuditoria.TabIndex = 8;
-            this.btnMenuAuditoria.Text = "🛡️  Auditoría y Reportes";
+            this.btnMenuAuditoria.TabIndex = 9;
+            this.btnMenuAuditoria.Text = "🛡️  Log de Auditoría";
             this.btnMenuAuditoria.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnMenuAuditoria.UseVisualStyleBackColor = true;
             this.btnMenuAuditoria.Click += new System.EventHandler(this.btnMenuAuditoria_Click);
+            // 
+            // btnMenuReportes
+            // 
+            this.btnMenuReportes.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnMenuReportes.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnMenuReportes.FlatAppearance.BorderSize = 0;
+            this.btnMenuReportes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnMenuReportes.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnMenuReportes.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
+            this.btnMenuReportes.Location = new System.Drawing.Point(0, 401);
+            this.btnMenuReportes.Name = "btnMenuReportes";
+            this.btnMenuReportes.Padding = new System.Windows.Forms.Padding(20, 0, 0, 0);
+            this.btnMenuReportes.Size = new System.Drawing.Size(240, 48);
+            this.btnMenuReportes.TabIndex = 8;
+            this.btnMenuReportes.Text = "📈  Reportes y KPIs";
+            this.btnMenuReportes.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnMenuReportes.UseVisualStyleBackColor = true;
+            this.btnMenuReportes.Click += new System.EventHandler(this.btnMenuReportes_Click);
             // 
             // btnMenuUsuarios
             // 
@@ -568,11 +588,12 @@
         private System.Windows.Forms.PictureBox picSidebarLogo;
         private System.Windows.Forms.Button btnMenuDashboard;
         private System.Windows.Forms.Button btnMenuCatalogo;
-        private System.Windows.Forms.Button btnMenuCategorias; // 👈 Campo privado del botón
+        private System.Windows.Forms.Button btnMenuCategorias;
         private System.Windows.Forms.Button btnMenuPrestamos;
         private System.Windows.Forms.Button btnMenuDevoluciones;
         private System.Windows.Forms.Button btnMenuPenalizaciones;
         private System.Windows.Forms.Button btnMenuUsuarios;
+        private System.Windows.Forms.Button btnMenuReportes; // 👈 Campo privado para Reportes
         private System.Windows.Forms.Button btnMenuAuditoria;
         private System.Windows.Forms.Button btnCerrarSesion;
         private System.Windows.Forms.Panel pnlTopBar;
