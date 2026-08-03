@@ -8,39 +8,47 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Usuario> builder)
         {
-            builder.ToTable("Usuarios");
+            builder.ToTable("Usuario");
 
-            builder.HasKey(u => u.Id);
+            builder.HasKey(u => u.UsuarioId);
 
-            builder.Property(u => u.Identificacion)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            builder.HasIndex(u => u.Identificacion)
-                .IsUnique();
+            builder.Property(u => u.UsuarioId)
+                .ValueGeneratedOnAdd();
 
             builder.Property(u => u.NombreCompleto)
                 .IsRequired()
-                .HasMaxLength(150);
+                .HasMaxLength(60);
 
             builder.Property(u => u.Correo)
                 .IsRequired()
-                .HasMaxLength(100);
-
-            builder.Property(u => u.Tipo)
-                .IsRequired()
-                .HasConversion<string>()
                 .HasMaxLength(50);
+
+            builder.HasIndex(u => u.Correo)
+                .IsUnique();
+
+            builder.Property(u => u.PassWord)
+                .IsRequired()
+                .HasMaxLength(200);
 
             builder.Property(u => u.Estado)
-                .IsRequired()
                 .HasConversion<string>()
+                .IsRequired()
                 .HasMaxLength(50);
 
-            builder.HasOne(u => u.PerfilLector)
-                .WithOne()
-                .HasForeignKey<PerfilLector>(p => p.UsuarioId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasDiscriminator<string>("TipoUsuario")
+                .HasValue<Estudiante>("Estudiante")
+                .HasValue<Docente>("Docente")
+                .HasValue<Bibliotecario>("Bibliotecario")
+                .HasValue<Administrador>("Administrador")
+                .HasValue<Auditor>("Auditor");
+
+            builder.Property<string>("TipoUsuario")
+                .IsRequired()
+                .HasMaxLength(50);
+
+            builder.HasIndex("TipoUsuario");
+
+            builder.HasIndex(u => u.Estado);
         }
     }
 }

@@ -1,0 +1,117 @@
+﻿@model SIGEBI.AppWeb.Models.DTOs.Usuarios.UsuarioDto
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+    var cambiarPasswordModel = ViewBag.CambiarPasswordModel as SIGEBI.AppWeb.Models.ViewModels.Usuarios.CambiarPasswordViewModel 
+        ?? new SIGEBI.AppWeb.Models.ViewModels.Usuarios.CambiarPasswordViewModel();
+
+    // Captura el mensaje de error (ya sea de la API o de la validación local) sin listas ni viñetas
+    var mensajeError = TempData["Error"]?.ToString() 
+        ?? (!ViewData.ModelState.IsValid 
+            ? ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault(e => !string.IsNullOrEmpty(e)) 
+            : null);
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div>
+        <span class="hero-badge">Ajustes de Cuenta</span>
+        <h1 class="fw-bold mb-2"><i class="bi bi-person-circle me-2"></i>Mi Perfil</h1>
+        <p class="hero-description mb-0">Consulta tus datos personales y gestiona la seguridad de tu cuenta.</p>
+    </div>
+</div>
+
+<!-- ALERTAS DE NOTIFICACIÓN GLOBALES (ÉXITO) -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 bg-success-subtle text-success alert-dismissible fade show shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- TARJETA DE INFORMACIÓN DEL USUARIO -->
+    <div class="col-lg-5">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4 h-100">
+            <h5 class="fw-bold mb-4 text-body-emphasis">
+                <i class="bi bi-card-heading text-primary me-2"></i>Información Personal
+            </h5>
+
+            <div class="mb-3">
+                <label class="form-label small text-body-secondary fw-semibold">Nombre Completo</label>
+                <div class="form-control bg-body-tertiary border-0 text-body-emphasis fw-semibold py-2">
+                    @(Model?.NombreCompleto ?? User.Identity?.Name ?? "N/A")
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-body-secondary fw-semibold">Identificación / Matrícula</label>
+                <div class="form-control bg-body-tertiary border-0 text-body-emphasis py-2">
+                    @(Model?.Identificacion ?? "N/A")
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-body-secondary fw-semibold">Correo Electrónico</label>
+                <div class="form-control bg-body-tertiary border-0 text-body-emphasis py-2">
+                    @(Model?.Correo ?? "N/A")
+                </div>
+            </div>
+
+            <div class="mb-0">
+                <label class="form-label small text-body-secondary fw-semibold">Rol Asignado</label>
+                <div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fs-6">
+                        <i class="bi bi-shield-lock me-1"></i>
+                        @(Model?.TipoUsuario ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Usuario")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETA PARA CAMBIAR CONTRASEÑA -->
+    <div class="col-lg-7">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4 h-100">
+            <h5 class="fw-bold mb-4 text-body-emphasis">
+                <i class="bi bi-key text-success me-2"></i>Cambiar Contraseña
+            </h5>
+
+            <!-- ALERTA DE ERROR MODERNA, CENTRADA Y SIN VIÑETAS -->
+            @if (!string.IsNullOrEmpty(mensajeError))
+            {
+                <div class="alert alert-danger border-0 bg-danger-subtle text-danger rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+                    <span class="fw-semibold text-center mb-0">@mensajeError</span>
+                </div>
+            }
+
+            <form asp-controller="Usuarios" asp-action="CambiarMiPassword" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-body-secondary">Contraseña Actual <span class="text-danger">*</span></label>
+                    <input type="password" name="PasswordActual" class="form-control rounded-3" required placeholder="••••••••" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-body-secondary">Nueva Contraseña <span class="text-danger">*</span></label>
+                    <input type="password" name="PasswordNueva" class="form-control rounded-3" required minlength="6" placeholder="Mínimo 6 caracteres" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-body-secondary">Confirmar Nueva Contraseña <span class="text-danger">*</span></label>
+                    <input type="password" name="ConfirmarPassword" class="form-control rounded-3" required minlength="6" placeholder="Repite la nueva contraseña" />
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow-sm">
+                        <i class="bi bi-check-circle me-1"></i> Actualizar Contraseña
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -10,4 +10,11 @@
     <ProjectReference Include="..\SIGEBI.Domain\SIGEBI.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+  </ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
 </Project>

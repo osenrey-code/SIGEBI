@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using SIGEBI.Application.Interfaces.ext;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Infrastructure.Services
 {

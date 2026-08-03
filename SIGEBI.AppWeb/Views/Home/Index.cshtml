@@ -1,5 +1,121 @@
 ﻿@{
     ViewData["Title"] = "Inicio";
+
+    // Obtenemos los datos del usuario actual
+    var autenticado = User.Identity?.IsAuthenticated ?? false;
+    var nombreUsuario = User.Identity?.Name ?? "Invitado";
+    var fechaActual = DateTime.Now.ToString("dd 'de' MMMM, yyyy");
+
+    var esAdministrador = User.IsInRole("Administrador");
+    var esBibliotecario = User.IsInRole("Bibliotecario");
+    var esAuditor = User.IsInRole("Auditor");
+    var esLector = User.IsInRole("Estudiante") || User.IsInRole("Docente");
 }
 
-<h1>Bienvenido a SIGEBI</h1>
+<!-- HERO SECTION PRINCIPAL -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            @if (autenticado)
+            {
+                <span class="hero-badge">Panel de Control</span>
+                <h1 class="fw-bold mb-2">¡Hola, @nombreUsuario!</h1>
+                <p class="hero-description mb-0">Bienvenido a tu espacio de trabajo en SIGEBI.</p>
+            }
+            else
+            {
+                <span class="hero-badge">Portal SIGEBI</span>
+                <h1 class="fw-bold mb-2">Bienvenido a la Biblioteca</h1>
+                <p class="hero-description mb-0">Sistema Integral de Gestión Bibliotecaria.</p>
+            }
+        </div>
+        <div class="text-white opacity-75 fw-semibold d-flex align-items-center gap-2">
+            <i class="bi bi-calendar3"></i> @fechaActual
+        </div>
+    </div>
+</div>
+
+@if (!autenticado)
+{
+    <!-- ESTADO VACÍO (NO LOGUEADO) -->
+    <div class="content-card card shadow-sm rounded-4 border-0 p-5 text-center mb-4">
+        <div class="empty-state-icon mx-auto mb-3 shadow-sm">
+            <i class="bi bi-book-half fs-1 text-primary"></i>
+        </div>
+        <h3 class="fw-bold text-body-emphasis mb-3">Identificación Requerida</h3>
+        <p class="text-body-secondary mx-auto mb-4" style="max-width: 500px;">
+            Para acceder a las funcionalidades del sistema, realizar préstamos o consultar el catálogo, debes iniciar sesión con tus credenciales.
+        </p>
+        <div>
+            <a asp-controller="Autenticacion" asp-action="Login" class="btn btn-primary btn-lg px-5 fw-bold rounded-pill shadow-sm">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Iniciar Sesión
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    
+    <!-- ==============================================
+         DASHBOARD: ESTUDIANTES / DOCENTES
+         ============================================== -->
+    @if (esLector && !esAdministrador && !esBibliotecario && !esAuditor)
+    {
+        <div class="mb-4">
+            <h4 class="fw-bold mb-3 text-body-emphasis">
+                <i class="bi bi-person-workspace text-primary me-2"></i>Mi Espacio
+            </h4>
+            <div class="row g-4">
+
+                <!-- Tarjeta 1: Mis Préstamos -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-primary mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-journal-check"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Mis Préstamos</h4>
+                        <p class="text-body-secondary small mb-4">Consulta los recursos que tienes actualmente prestados y sus fechas de devolución.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Prestamos" asp-action="Activos" class="btn btn-primary w-100 fw-bold rounded-3">
+                                Ver Mis Préstamos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Catálogo -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon mx-auto mb-3 shadow-sm" style="color: #664400; background: #fff0ba;">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Catálogo</h4>
+                        <p class="text-body-secondary small mb-4">Busca libros, revistas y otros materiales disponibles en la biblioteca para solicitar su préstamo.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Catalogo" asp-action="Index" class="btn w-100 fw-bold rounded-3" style="background-color: #ffc107; color: #664400;">
+                                Explorar Catálogo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3: Mis Penalizaciones -->
+                <div class="col-lg-4 col-md-12">
+                    <div class="content-card card shadow-sm rounded-4 p-4 h-100 text-center border-0 d-flex flex-column">
+                        <div class="metric-icon metric-danger mx-auto mb-3 shadow-sm">
+                            <i class="bi bi-exclamation-octagon-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Mis Penalizaciones</h4>
+                        <p class="text-body-secondary small mb-4">Consulta tus moras y penalizaciones activas actuales que bloquean tus préstamos.</p>
+                        <div class="mt-auto">
+                            <a asp-controller="Penalizaciones" asp-action="Index" class="btn btn-danger w-100 fw-bold rounded-3">
+                                Ver Mis Penalizaciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+}

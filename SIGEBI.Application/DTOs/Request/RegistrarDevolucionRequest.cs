@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace SIGEBI.Application.DTOs.Request
 {
-    public class RegistrarDevolucionRequest
+    public record RegistrarDevolucionRequest
     {
-        public Guid PrestamoId { get; set; }
-        public Guid BibliotecarioId { get; set; }
+        [Required(ErrorMessage = "El ID del préstamo es obligatorio.")]
+        public int PrestamoId { get; init; }
+
+        [Required(ErrorMessage = "Debe indicar la condición en la que se entrega el recurso (ej. Bueno, Dañado, Extraviado).")]
+        public string Condicion { get; init; } = string.Empty;
+        public string? Observacion { get; init; } 
     }
 }

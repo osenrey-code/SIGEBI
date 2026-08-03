@@ -19,7 +19,7 @@ namespace SIGEBI.Infrastructure.Repositories
             _dbSet = context.Set<T>();
         }
 
-        public async Task<IEnumerable<T>> ObtenerTodosAsync()
+        public virtual async Task<IEnumerable<T>> ObtenerTodosAsync()
         {
             return await _dbSet.ToListAsync();
         }
@@ -27,20 +27,18 @@ namespace SIGEBI.Infrastructure.Repositories
         public async Task AgregarAsync(T entidad)
         {
             await _dbSet.AddAsync(entidad);
-            await _context.SaveChangesAsync();
         }
 
-        public async Task ActualizarAsync(T entidad)
+        public Task ActualizarAsync(T entidad)
         {
-            // Update no es asíncrono en EF Core, pero SaveChangesAsync sí lo es
             _dbSet.Update(entidad);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
-        public async Task EliminarAsync(T entidad)
+        public  Task EliminarAsync(T entidad)
         {
             _dbSet.Remove(entidad);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public async Task<T?> ObtenerporIdAsync(object id)

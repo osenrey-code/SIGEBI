@@ -2,8 +2,6 @@
 
 public class ActualizarRecursoRequest
 {
-    public int UsuarioEjecutorId { get; set; }
-
     public int RecursoBibliograficoId { get; set; }
 
     public string Titulo { get; set; } = string.Empty;
@@ -15,4 +13,5 @@ public class ActualizarRecursoRequest
     public int AnioPublicado { get; set; }
 
     public string? ImagenUrl { get; set; }
+    public int CantidadEjemplares { get; set; }
 }

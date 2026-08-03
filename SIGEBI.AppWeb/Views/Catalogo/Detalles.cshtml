@@ -1,0 +1,131 @@
+﻿@model SIGEBI.AppWeb.Models.ViewModels.Catalogo.RecursoItemViewModel
+
+@{
+    ViewData["Title"] = "Detalles del Recurso";
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Catálogo</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-info-circle-fill me-2"></i>Detalles del Recurso</h1>
+            <p class="hero-description mb-0">Información general, portada y estado de disponibilidad del recurso.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-light text-white fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i> Volver al Listado
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ALERTAS GLOBALES -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 bg-success-subtle text-success alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 bg-danger-subtle text-danger alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Error"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+
+@if (Model == null)
+{
+    <div class="alert alert-warning border-0 bg-warning-subtle text-warning-emphasis rounded-4 my-4 p-4 shadow-sm" role="alert">
+        <h4 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Recurso no encontrado</h4>
+        <p class="mb-0">No se pudo cargar la información del recurso bibliográfico seleccionado.</p>
+        <hr />
+        <a asp-action="Index" class="btn btn-outline-dark fw-semibold mt-2 rounded-3">Volver al Catálogo</a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <!-- Columna Izquierda: Portada -->
+        <div class="col-lg-4">
+            <div class="content-card card shadow-sm rounded-4 border-0 text-center p-4 h-100 d-flex flex-column justify-content-between">
+                <div class="my-auto py-3">
+                    @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+                    {
+                        <img src="@Model.ImagenUrl" alt="Portada de @Model.Titulo" class="img-fluid rounded shadow-sm border" style="max-height: 350px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="bg-body-tertiary rounded d-flex flex-column align-items-center justify-content-center border mx-auto py-5" style="width: 200px; height: 280px;">
+                            <i class="bi bi-journal-bookmark text-body-tertiary display-1 mb-2"></i>
+                            <span class="text-body-secondary small">Sin portada</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="mt-3 border-top border-secondary border-opacity-10 pt-3 text-start">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-body-secondary fw-semibold">ID Interno:</span>
+                        <span class="fw-bold text-body-emphasis font-monospace">#@Model.RecursoBibliograficoId</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Información y Disponibilidad -->
+        <div class="col-lg-8">
+            <div class="content-card card shadow-sm rounded-4 border-0 p-4 p-lg-5 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="mb-3">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-2">
+                            <i class="bi bi-tag-fill me-1"></i> @Model.Categoria
+                        </span>
+                        <h2 class="fw-bold text-body-emphasis mb-1">@Model.Titulo</h2>
+                        <p class="text-body-secondary fs-5 mb-4">por <span class="fw-semibold text-body-emphasis">@Model.Autor</span></p>
+                    </div>
+
+                    <div class="row g-4 border-top border-bottom border-secondary border-opacity-10 py-4 mb-4">
+                        <div class="col-sm-4">
+                            <span class="d-block text-body-secondary small fw-semibold text-uppercase mb-1">ISBN</span>
+                            <span class="fs-6 fw-bold font-monospace text-body-emphasis">@(string.IsNullOrWhiteSpace(Model.ISBN) ? "-" : Model.ISBN)</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <span class="d-block text-body-secondary small fw-semibold text-uppercase mb-1">Año de Publicación</span>
+                            <span class="fs-6 fw-bold text-body-emphasis">@(Model.AnioPublicado > 0 ? Model.AnioPublicado.ToString() : "-")</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <span class="d-block text-body-secondary small fw-semibold text-uppercase mb-1">Disponibilidad General</span>
+                            <span class="badge @(Model.CopiasDisponibles > 0 ? "bg-success-subtle text-success border border-success-subtle" : "bg-danger-subtle text-danger border border-danger-subtle") px-3 py-2 rounded-pill fw-semibold">
+                                @Model.CopiasDisponibles / @Model.TotalEjemplares Disponibles
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción Inferiores -->
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top border-secondary border-opacity-10">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg fw-semibold px-4 rounded-3">Regresar al Catálogo</a>
+
+                    @if (Model.CopiasDisponibles > 0)
+                    {
+                        <!-- Envia el ID real del ejemplar físico disponible -->
+                        <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-ejemplarId="@Model.EjemplarDisponibleId"
+                           class="btn btn-primary btn-lg fw-bold px-4 rounded-3 d-inline-flex align-items-center gap-2 shadow-sm">
+                            <i class="bi bi-bookmark-plus-fill"></i> Solicitar Préstamo
+                        </a>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-secondary btn-lg fw-semibold px-4 rounded-3 opacity-50" disabled>
+                            Sin ejemplares disponibles
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

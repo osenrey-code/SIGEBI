@@ -1,13 +1,36 @@
-﻿using SIGEBI.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using SIGEBI.Application.DTOs.Response;
+using SIGEBI.Domain.Entities;
 
 namespace SIGEBI.Application.Interfaces.Repositories
 {
-    public interface IRepositorioPrestamo : IBaseRepository<Prestamo>
+    public interface IRepositorioPrestamo 
     {
-        Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(int usuarioId);
+        Task AgregarAsync(Prestamo prestamo);
+        Task ActualizarAsync(Prestamo prestamo);
 
-        Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(int usuarioId);
+        Task<int> ContarActivosPorUsuarioAsync(int usuarioId);
+        Task<IEnumerable<Prestamo>> ObtenerActivosVencidosAsync(DateTime fechaEvaluacion);
 
-        Task<Prestamo?> ObtenerConDetalleAsync(int prestamoId);
+        Task<Prestamo?> ObtenerPorIdAsync(int id);
+        Task<Prestamo?> ObtenerConDetallesAsync(int id);
+
+        Task<IEnumerable<Prestamo>> ConsultarActivosAsync(
+             int? usuarioId,
+             int? recursoBibliograficoId,
+             int? ejemplarId
+        );
+        Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(
+            int? usuarioId,
+            int? recursoBibliograficoId,
+            int? ejemplarId
+        );
+        Task<bool> ExistePrestamoActivoPorRecursoAsync(int recursoBibliograficoId);
+        Task<bool> TienePrestamoActivoDeRecursoAsync(int usuarioId, int recursoBibliograficoId);
+
+
     }
 }
+

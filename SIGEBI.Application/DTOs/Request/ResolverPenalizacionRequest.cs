@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SIGEBI.Application.DTOs.Request;
+﻿namespace SIGEBI.Application.DTOs.Request;
 
 public class ResolverPenalizacionRequest
 {
-    public Guid UsuarioEjecutorId { get; set; }
+    public int PenalizacionId { get; set; }
 
-    public Guid PenalizacionId { get; set; }
+    public string MotivoResolucion { get; set; } = string.Empty;
 }

@@ -6,6 +6,7 @@ namespace SIGEBI.Application.DTOs.Response
 {
     public record LoginResponse
     {
+        public string Identificacion { get; init; } = string.Empty;
         public int UsuarioId { get; init; }
         public string NombreCompleto { get; init; } = string.Empty;
         public string Correo { get; init; } = string.Empty;

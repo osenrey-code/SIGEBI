@@ -22,15 +22,14 @@ namespace SIGEBI.Domain.Entities
 
         public virtual Categoria? Categoria { get; private set; }
 
-        private readonly List<Ejemplar> _ejemplares = new();
+        public ICollection<Ejemplar> Ejemplares { get; private set; } = new List<Ejemplar>();
 
-        public IReadOnlyCollection<Ejemplar> Ejemplares => _ejemplares.AsReadOnly();
+        public int TotalEjemplares => Ejemplares.Count;
 
-        public int TotalEjemplares => _ejemplares.Count;
+        public int CopiasDisponibles => Ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
 
-        public int CopiasDisponibles =>
-            _ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
-
+        
+        
         protected RecursoBibliografico() { }
 
         public RecursoBibliografico(
@@ -98,7 +97,7 @@ namespace SIGEBI.Domain.Entities
         {
             Guard.NotNullOrWhiteSpace(identificador, "El identificador del ejemplar");
 
-            if (_ejemplares.Any(e => e.Identificador == identificador.Trim()))
+            if (Ejemplares.Any(e => e.Identificador == identificador.Trim()))
             {
                 throw new BusinessException(
                     $"Ya existe un ejemplar con el código {identificador} en este recurso."
@@ -107,7 +106,30 @@ namespace SIGEBI.Domain.Entities
 
             var nuevoEjemplar = new Ejemplar(RecursoBibliograficoId, identificador.Trim());
 
-            _ejemplares.Add(nuevoEjemplar);
+            Ejemplares.Add(nuevoEjemplar);
+            
+        }
+
+        public void AgregarEjemplares(int cantidad)
+        {
+            Guard.GreaterThan(cantidad, 0, "la cantidad de ejemplares ");
+
+            int siguiente = Ejemplares.Count + 1;
+
+            for (int i = 0; i < cantidad; i++)
+            {
+                int secuencia = siguiente + i;
+                string identificador = $"{ISBN}-{secuencia:D3}";
+
+                while (Ejemplares.Any(e => e.Identificador == identificador))
+                {
+                    secuencia++;
+                    identificador = $"{ISBN}-{secuencia:D3}";
+                }
+
+                var nuevoEjemplar = new Ejemplar(RecursoBibliograficoId, identificador);
+                Ejemplares.Add(nuevoEjemplar);
+            }
         }
     }
 }

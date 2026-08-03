@@ -2,7 +2,8 @@
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
-using SIGEBI.Infrastructure.Persistence;
+using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Application.DTOs.Response;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
@@ -12,33 +13,125 @@ namespace SIGEBI.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(int usuarioId)
+        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? recursoBibliograficoId, int? ejemplarId )
         {
-            return await _dbSet
-                .Include(p => p.Usuario)
-                .Include(p => p.Libros)
-                .Where(p =>
-                    p.UsuarioId == usuarioId &&
-                    p.Estado == EstadoPrestamo.Activo)
-                .ToListAsync();
-        }
+            var query = _context.Prestamos
+            .AsNoTracking()
+            .Include(p => p.Usuario)
+            .Include(p => p.Ejemplar)
+                .ThenInclude(e => e!.RecursoBibliografico)
+            .Where(p => p.Estado == EstadoPrestamo.Activo)
+            .AsQueryable();
 
-        public async Task<IEnumerable<Prestamo>> ObtenerHistorialPorUsuarioAsync(int usuarioId)
-        {
-            return await _dbSet
-                .Include(p => p.Usuario)
-                .Include(p => p.Libros)
-                .Where(p => p.UsuarioId == usuarioId)
+            if (usuarioId.HasValue)
+            {
+                query = query.Where(p => p.UsuarioId == usuarioId.Value);
+            }
+
+            if (recursoBibliograficoId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Ejemplar != null &&
+                    p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId.Value);
+            }
+
+            if (ejemplarId.HasValue)
+            {
+                query = query.Where(p => p.EjemplarId == ejemplarId.Value);
+            }
+
+            return await query
                 .OrderByDescending(p => p.FechaInicio)
                 .ToListAsync();
         }
 
-        public async Task<Prestamo?> ObtenerConDetalleAsync(int prestamoId)
+        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? recursoBibliograficoId, int? ejemplarId)
         {
-            return await _dbSet
-                .Include(p => p.Usuario)
-                .Include(p => p.Libros)
-                .FirstOrDefaultAsync(p => p.PrestamoId == prestamoId);
+            var query = _context.Prestamos
+            .AsNoTracking()
+            .Include(p => p.Usuario)
+            .Include(p => p.Ejemplar)
+                .ThenInclude(e => e!.RecursoBibliografico)
+            .AsQueryable();
+
+            if (usuarioId.HasValue)
+            {
+                query = query.Where(p => p.UsuarioId == usuarioId.Value);
+            }
+
+            if (recursoBibliograficoId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Ejemplar != null &&
+                    p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId.Value);
+            }
+
+            if (ejemplarId.HasValue)
+            {
+                query = query.Where(p => p.EjemplarId == ejemplarId.Value);
+            }
+
+            return await query
+                .OrderByDescending(p => p.FechaInicio)
+                .ToListAsync();
+        }
+
+      
+
+        public async Task<int> ContarActivosPorUsuarioAsync(int usuarioId)
+        {
+            return await _context.Prestamos
+                .CountAsync(p => p.UsuarioId == usuarioId && p.Estado == EstadoPrestamo.Activo);
+        }
+
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosPorUsuarioAsync(int usuarioId)
+        {
+            return await _context.Prestamos
+                .AsNoTracking()
+                .Where(p => p.UsuarioId == usuarioId && p.Estado == EstadoPrestamo.Activo)
+                .ToListAsync();
+        }
+
+        public async Task<bool> TienePrestamoActivoDeRecursoAsync(int usuarioId, int recursoBibliograficoId)
+        {
+            return await _dbSet.AnyAsync(p =>
+                p.UsuarioId == usuarioId &&
+                p.Estado == EstadoPrestamo.Activo && // Asegúrate de usar tu Enum de EstadoPrestamo
+                p.Ejemplar != null &&
+                p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId
+            );
+        }
+
+        public async Task<IEnumerable<Prestamo>> ObtenerActivosVencidosAsync(DateTime fechaEvaluacion)
+        {
+            return await _context.Prestamos
+                .Where(p => p.Estado == EstadoPrestamo.Activo && p.FechaLimite < fechaEvaluacion)
+                .ToListAsync();
+        }
+
+        public async Task<Prestamo?> ObtenerConDetallesAsync(int id)
+        {
+            return await _context.Prestamos
+            .Include(p => p.Usuario)
+            .Include(p => p.Ejemplar)
+                .ThenInclude(e => e!.RecursoBibliografico)
+            .FirstOrDefaultAsync(p => p.PrestamoId == id);
+        }
+
+        public async Task<Prestamo?> ObtenerPorIdAsync(int id)
+        {
+            return await _context.Prestamos.FindAsync(id);
+        }
+
+        public async Task<bool> ExistePrestamoActivoPorRecursoAsync(
+        int recursoBibliograficoId)
+        {
+            return await _context.Prestamos
+                .AsNoTracking()
+                .AnyAsync(p =>
+                    p.Estado == EstadoPrestamo.Activo &&
+                    p.Ejemplar != null &&
+                    p.Ejemplar.RecursoBibliograficoId == recursoBibliograficoId);
         }
     }
 }

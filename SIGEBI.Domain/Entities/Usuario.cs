@@ -1,6 +1,4 @@
-﻿
-
-using SIGEBI.Domain.Common;
+﻿using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Enums;
 
 namespace SIGEBI.Domain.Entities
@@ -15,8 +13,8 @@ namespace SIGEBI.Domain.Entities
         public string PassWord { get; set; } = string.Empty;
 
         public virtual ICollection<Prestamo> Prestamos { get; set; } = new List<Prestamo>();
-        public virtual ICollection<Penalizacion> penalizciones { get; set; } = new List<Penalizacion>();
-        public virtual ICollection<Notificacion> notificaciones { get; set; } = new List<Notificacion>();
+        public virtual ICollection<Penalizacion> Penalizciones { get; set; } = new List<Penalizacion>();
+        public virtual ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
 
         public void Actualizar(string nombre)
         {

@@ -7,15 +7,8 @@ namespace SIGEBI.Application.Interfaces.Repositories
     {
         Task<IEnumerable<Notificacion>> ObtenerPorUsuarioAsync(int usuarioId);
 
-        Task<IEnumerable<Notificacion>> ConsultarAsync(
-            int? usuarioId,
-            string? tipo
-        );
+        Task<IEnumerable<Notificacion>> ObtenerNoLeidasPorUsuarioAsync(int usuarioId);
 
-        Task<bool> ExisteAsync(
-            int usuarioId,
-            TipoNotificacion tipo,
-            string mensaje
-        );
+        Task<IEnumerable<Notificacion>> ObtenerTodoElHistorialAsync();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
@@ -14,45 +15,61 @@ namespace SIGEBI.Infrastructure.Repositories
 
         public async Task<IEnumerable<Penalizacion>> ObtenerPorUsuarioAsync(int usuarioId)
         {
-            return await _dbSet
-                .Include(p => p.Usuario)
-                .Include(p => p.Prestamo)
-                .Where(p => p.UsuarioId == usuarioId)
-                .OrderByDescending(p => p.FechaGeneracion)
-                .ToListAsync();
+            return await _context.Penalizaciones
+               .Include(p => p.Usuario)
+               .Include(p => p.Prestamo)
+               .AsNoTracking()
+               .Where(p => p.UsuarioId == usuarioId)
+               .OrderByDescending(p => p.FechaGeneracion)
+               .ToListAsync();
         }
 
-        public async Task<IEnumerable<Penalizacion>> ObtenerActivasPorUsuarioAsync(int usuarioId)
+        public async Task<Penalizacion?> ObtenerActivaPorUsuarioAsync(int usuarioId)
         {
-            return await _dbSet
-                .Include(p => p.Usuario)
-                .Include(p => p.Prestamo)
-                .Where(p =>
+            return await _context.Penalizaciones
+           .Include(p => p.Usuario)
+           .Include(p => p.Prestamo)
+           .AsNoTracking()
+           .FirstOrDefaultAsync(p =>
+               p.UsuarioId == usuarioId &&
+               p.Estado == EstadoPenalizacion.Activa);
+        }
+
+        public async Task<bool> TienePenalizacionActivaAsync(int usuarioId)
+        {
+            return await _context.Penalizaciones
+                .AnyAsync(p =>
                     p.UsuarioId == usuarioId &&
-                    p.Estado == EstadoPenalizacion.Activa)
-                .OrderByDescending(p => p.FechaGeneracion)
-                .ToListAsync();
-        }
-
-        public async Task<bool> ExisteActivaPorUsuarioAsync(int usuarioId)
-        {
-            return await _dbSet.AnyAsync(p =>
-                p.UsuarioId == usuarioId &&
-                p.Estado == EstadoPenalizacion.Activa);
+                    p.Estado == EstadoPenalizacion.Activa);
         }
 
         public async Task<IEnumerable<Penalizacion>> ConsultarAsync(
             int? usuarioId,
             int? prestamoId,
-            string? estado)
+            EstadoPenalizacion? estado,
+            DateTime? fechaInicio,
+            DateTime? fechaFin)
         {
-            var query = _dbSet
-                .Include(p => p.Usuario)
-                .Include(p => p.Prestamo)
-                .AsQueryable();
+            var query = _context.Penalizaciones
+           .Include(p => p.Usuario)
+           .Include(p => p.Prestamo)
+           .AsNoTracking()
+           .AsQueryable();
 
-            if (usuarioId.HasValue)
+            if (usuarioId.HasValue && usuarioId.Value > 0)
+            {
                 query = query.Where(p => p.UsuarioId == usuarioId.Value);
+            }
+
+            if (prestamoId.HasValue && prestamoId.Value > 0)
+            {
+                query = query.Where(p => p.PrestamoId == prestamoId.Value);
+            }
+
+            if (estado.HasValue)
+            {
+                query = query.Where(p => p.Estado == estado.Value);
+            }
 
             if (prestamoId.HasValue)
                 query = query.Where(p => p.PrestamoId == prestamoId.Value);

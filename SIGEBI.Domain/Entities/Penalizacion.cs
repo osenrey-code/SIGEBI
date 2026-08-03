@@ -6,43 +6,72 @@ namespace SIGEBI.Domain.Entities
 {
     public class Penalizacion
     {
-        public int IdPenalizacion { get; set; }
-        public string UsuarioId { get; set; } = string.Empty;
-        public int PrestamoId { get; set; }
+        public int PenalizacionId { get; private set; }
+
+        public int UsuarioId { get; private set; }
+        public virtual Usuario? Usuario { get; private set; }
+
+        public int PrestamoId { get; private set; }
+        public virtual Prestamo? Prestamo { get; private set; }
+
         public int DiasRetraso { get; private set; }
         public decimal MontoMora { get; private set; }
+        public string Motivo { get; private set; } = string.Empty;
+
         public EstadoPenalizacion Estado { get; private set; }
         public DateTime FechaGeneracion { get; private set; }
-        public DateTime? FechaResolucion { get; private set; } //Nullable ya que se registra luego que sea pagada
-        public string Motivo { get; set; } = string.Empty;
-        public Usuario Usuario { get; set; }
+        public DateTime? FechaResolucion { get; private set; }
 
-  
-        public Prestamo Prestamo { get; private set; } = null!;
+        public int? UsuarioResolucionId { get; private set; }
+        public string? MotivoResolucion { get; private set; }
 
-        private Penalizacion() { }
+        protected Penalizacion() { }
 
-        public Penalizacion(string UsuarioId, int PrestamoId, decimal MontoMora, string motivo)
+        public Penalizacion(
+            int usuarioId,
+            int prestamoId,
+            int diasRetraso,
+            decimal montoMora,
+            string motivo)
         {
-            Guard.NotNullOrWhiteSpace(UsuarioId, "El usuario ");
-            Guard.GreaterThanD(MontoMora, 0, "El monto ");
-            Guard.NotNullOrWhiteSpace(motivo, "El motivo ");
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario de la penalización es obligatorio.");
 
-            this.UsuarioId = UsuarioId;
-            this.PrestamoId = PrestamoId;
-            FechaGeneracion = DateTime.Now;
+            if (prestamoId <= 0)
+                throw new BusinessException("El préstamo asociado a la penalización es obligatorio.");
+
+            if (diasRetraso <= 0)
+                throw new BusinessException("Los días de retraso deben ser mayor a cero.");
+
+            Guard.GreaterThanD(montoMora, 0, "El monto de mora");
+            Guard.NotNullOrWhiteSpace(motivo, "El motivo");
+
+            UsuarioId = usuarioId;
+            PrestamoId = prestamoId;
+            DiasRetraso = diasRetraso;
+            MontoMora = montoMora;
+            Motivo = motivo.Trim();
+
+            FechaGeneracion = DateTime.UtcNow;
             Estado = EstadoPenalizacion.Activa;
         }
 
-        public void Resolver()
+        public void Resolver(int usuarioResolucionId, string motivoResolucion)
         {
             if (Estado != EstadoPenalizacion.Activa)
-            {
-                throw new BusinessException("Solo se pueden pagar penalizaciones activas.");
-            }
+                throw new BusinessException("Solo se pueden resolver penalizaciones activas.");
 
-            Estado = EstadoPenalizacion.Pagada;
-            FechaResolucion = DateTime.Now;
+            if (usuarioResolucionId <= 0)
+                throw new BusinessException("El usuario que resuelve la penalización es obligatorio.");
+
+            Guard.NotNullOrWhiteSpace(motivoResolucion, "El motivo de resolución");
+
+            Estado = EstadoPenalizacion.Resuelta;
+            UsuarioResolucionId = usuarioResolucionId;
+            MotivoResolucion = motivoResolucion.Trim();
+            FechaResolucion = DateTime.UtcNow;
+            UsuarioResolucionId = usuarioResolucionId;
+            MotivoResolucion = motivoResolucion.Trim();
         }
     }
 }

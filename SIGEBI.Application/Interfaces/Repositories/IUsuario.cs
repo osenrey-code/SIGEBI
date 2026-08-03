@@ -9,10 +9,11 @@ namespace SIGEBI.Application.Interfaces.Repositories
 {
     public interface IUsuario : IRepositoryInmutable<Usuario>
     {
+        Task ActualizarAsync(Usuario usuario);
         Task DesactivarUsuarioAsync(string IdUsuario);
         Task<Usuario?> ObtenerUsuarioPorIdentificacionAsync(string Identificacion);
         Task<bool> ExisteCorreoAsync(string correo);
         Task<Usuario?> ObtenerUsuarioConDetallesAsync(string Identifiacion);
-        Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado);
+        Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado, string? identificacion);
     }
 }

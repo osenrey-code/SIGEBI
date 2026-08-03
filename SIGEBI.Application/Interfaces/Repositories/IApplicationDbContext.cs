@@ -1,0 +1,7 @@
+﻿namespace SIGEBI.Application.Interfaces.Repositories
+{
+    public interface IApplicationDbContext
+    {
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    }
+}

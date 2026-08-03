@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace SIGEBI.Application.DTOs.Request
 {
-    public class ConsultarHistorialDevolucionesRequest
+    public record ConsultarHistorialDevolucionesRequest
     {
-        public Guid UsuarioEjecutorId { get; set; }
-
-        public Guid? UsuarioId { get; set; }
-        public Guid? RecursoId { get; set; }
-
-        public DateTime? FechaInicio { get; set; }
-        public DateTime? FechaFin { get; set; }
+        public int? UsuarioId { get; init; }
+        public int? RecursoBibliograficoId { get; init; }
+        public int? EjemplarId { get; init; }
+        public DateTime? FechaInicio { get; init; }
+        public DateTime? FechaFin { get; init; }
     }
 }

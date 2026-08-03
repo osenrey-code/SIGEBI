@@ -1,0 +1,213 @@
+﻿@model SIGEBI.AppWeb.Models.ViewModels.Prestamos.PrestamoIndexViewModel
+
+@{
+    ViewData["Title"] = "Gestión de Préstamos";
+    var esGestor = User.IsInRole("Administrador") || User.IsInRole("Bibliotecario");
+    var esBibliotecario = User.IsInRole("Bibliotecario");
+}
+
+<!-- HERO SECTION -->
+<div class="page-hero p-4 p-lg-5 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="hero-badge">Módulo de Préstamos</span>
+            <h1 class="fw-bold mb-2"><i class="bi bi-arrow-left-right me-2"></i>Gestión de Solicitudes y Préstamos</h1>
+            <p class="hero-description mb-0">Visualiza tus solicitudes pendientes, consulta préstamos activos y controla entregas.</p>
+        </div>
+        <div>
+            <!-- Botón redirigido hacia el Catálogo -->
+            <a asp-controller="Catalogo" asp-action="Index" class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-bookshelf"></i> Ir al Catálogo
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ALERTAS DE NOTIFICACIÓN GLOBALES (CENTRADAS Y SIN VIÑETAS) -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 bg-success-subtle text-success alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 bg-danger-subtle text-danger alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <span class="fw-semibold text-center mb-0">@TempData["Error"]</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+}
+
+<!-- TABLA DE DATOS RESPONSIVE -->
+<div class="content-card card shadow-sm rounded-4 border-0 p-4 mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="text-body-secondary small">
+                    <th>RECURSO</th>
+                    <th>EJEMPLAR</th>
+                    <th>FECHA INICIO</th>
+                    <th>FECHA LÍMITE</th>
+                    <th class="text-center">ESTADO</th>
+                    @if (esGestor)
+                    {
+                        <th class="text-end">ACCIONES</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Prestamos == null || !Model.Prestamos.Any())
+                {
+                    <tr>
+                        <td colspan="@(esGestor ? 6 : 5)" class="text-center py-5 text-body-secondary">
+                            <i class="bi bi-folder2-open display-6 d-block mb-2 text-body-tertiary"></i>
+                            <span class="fw-semibold">No hay solicitudes ni préstamos registrados en este momento.</span>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Prestamos)
+                    {
+                        <tr class="@(item.EstaVencido ? "table-danger-subtle" : "")">
+                            <td data-label="Recurso" class="fw-bold text-body-emphasis">@item.TituloRecurso</td>
+                            <td data-label="Ejemplar">
+                                <span class="badge bg-body-tertiary text-body-secondary border rounded-pill px-3 py-2">
+                                    <i class="bi bi-qr-code me-1"></i>@item.IdentificadorEjemplar
+                                </span>
+                            </td>
+                            <td data-label="Fecha Inicio" class="text-body-secondary small">
+                                @(item.FechaInicio == default ? "Pendiente" : item.FechaInicio.ToString("dd/MM/yyyy"))
+                            </td>
+                            <td data-label="Fecha Límite" class="text-body-secondary small">
+                                @(item.FechaLimite == default ? "Pendiente" : item.FechaLimite.ToString("dd/MM/yyyy"))
+                            </td>
+                            <td data-label="Estado" class="text-center">
+                                @if (item.EstaVencido)
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Vencido
+                                    </span>
+                                }
+                                else if (item.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-2">
+                                        <i class="bi bi-clock-fill me-1"></i> Pendiente
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                        <i class="bi bi-check-circle-fill me-1"></i> @item.Estado
+                                    </span>
+                                }
+                            </td>
+                            @if (esGestor)
+                            {
+                                <td data-label="Acciones" class="actions-cell text-end">
+                                    @if (item.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form asp-action="Aprobar" asp-route-id="@item.PrestamoId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-success fw-semibold rounded-3" title="Aprobar Solicitud">
+                                                <i class="bi bi-check-lg me-1"></i> Aprobar
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (item.Estado.Equals("Activo", StringComparison.OrdinalIgnoreCase) || item.EstaVencido)
+                                    {
+                                        @if (esBibliotecario)
+                                        {
+                                            <!-- Botón exclusivo del Bibliotecario que activa la ventana modal de devolución -->
+                                            <button type="button" class="btn btn-sm btn-success fw-semibold text-white px-3 shadow-sm rounded-3"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalDevolucion"
+                                                    data-prestamo-id="@item.PrestamoId">
+                                                <i class="bi bi-box-arrow-in-down me-1"></i> Devolver
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-body-secondary small">Solo lectura</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-body-secondary small">N/D</span>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL DE REGISTRO DE DEVOLUCIÓN -->
+<div class="modal fade" id="modalDevolucion" tabindex="-1" aria-labelledby="modalDevolucionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-body-emphasis" id="modalDevolucionLabel">
+                    <i class="bi bi-box-arrow-in-down text-success me-2"></i>Registrar Recepción de Ejemplar
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <form asp-controller="Devoluciones" asp-action="Registrar" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="PrestamoIdInput" name="PrestamoId" />
+
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-body-secondary">Condición del Ejemplar <span class="text-danger">*</span></label>
+                        <select name="Condicion" class="form-select rounded-3" required>
+                            <option value="Bueno">Bueno (Sin daños aparentes)</option>
+                            <option value="Dañado">Dañado (Requiere revisión o reparación)</option>
+                            <option value="Extraviado">Extraviado (No devuelto / Perdido)</option>
+                        </select>
+                        <div class="form-text small text-body-tertiary mt-1">
+                            Nota: Si selecciona "Dañado" o "Extraviado", el sistema retirará automáticamente el ejemplar del inventario activo.
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold text-body-secondary">Observaciones Adicionales</label>
+                        <textarea name="Observacion" rows="3" class="form-control rounded-3" placeholder="Detalles sobre el estado físico u observaciones..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-outline-secondary fw-semibold px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4 py-2 rounded-3 text-white shadow-sm">
+                        <i class="bi bi-check-circle me-1"></i> Confirmar Devolución
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalDevolucion = document.getElementById('modalDevolucion');
+            if (modalDevolucion) {
+                modalDevolucion.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const prestamoId = button.getAttribute('data-prestamo-id');
+                    const inputPrestamoId = modalDevolucion.querySelector('#PrestamoIdInput');
+                    if (inputPrestamoId) {
+                        inputPrestamoId.value = prestamoId;
+                    }
+                });
+            }
+        });
+    </script>
+}

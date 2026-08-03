@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SIGEBI.Application.DTOs.Response.ReporteResponse;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
@@ -10,6 +11,14 @@ namespace SIGEBI.Infrastructure.Repositories
     {
         public RepositorioRecurso(SIGEBIDbContext context) : base(context)
         {
+        }
+
+        public override async Task<IEnumerable<RecursoBibliografico>> ObtenerTodosAsync()
+        {
+            return await _dbSet
+                .Include(r => r.Categoria)
+                .Include(r => r.Ejemplares)
+                .ToListAsync();
         }
 
         public async Task<RecursoBibliografico?> BuscarPorIsbnAsync(string isbn)
@@ -64,5 +73,6 @@ namespace SIGEBI.Infrastructure.Repositories
 
             return await query.ToListAsync();
         }
+
     }
 }

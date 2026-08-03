@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace SIGEBI.Application.DTOs.Response;
 
-namespace SIGEBI.Application.DTOs.Response;
-
-public class NotificacionResponse
+public record NotificacionResponse
 {
-    public Guid Id { get; set; }
+    public int NotificacionId { get; init; }
 
-    public Guid? UsuarioDestinatarioId { get; set; }
+    public int UsuarioId { get; init; }
 
-    public string CorreoDestinatario { get; set; } = string.Empty;
+    public string Tipo { get; init; } = string.Empty;
 
-    public string TipoEvento { get; set; } = string.Empty;
+    public string Mensaje { get; init; } = string.Empty;
 
-    public string Mensaje { get; set; } = string.Empty;
+    public DateTime FechaRegistro { get; init; }
 
-    public DateTime FechaRegistro { get; set; }
-
-    public string EstadoEnvio { get; set; } = string.Empty;
+    public bool Leida { get; init; }
 }

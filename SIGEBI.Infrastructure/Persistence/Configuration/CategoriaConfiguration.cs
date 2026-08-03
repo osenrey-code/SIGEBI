@@ -8,19 +8,28 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Categoria> builder)
         {
-            builder.ToTable("Categorias");
+            builder.ToTable("Categoria");
 
             builder.HasKey(c => c.CategoriaId);
 
+            builder.Property(c => c.CategoriaId)
+                .ValueGeneratedOnAdd();
+
             builder.Property(c => c.Nombre)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(50);
 
             builder.HasIndex(c => c.Nombre)
                 .IsUnique();
 
             builder.Property(c => c.Descripcion)
-                .HasMaxLength(300);
+                .IsRequired()
+                .HasMaxLength(180);
+
+            builder.HasMany(c => c.Libros)
+                .WithOne(r => r.Categoria)
+                .HasForeignKey(r => r.CategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

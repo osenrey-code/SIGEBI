@@ -1,19 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Infrastructure.Repositories;
-using SIGEBI.Application.Interfaces.Repositories;
-using SIGEBI.Application.Interfaces.ext;
 using SIGEBI.Infrastructure.Services;
+using QuestPDF.Infrastructure;
+using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Infrastructure
 {
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructureServices(
-           this IServiceCollection services,
-           IConfiguration configuration)
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
             services.AddDbContext<SIGEBIDbContext>(options =>
                 options.UseSqlServer(
@@ -21,19 +22,28 @@ namespace SIGEBI.Infrastructure
                 )
             );
 
+            //Repositorios 
             services.AddScoped<IUsuario, RepositorioUsuario>();
-
+            services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
             services.AddScoped<IRepositorioRecurso, RepositorioRecurso>();
             services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
             services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
             services.AddScoped<IRepositorioPenalizacion, RepositorioPenalizacion>();
-            services.AddScoped<IRepositorioAuditoria, RepositorioAuditoria>();
-
             services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
-            services.AddScoped<IServicioCorreo, ServicioCorreoSMTP>();
+            services.AddScoped<IEjemplarRepository, RepositorioEjemplar>();
+            services.AddScoped<ISolicitudRepository, RepositorioSolicitud>();
+            services.AddScoped<IRepositorioDevolucion, RepositorioDevolucion>();
+            services.AddScoped<IRepositorioReporte, RepositorioReporte>();
+
+            //Servicios Tecnicos
             services.AddScoped<IServicioToken, ServicioToken>();
             services.AddScoped<IServicioPassword, ServicioPassword>();
             services.AddScoped<IStorageService, LocalStorageService>();
+            QuestPDF.Settings.License = LicenseType.Community;
+            services.AddScoped<IExportadorReportePdf, ExportadorReportePdf>();
+
+            services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<SIGEBIDbContext>());
+
             return services;
         }
     }

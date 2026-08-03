@@ -8,31 +8,43 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
     {
         public void Configure(EntityTypeBuilder<Notificacion> builder)
         {
-            builder.ToTable("Notificaciones");
+            builder.ToTable("Notificacion");
 
-            builder.HasKey(n => n.Id);
+            builder.HasKey(n => n.NotificacionId);
 
-            builder.Property(n => n.UsuarioDestinatarioId)
-                .IsRequired(false);
+            builder.Property(n => n.NotificacionId)
+                .ValueGeneratedOnAdd();
 
-            builder.Property(n => n.CorreoDestinatario)
+            builder.Property(n => n.UsuarioId)
+                .IsRequired();
+
+            builder.Property(n => n.Tipo)
+                .HasConversion<string>()
                 .IsRequired()
-                .HasMaxLength(150);
-
-            builder.Property(n => n.TipoEvento)
-                .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(50);
 
             builder.Property(n => n.Mensaje)
                 .IsRequired()
-                .HasMaxLength(1000);
+                .HasMaxLength(150);
 
             builder.Property(n => n.FechaRegistro)
                 .IsRequired();
 
-            builder.Property(n => n.EstadoEnvio)
-                .IsRequired()
-                .HasMaxLength(50);
+            builder.Property(n => n.Leida)
+                .IsRequired();
+
+            builder.HasOne(n => n.Usuario)
+                .WithMany(u => u.Notificaciones)
+                .HasForeignKey(n => n.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(n => n.UsuarioId);
+
+            builder.HasIndex(n => n.Tipo);
+
+            builder.HasIndex(n => n.Leida);
+
+            builder.HasIndex(n => n.FechaRegistro);
         }
     }
 }
