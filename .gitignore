@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Ignorar archivos e imágenes subidos en tiempo de ejecución en SIGEBI.Api
+SIGEBI.Api/wwwroot/imagenes/*
+!SIGEBI.Api/wwwroot/imagenes/.gitkeep
