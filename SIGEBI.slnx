@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/API/">
+    <Project Path="SIGEBI.Api/SIGEBI.Api.csproj" />
+  </Folder>
   <Folder Name="/Aplication/">
     <Project Path="SIGEBI.Application/SIGEBI.Application.csproj" />
   </Folder>
@@ -9,7 +12,6 @@
     <Project Path="SIGEBI.Infrastructure/SIGEBI.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/Presentation/">
-    <Project Path="SIGEBI.Api/SIGEBI.Api.csproj" />
     <Project Path="SIGEBI.AppEscritorio/SIGEBI.AppEscritorio.csproj" />
     <Project Path="SIGEBI.AppWeb/SIGEBI.AppWeb.csproj" Id="f7f8243c-3316-4959-b506-9655421224f0" />
   </Folder>

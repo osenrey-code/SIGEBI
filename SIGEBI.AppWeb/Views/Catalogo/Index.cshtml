@@ -1,7 +1,15 @@
 ﻿@model SIGEBI.AppWeb.Models.ViewModels.Catalogo.CatalogoIndexViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Catálogo de Recursos Bibliográficos";
+
+    // Obtiene la URL base de la API desde appsettings.json o usa el puerto por defecto
+    string apiBaseUrl = Configuration["ApiSettings:BaseUrl"]
+                     ?? Configuration["ApiUrl"]
+                     ?? "https://localhost:7123";
+
+    apiBaseUrl = apiBaseUrl.TrimEnd('/');
 }
 
 <!-- HERO SECTION -->
@@ -80,7 +88,12 @@
                             <div class="portada-wrapper position-relative">
                                 @if (!string.IsNullOrEmpty(item.ImagenUrl))
                                 {
-                                    <img src="@item.ImagenUrl" alt="Portada de @item.Titulo" class="portada-img" />
+                                    // 🟢 Construcción de la URL de la imagen apuntando al servidor de la API
+                                    var rutaImagen = item.ImagenUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                                        ? item.ImagenUrl
+                                        : $"{apiBaseUrl}{(item.ImagenUrl.StartsWith("/") ? "" : "/")}{item.ImagenUrl}";
+
+                                    <img src="@rutaImagen" alt="Portada de @item.Titulo" class="portada-img" />
                                 }
                                 else
                                 {
