@@ -146,7 +146,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
             dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = "AnioPublicacion",
+                DataPropertyName = "AnioPublicado",
                 HeaderText = "Año",
                 Width = 75,
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
