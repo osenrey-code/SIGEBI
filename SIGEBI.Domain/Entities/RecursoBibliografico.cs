@@ -28,8 +28,10 @@ namespace SIGEBI.Domain.Entities
 
         public int CopiasDisponibles => Ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
 
-        
-        
+        public bool Activo { get; private set; } = true;
+
+
+
         protected RecursoBibliografico() { }
 
         public RecursoBibliografico(
@@ -61,6 +63,16 @@ namespace SIGEBI.Domain.Entities
         public bool TieneCopiasDisponibles()
         {
             return CopiasDisponibles > 0;
+        }
+
+        public void Desactivar()
+        {
+            Activo = false;
+        }
+
+        public void Activar()
+        {
+            Activo = true;
         }
 
         public void ActualizarInformacion(

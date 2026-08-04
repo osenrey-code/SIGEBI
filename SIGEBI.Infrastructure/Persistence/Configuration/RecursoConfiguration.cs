@@ -41,7 +41,11 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
 
             builder.Ignore(r => r.TotalEjemplares);
             builder.Ignore(r => r.CopiasDisponibles);
-                
+
+            builder.Property(r => r.Activo)
+                .IsRequired()
+                .HasDefaultValue(true);
+            builder.HasQueryFilter(r => r.Activo);
 
             builder.HasOne(r => r.Categoria)
                 .WithMany(c => c.Libros)

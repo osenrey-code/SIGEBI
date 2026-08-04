@@ -387,10 +387,10 @@ namespace SIGEBI.Application.UseCase.Catalogo
 
             await ValidarBibliotecarioOAdministradorAsync(
                 usuarioId,
-                "Solo un bibliotecario o administrador puede eliminar recursos."
+                "Solo un bibliotecario o administrador puede desactivar recursos."
             );
 
-            var recurso = await _recursos.ObtenerporIdAsync(
+            var recurso = await _recursos.BuscarConCategoriaAsync(
                 request.RecursoBibliograficoId
             );
 
@@ -405,20 +405,26 @@ namespace SIGEBI.Application.UseCase.Catalogo
             if (tienePrestamosActivos)
             {
                 throw new BusinessException(
-                    "No se puede eliminar el recurso porque tiene préstamos activos."
+                    "No se puede desactivar el recurso porque tiene préstamos activos."
                 );
             }
 
-            string titulo = recurso.Titulo;
-            string isbn = recurso.ISBN;
+            recurso.Desactivar();
+            if (recurso.Ejemplares != null)
+            {
+                foreach (var ejemplar in recurso.Ejemplares)
+                {
+                    ejemplar.MarcarFueraDeServicio($"Recurso desactivado. Motivo: '{motivo}'");
+                }
+            }
 
-            await _recursos.EliminarAsync(recurso);
+            await _recursos.ActualizarAsync(recurso);
 
             await _auditoria.RegistrarAsync(
                 UsuarioId: usuarioId,
-                Accion: "Eliminar Recurso",
+                Accion: "Desactivar Recurso",
                 EntidadAfectada: "RecursosBibliograficos",
-                detalles: $"Se eliminó el recurso '{titulo}' con ISBN {isbn}. Motivo: '{motivo}'."
+                detalles: $"Se desactivó el recurso '{recurso.Titulo}' con ISBN {recurso.ISBN}. Motivo: '{motivo}'."
             );
 
             await _db.SaveChangesAsync();

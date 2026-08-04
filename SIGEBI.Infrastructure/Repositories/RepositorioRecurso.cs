@@ -20,7 +20,7 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             try
             {
-                _loggerRecurso.LogInformation("Obteniendo todos los recursos bibliográficos con categoría y ejemplares.");
+                _loggerRecurso.LogInformation("Obteniendo todos los recursos bibliográficos activos con categoría y ejemplares.");
                 return await _dbSet
                     .Include(r => r.Categoria)
                     .Include(r => r.Ejemplares)
@@ -37,8 +37,9 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             try
             {
-                _loggerRecurso.LogInformation("Buscando recurso bibliográfico por ISBN: {Isbn}", isbn);
+                _loggerRecurso.LogInformation("Buscando recurso bibliográfico por ISBN (incluyendo inactivos): {Isbn}", isbn);
                 return await _dbSet
+                    .IgnoreQueryFilters() 
                     .Include(r => r.Categoria)
                     .Include(r => r.Ejemplares)
                     .FirstOrDefaultAsync(r => r.ISBN.ToLower() == isbn.Trim().ToLower());
@@ -75,7 +76,7 @@ namespace SIGEBI.Infrastructure.Repositories
         {
             try
             {
-                _loggerRecurso.LogInformation("Consultando catálogo de recursos con filtros.");
+                _loggerRecurso.LogInformation("Consultando catálogo de recursos activos con filtros.");
 
                 var query = _dbSet
                     .Include(r => r.Categoria)

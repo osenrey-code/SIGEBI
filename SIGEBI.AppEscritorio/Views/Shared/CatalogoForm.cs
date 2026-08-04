@@ -1,12 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SIGEBI.AppEscritorio.Dtos.Catalogo.Response;
 using SIGEBI.AppEscritorio.Services.Interfaces;
-using SIGEBI.AppEscritorio.Session; // 👈 Importante para validar el rol del usuario
-using System;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using SIGEBI.AppEscritorio.Session;
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
@@ -51,11 +46,14 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             // Estilos de la Botonera
             ConfigurarBoton(btnNuevo, "➕  Nuevo Recurso", colorPrimario, Color.White, 160);
             ConfigurarBoton(btnEditar, "✏️  Editar", colorAdvertencia, Color.White, 110);
-            ConfigurarBoton(btnEliminar, "🗑️  Eliminar", colorPeligro, Color.White, 110);
+            ConfigurarBoton(btnEliminar, "🗑️  Desactivar", colorPeligro, Color.White, 120);
             ConfigurarBoton(btnRecargar, "🔄  Refrescar", colorRefrescar, Color.White, 120);
 
+            // 🟢 Habilitado para bibliotecarios/administradores (se controla visibilidad por rol en ValidarPermisosPorRol)
+            btnEliminar.Visible = true;
+
             // 3. Formateo Profesional del DataGridView
-            dgvCatalogo.AutoGenerateColumns = false; // 👈 Evita columnas automáticas feas
+            dgvCatalogo.AutoGenerateColumns = false; // 👈 Evita columnas automáticas
             dgvCatalogo.BackgroundColor = fondoPaneles;
             dgvCatalogo.BorderStyle = BorderStyle.None;
             dgvCatalogo.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
@@ -241,8 +239,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             if (dgvCatalogo.CurrentRow?.DataBoundItem is RecursoResponse recursoSeleccionado)
             {
                 var confirmacion = MessageBox.Show(
-                    $"¿Está seguro de que desea eliminar el recurso '{recursoSeleccionado.Titulo}'?\nEsta acción no se puede deshacer.",
-                    "Confirmar Eliminación",
+                    $"¿Está seguro de que desea desactivar el recurso '{recursoSeleccionado.Titulo}'?\n\nEl recurso y sus ejemplares quedarán fuera de servicio y se ocultarán del catálogo activo.",
+                    "Confirmar Desactivación",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question);
 
@@ -251,13 +249,14 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                     try
                     {
                         this.Cursor = Cursors.WaitCursor;
-                        await _catalogoService.EliminarRecursoAsync(recursoSeleccionado.RecursoBibliograficoId, "Eliminado desde el panel de escritorio");
-                        MessageBox.Show("Recurso eliminado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        await _catalogoService.EliminarRecursoAsync(recursoSeleccionado.RecursoBibliograficoId, "Desactivado desde el panel de escritorio");
+
+                        MessageBox.Show("Recurso y ejemplares desactivados correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         await CargarDatosAsync();
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"No se pudo eliminar el recurso: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show($"No se pudo desactivar el recurso: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     finally
                     {
@@ -267,7 +266,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
             else
             {
-                MessageBox.Show("Por favor, seleccione un recurso de la lista para eliminar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Por favor, seleccione un recurso de la lista para desactivar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
