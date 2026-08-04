@@ -1,7 +1,15 @@
 ﻿@model SIGEBI.AppWeb.Models.ViewModels.Catalogo.RecursoItemViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Detalles del Recurso";
+
+    // 🟢 Obtiene la URL base de la API desde la configuración
+    string apiBaseUrl = Configuration["ApiSettings:BaseUrl"]
+                      ?? Configuration["ApiUrl"]
+                      ?? "https://localhost:7123";
+
+    apiBaseUrl = apiBaseUrl.TrimEnd('/');
 }
 
 <!-- HERO SECTION -->
@@ -53,14 +61,29 @@ else
         <!-- Columna Izquierda: Portada -->
         <div class="col-lg-4">
             <div class="content-card card shadow-sm rounded-4 border-0 text-center p-4 h-100 d-flex flex-column justify-content-between">
-                <div class="my-auto py-3">
-                    @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+                <div class="my-auto py-3 d-flex justify-content-center align-items-center">
+                    @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
                     {
-                        <img src="@Model.ImagenUrl" alt="Portada de @Model.Titulo" class="img-fluid rounded shadow-sm border" style="max-height: 350px; object-fit: cover;" />
+                        // 🟢 Construye la URL concatenando la API Base URL si la ruta es relativa
+                        var rutaImagen = Model.ImagenUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                            ? Model.ImagenUrl
+                            : $"{apiBaseUrl}{(Model.ImagenUrl.StartsWith("/") ? "" : "/")}{Model.ImagenUrl}";
+
+                        <img src="@rutaImagen"
+                             alt="Portada de @Model.Titulo"
+                             class="img-fluid rounded-3 shadow-sm border"
+                             style="max-height: 380px; max-width: 100%; object-fit: contain;"
+                             onerror="this.onerror=null; this.style.display='none'; document.getElementById('fallback-portada').classList.remove('d-none'); document.getElementById('fallback-portada').classList.add('d-flex');" />
+
+                        <!-- Placeholder si la imagen da error 404 al cargar desde la API -->
+                        <div id="fallback-portada" class="bg-body-tertiary rounded-3 d-none flex-column align-items-center justify-content-center border mx-auto py-5 w-100" style="max-width: 220px; height: 300px;">
+                            <i class="bi bi-journal-bookmark text-body-tertiary display-1 mb-2"></i>
+                            <span class="text-body-secondary small">Imagen no encontrada</span>
+                        </div>
                     }
                     else
                     {
-                        <div class="bg-body-tertiary rounded d-flex flex-column align-items-center justify-content-center border mx-auto py-5" style="width: 200px; height: 280px;">
+                        <div class="bg-body-tertiary rounded-3 d-flex flex-column align-items-center justify-content-center border mx-auto py-5 w-100" style="max-width: 220px; height: 300px;">
                             <i class="bi bi-journal-bookmark text-body-tertiary display-1 mb-2"></i>
                             <span class="text-body-secondary small">Sin portada</span>
                         </div>
