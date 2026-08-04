@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Infrastructure.Persistence;
 using SIGEBI.Domain.Enums;
@@ -6,129 +7,206 @@ using SIGEBI.Application.Interfaces.Repositories;
 
 namespace SIGEBI.Infrastructure.Repositories
 {
-    public class RepositorioUsuario : IUsuario 
+    public class RepositorioUsuario : IUsuario
     {
         private readonly SIGEBIDbContext _context;
         private readonly DbSet<Usuario> _dbSet;
+        private readonly ILogger<RepositorioUsuario> _logger;
 
-        public RepositorioUsuario(SIGEBIDbContext context)
+        public RepositorioUsuario(SIGEBIDbContext context, ILogger<RepositorioUsuario> logger)
         {
             _context = context;
             _dbSet = context.Set<Usuario>();
+            _logger = logger;
         }
 
         public Task ActualizarAsync(Usuario entidad)
         {
-            _dbSet.Update(entidad);
-            return Task.CompletedTask;
+            try
+            {
+                _logger.LogInformation("Actualizando usuario.");
+                _dbSet.Update(entidad);
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar usuario: {Message}", ex.Message);
+                throw;
+            }
         }
 
         public async Task AgregarAsync(Usuario entidad)
         {
-            await _dbSet.AddAsync(entidad);
+            try
+            {
+                _logger.LogInformation("Agregando usuario.");
+                await _dbSet.AddAsync(entidad);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al agregar usuario: {Message}", ex.Message);
+                throw;
+            }
         }
 
         public async Task DesactivarUsuarioAsync(string IdUsuario)
         {
-            var usuario = await ObtenerUsuarioPorIdentificacionAsync(IdUsuario);
-
-            if (usuario != null)
+            try
             {
-                usuario.Estado = EstadoUsuario.Inactivo;
-                _dbSet.Update(usuario);
+                _logger.LogInformation("Desactivando usuario con identificación: {Id}", IdUsuario);
+                var usuario = await ObtenerUsuarioPorIdentificacionAsync(IdUsuario);
+
+                if (usuario != null)
+                {
+                    usuario.Estado = EstadoUsuario.Inactivo;
+                    _dbSet.Update(usuario);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al desactivar usuario {Id}: {Message}", IdUsuario, ex.Message);
+                throw;
             }
         }
 
         public async Task<bool> ExisteCorreoAsync(string correo)
         {
-            return await _context.Usuarios
-                .AnyAsync(u => u.Correo == correo);
+            try
+            {
+                _logger.LogInformation("Verificando existencia de correo: {Correo}", correo);
+                return await _context.Usuarios.AnyAsync(u => u.Correo == correo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al verificar existencia de correo: {Message}", ex.Message);
+                throw;
+            }
         }
 
         public async Task<Usuario?> ObtenerporIdAsync(object id)
         {
-            return await _dbSet.FindAsync(id);
+            try
+            {
+                _logger.LogInformation("Obteniendo usuario por ID: {Id}", id);
+                return await _dbSet.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener usuario por ID {Id}: {Message}", id, ex.Message);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<Usuario>> ObtenerTodosAsync()
         {
-            return await _dbSet.ToListAsync();
+            try
+            {
+                _logger.LogInformation("Obteniendo todos los usuarios.");
+                return await _dbSet.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener todos los usuarios: {Message}", ex.Message);
+                throw;
+            }
         }
 
         public async Task<Usuario?> ObtenerUsuarioConDetallesAsync(string Identificacion)
         {
-            return await _dbSet
-      
-         .Include(u => u.Prestamos)
-         .Include(u => u.Penalizciones) 
-         .Include(u => u.Notificaciones)
-
-         .FirstOrDefaultAsync(u =>
-             (u is Estudiante && ((Estudiante)u).Matricula == Identificacion) ||
-             (u is Docente && ((Docente)u).CodigoEmpleado == Identificacion) ||
-             (u is Administrador && ((Administrador)u).CodigoEmpleado == Identificacion) ||
-             (u is Bibliotecario && ((Bibliotecario)u).CodigoEmpleado == Identificacion) ||
-             (u is Auditor && ((Auditor)u).CodigoEmpleado == Identificacion)
-         );
+            try
+            {
+                _logger.LogInformation("Obteniendo usuario con detalles para identificación: {Id}", Identificacion);
+                return await _dbSet
+                     .Include(u => u.Prestamos)
+                     .Include(u => u.Penalizciones)
+                     .Include(u => u.Notificaciones)
+                     .FirstOrDefaultAsync(u =>
+                         (u is Estudiante && ((Estudiante)u).Matricula == Identificacion) ||
+                         (u is Docente && ((Docente)u).CodigoEmpleado == Identificacion) ||
+                         (u is Administrador && ((Administrador)u).CodigoEmpleado == Identificacion) ||
+                         (u is Bibliotecario && ((Bibliotecario)u).CodigoEmpleado == Identificacion) ||
+                         (u is Auditor && ((Auditor)u).CodigoEmpleado == Identificacion)
+                     );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener usuario con detalles para identificación {Id}: {Message}", Identificacion, ex.Message);
+                throw;
+            }
         }
 
         public async Task<Usuario?> ObtenerUsuarioPorIdentificacionAsync(string identificacion)
         {
-             return await _dbSet.FirstOrDefaultAsync(u =>
-            (u is Estudiante && ((Estudiante)u).Matricula == identificacion) ||
-            (u is Docente && ((Docente)u).CodigoEmpleado == identificacion) ||
-            (u is Administrador && ((Administrador)u).CodigoEmpleado == identificacion) ||
-            (u is Bibliotecario && ((Bibliotecario)u).CodigoEmpleado == identificacion) ||
-            (u is Auditor && ((Auditor)u).CodigoEmpleado == identificacion)
-            );
+            try
+            {
+                _logger.LogInformation("Obteniendo usuario por identificación: {Id}", identificacion);
+                return await _dbSet.FirstOrDefaultAsync(u =>
+                    (u is Estudiante && ((Estudiante)u).Matricula == identificacion) ||
+                    (u is Docente && ((Docente)u).CodigoEmpleado == identificacion) ||
+                    (u is Administrador && ((Administrador)u).CodigoEmpleado == identificacion) ||
+                    (u is Bibliotecario && ((Bibliotecario)u).CodigoEmpleado == identificacion) ||
+                    (u is Auditor && ((Auditor)u).CodigoEmpleado == identificacion)
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener usuario por identificación {Id}: {Message}", identificacion, ex.Message);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<Usuario?>> ConsultarPorFiltrosAsync(string? nombre, string? tipoUsuario, string? estado, string? identificacion)
         {
-            IQueryable<Usuario> query = _dbSet.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(nombre))
+            try
             {
-                query = query.Where(u => u.NombreCompleto.Contains(nombre));
-            }
+                _logger.LogInformation("Consultando usuarios por filtros.");
+                IQueryable<Usuario> query = _dbSet.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(estado))
-            {
-                if (Enum.TryParse<EstadoUsuario>(estado, true, out var estadoEnum))
+                if (!string.IsNullOrWhiteSpace(nombre))
                 {
-                    query = query.Where(u => u.Estado == estadoEnum);
+                    query = query.Where(u => u.NombreCompleto.Contains(nombre));
                 }
-            }
 
-            if (!string.IsNullOrWhiteSpace(tipoUsuario))
-            {
-                query = tipoUsuario.ToLower() switch
+                if (!string.IsNullOrWhiteSpace(estado))
                 {
-                    "estudiante" => query.OfType<Estudiante>(),
-                    "docente" => query.OfType<Docente>(),
-                    "administrador" => query.OfType<Administrador>(),
-                    "bibliotecario" => query.OfType<Bibliotecario>(),
-                    "auditor" => query.OfType<Auditor>(),
-                    _ => query // Si envían un tipo no válido, no filtramos por tipo
-                };
-            }
+                    if (Enum.TryParse<EstadoUsuario>(estado, true, out var estadoEnum))
+                    {
+                        query = query.Where(u => u.Estado == estadoEnum);
+                    }
+                }
 
-           
-            if (!string.IsNullOrWhiteSpace(identificacion))
+                if (!string.IsNullOrWhiteSpace(tipoUsuario))
+                {
+                    query = tipoUsuario.ToLower() switch
+                    {
+                        "estudiante" => query.OfType<Estudiante>(),
+                        "docente" => query.OfType<Docente>(),
+                        "administrador" => query.OfType<Administrador>(),
+                        "bibliotecario" => query.OfType<Bibliotecario>(),
+                        "auditor" => query.OfType<Auditor>(),
+                        _ => query
+                    };
+                }
+
+                if (!string.IsNullOrWhiteSpace(identificacion))
+                {
+                    identificacion = identificacion.Trim();
+
+                    query = query.Where(u =>
+                     (u is Estudiante && ((Estudiante)u).Matricula.Contains(identificacion)) ||
+                     (u is Docente && ((Docente)u).CodigoEmpleado.Contains(identificacion)) ||
+                     (u is Administrador && ((Administrador)u).CodigoEmpleado.Contains(identificacion)) ||
+                     (u is Bibliotecario && ((Bibliotecario)u).CodigoEmpleado.Contains(identificacion)) ||
+                     (u is Auditor && ((Auditor)u).CodigoEmpleado.Contains(identificacion)));
+                }
+
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
             {
-                identificacion = identificacion.Trim();
-
-                query = query.Where(u =>
-                 (u is Estudiante && ((Estudiante)u).Matricula.Contains(identificacion)) ||
-                 (u is Docente && ((Docente)u).CodigoEmpleado.Contains(identificacion)) ||
-                 (u is Administrador && ((Administrador)u).CodigoEmpleado.Contains(identificacion)) ||
-                 (u is Bibliotecario && ((Bibliotecario)u).CodigoEmpleado.Contains(identificacion)) ||
-                 (u is Auditor && ((Auditor)u).CodigoEmpleado.Contains(identificacion)));
+                _logger.LogError(ex, "Error al consultar usuarios por filtros: {Message}", ex.Message);
+                throw;
             }
-            
-            return await query.ToListAsync();
         }
-
-       
     }
 }
