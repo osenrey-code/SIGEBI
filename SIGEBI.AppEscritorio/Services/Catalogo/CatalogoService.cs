@@ -54,6 +54,7 @@ namespace SIGEBI.AppEscritorio.Services.Catalogo
             form.Add(new StringContent(request.CategoriaId.ToString()), "CategoriaId");
             form.Add(new StringContent(request.AnioPublicado.ToString()), "AnioPublicado");
             form.Add(new StringContent(request.CantidadEjemplares.ToString()), "CantidadEjemplares");
+            form.Add(new StringContent(request.Descripcion ?? string.Empty), "Descripcion");
 
             if (!string.IsNullOrWhiteSpace(request.RutaImagenLocal) && File.Exists(request.RutaImagenLocal))
             {
@@ -78,6 +79,9 @@ namespace SIGEBI.AppEscritorio.Services.Catalogo
             form.Add(new StringContent(request.CategoriaId.ToString()), "CategoriaId");
             form.Add(new StringContent(request.AnioPublicado.ToString()), "AnioPublicado");
             form.Add(new StringContent(request.CantidadEjemplares.ToString()), "CantidadEjemplares");
+
+            // 🟢 SE AGREGA EL CAMPO DE DESCRIPCIÓN AL FORMULARIO MULTIPART
+            form.Add(new StringContent(request.Descripcion ?? string.Empty), "Descripcion");
 
             if (!string.IsNullOrWhiteSpace(request.ImagenUrlActual))
             {

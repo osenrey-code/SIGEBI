@@ -14,4 +14,5 @@ public class ActualizarRecursoRequest
 
     public string? ImagenUrl { get; set; }
     public int CantidadEjemplares { get; set; }
+    public string? Descripcion { get; set; }
 }

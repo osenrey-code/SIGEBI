@@ -99,7 +99,7 @@ else
             </div>
         </div>
 
-        <!-- Columna Derecha: Información y Disponibilidad -->
+        <!-- Columna Derecha: Información, Metadatos, Descripción y Disponibilidad -->
         <div class="col-lg-8">
             <div class="content-card card shadow-sm rounded-4 border-0 p-4 p-lg-5 h-100 d-flex flex-column justify-content-between">
                 <div>
@@ -126,6 +126,21 @@ else
                                 @Model.CopiasDisponibles / @Model.TotalEjemplares Disponibles
                             </span>
                         </div>
+                    </div>
+
+                    <!-- 🟢 SECCIÓN DE DESCRIPCIÓN DEL RECURSO -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold text-body-emphasis mb-2 d-flex align-items-center gap-2">
+                            <i class="bi bi-text-paragraph text-primary"></i> Descripción del Recurso
+                        </h5>
+                        @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+                        {
+                            <p class="text-body-secondary mb-0" style="line-height: 1.7; white-space: pre-line;">@Model.Descripcion</p>
+                        }
+                        else
+                        {
+                            <p class="text-body-tertiary fst-italic mb-0">No hay una descripción registrada para este recurso bibliográfico.</p>
+                        }
                     </div>
                 </div>
 

@@ -12,9 +12,8 @@
         public string? ImagenUrl { get; set; }
         public int TotalEjemplares { get; set; }
         public int CopiasDisponibles { get; set; }
-
-        // Propiedad calculada útil para la interfaz
         public bool EstaDisponible => CopiasDisponibles > 0;
         public int? EjemplarDisponibleId { get; set; }
+        public string? Descripcion { get; set; }
     }
 }

@@ -29,6 +29,8 @@
             this.numAnio = new System.Windows.Forms.NumericUpDown();
             this.lblEjemplares = new System.Windows.Forms.Label();
             this.numEjemplares = new System.Windows.Forms.NumericUpDown();
+            this.lblDescripcion = new System.Windows.Forms.Label();
+            this.txtDescripcion = new System.Windows.Forms.TextBox();
             this.picPortada = new System.Windows.Forms.PictureBox();
             this.btnSeleccionarFoto = new System.Windows.Forms.Button();
             this.btnGuardar = new System.Windows.Forms.Button();
@@ -166,6 +168,24 @@
             0,
             0});
             // 
+            // lblDescripcion
+            // 
+            this.lblDescripcion.AutoSize = true;
+            this.lblDescripcion.Location = new System.Drawing.Point(30, 455);
+            this.lblDescripcion.Name = "lblDescripcion";
+            this.lblDescripcion.Size = new System.Drawing.Size(72, 15);
+            this.lblDescripcion.TabIndex = 12;
+            this.lblDescripcion.Text = "Descripción:";
+            // 
+            // txtDescripcion
+            // 
+            this.txtDescripcion.Location = new System.Drawing.Point(30, 480);
+            this.txtDescripcion.Multiline = true;
+            this.txtDescripcion.Name = "txtDescripcion";
+            this.txtDescripcion.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtDescripcion.Size = new System.Drawing.Size(540, 80);
+            this.txtDescripcion.TabIndex = 13;
+            // 
             // picPortada
             // 
             this.picPortada.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -173,7 +193,7 @@
             this.picPortada.Name = "picPortada";
             this.picPortada.Size = new System.Drawing.Size(240, 295);
             this.picPortada.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.picPortada.TabIndex = 12;
+            this.picPortada.TabIndex = 14;
             this.picPortada.TabStop = false;
             // 
             // btnSeleccionarFoto
@@ -182,7 +202,7 @@
             this.btnSeleccionarFoto.Location = new System.Drawing.Point(330, 375);
             this.btnSeleccionarFoto.Name = "btnSeleccionarFoto";
             this.btnSeleccionarFoto.Size = new System.Drawing.Size(240, 40);
-            this.btnSeleccionarFoto.TabIndex = 13;
+            this.btnSeleccionarFoto.TabIndex = 15;
             this.btnSeleccionarFoto.Text = "Seleccionar Portada...";
             this.btnSeleccionarFoto.UseVisualStyleBackColor = true;
             this.btnSeleccionarFoto.Click += new System.EventHandler(this.btnSeleccionarFoto_Click);
@@ -190,10 +210,10 @@
             // btnGuardar
             // 
             this.btnGuardar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnGuardar.Location = new System.Drawing.Point(470, 475);
+            this.btnGuardar.Location = new System.Drawing.Point(470, 595);
             this.btnGuardar.Name = "btnGuardar";
             this.btnGuardar.Size = new System.Drawing.Size(100, 40);
-            this.btnGuardar.TabIndex = 15;
+            this.btnGuardar.TabIndex = 17;
             this.btnGuardar.Text = "Guardar";
             this.btnGuardar.UseVisualStyleBackColor = true;
             this.btnGuardar.Click += new System.EventHandler(this.btnGuardar_Click);
@@ -201,10 +221,10 @@
             // btnCancelar
             // 
             this.btnCancelar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnCancelar.Location = new System.Drawing.Point(350, 475);
+            this.btnCancelar.Location = new System.Drawing.Point(350, 595);
             this.btnCancelar.Name = "btnCancelar";
             this.btnCancelar.Size = new System.Drawing.Size(100, 40);
-            this.btnCancelar.TabIndex = 14;
+            this.btnCancelar.TabIndex = 16;
             this.btnCancelar.Text = "Cancelar";
             this.btnCancelar.UseVisualStyleBackColor = true;
             this.btnCancelar.Click += new System.EventHandler(this.btnCancelar_Click);
@@ -214,11 +234,13 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
-            this.ClientSize = new System.Drawing.Size(600, 540);
+            this.ClientSize = new System.Drawing.Size(600, 660);
             this.Controls.Add(this.btnGuardar);
             this.Controls.Add(this.btnCancelar);
             this.Controls.Add(this.btnSeleccionarFoto);
             this.Controls.Add(this.picPortada);
+            this.Controls.Add(this.txtDescripcion);
+            this.Controls.Add(this.lblDescripcion);
             this.Controls.Add(this.numEjemplares);
             this.Controls.Add(this.lblEjemplares);
             this.Controls.Add(this.numAnio);
@@ -257,6 +279,8 @@
         private System.Windows.Forms.NumericUpDown numAnio;
         private System.Windows.Forms.Label lblEjemplares;
         private System.Windows.Forms.NumericUpDown numEjemplares;
+        private System.Windows.Forms.Label lblDescripcion;
+        private System.Windows.Forms.TextBox txtDescripcion;
         private System.Windows.Forms.PictureBox picPortada;
         private System.Windows.Forms.Button btnSeleccionarFoto;
         private System.Windows.Forms.Button btnGuardar;

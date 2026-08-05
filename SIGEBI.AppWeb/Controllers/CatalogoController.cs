@@ -113,7 +113,8 @@ namespace SIGEBI.AppWeb.Controllers
                     ImagenUrl = recurso.ImagenUrl,
                     TotalEjemplares = recurso.TotalEjemplares,
                     CopiasDisponibles = recurso.CopiasDisponibles,
-                    EjemplarDisponibleId = recurso.EjemplarDisponibleId
+                    EjemplarDisponibleId = recurso.EjemplarDisponibleId,
+                    Descripcion = recurso.Descripcion
                 };
 
                 return View(viewModel);

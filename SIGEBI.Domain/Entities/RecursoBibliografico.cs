@@ -29,18 +29,15 @@ namespace SIGEBI.Domain.Entities
         public int CopiasDisponibles => Ejemplares.Count(e => e.Estado == EstadoEjemplar.Disponible);
 
         public bool Activo { get; private set; } = true;
+        public string? Descripcion { get; private set; }
 
 
 
         protected RecursoBibliografico() { }
 
-        public RecursoBibliografico(
-            string isbn,
-            string titulo,
-            string autor,
-            int categoriaId,
+        public RecursoBibliografico(string isbn, string titulo, string autor, int categoriaId,
             int anioPublicado,
-            string? imagenUrl)
+            string? imagenUrl, string? descripcion)
         {
             Guard.NotNullOrWhiteSpace(isbn, "El ISBN");
             Guard.NotNullOrWhiteSpace(titulo, "El título del libro");
@@ -58,6 +55,7 @@ namespace SIGEBI.Domain.Entities
             CategoriaId = categoriaId;
             AnioPublicado = anioPublicado;
             ImagenUrl = imagenUrl?.Trim();
+            Descripcion = descripcion?.Trim();
         }
 
         public bool TieneCopiasDisponibles()
@@ -75,12 +73,9 @@ namespace SIGEBI.Domain.Entities
             Activo = true;
         }
 
-        public void ActualizarInformacion(
-            string titulo,
-            string autor,
-            int categoriaId,
+        public void ActualizarInformacion(string titulo, string autor, int categoriaId,
             int anioPublicado,
-            string? imagenUrl)
+            string? imagenUrl, string? descripcion)
         {
             Guard.NotNullOrWhiteSpace(titulo, "El título del libro");
             Guard.NotNullOrWhiteSpace(autor, "El autor del libro");
@@ -96,6 +91,7 @@ namespace SIGEBI.Domain.Entities
             CategoriaId = categoriaId;
             AnioPublicado = anioPublicado;
             ImagenUrl = imagenUrl?.Trim();
+            Descripcion = descripcion?.Trim();
         }
 
         public void AsignarImagen(string imagenUrl)

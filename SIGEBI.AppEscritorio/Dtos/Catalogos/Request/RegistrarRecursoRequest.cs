@@ -8,8 +8,7 @@
         public int CategoriaId { get; set; }
         public int AnioPublicado { get; set; }
         public int CantidadEjemplares { get; set; } = 1;
-
-        // Exclusivo de WinForms: Ruta local del archivo para subirlo
         public string? RutaImagenLocal { get; set; }
+        public string? Descripcion { get; set; }
     }
 }

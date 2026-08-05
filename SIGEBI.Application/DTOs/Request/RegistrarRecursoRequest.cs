@@ -21,5 +21,6 @@ namespace SIGEBI.Application.DTOs.Request
 
         public string? ImagenUrl { get; set; }
         public int CantidadEjemplares { get; set; } = 1;
+        public string? Descripcion { get; set; }
     }
 }

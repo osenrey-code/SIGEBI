@@ -47,6 +47,9 @@ namespace SIGEBI.Infrastructure.Persistence.Configuration
                 .HasDefaultValue(true);
             builder.HasQueryFilter(r => r.Activo);
 
+            builder.Property(r => r.Descripcion)
+                .HasMaxLength(500);
+
             builder.HasOne(r => r.Categoria)
                 .WithMany(c => c.Libros)
                 .HasForeignKey(r => r.CategoriaId)

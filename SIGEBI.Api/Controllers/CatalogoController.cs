@@ -44,7 +44,8 @@ namespace SIGEBI.Api.Controllers
                 CategoriaId = apiRequest.CategoriaId,
                 AnioPublicado = apiRequest.AnioPublicado,
                 CantidadEjemplares = apiRequest.CantidadEjemplares,
-                ImagenUrl = imagenUrl
+                ImagenUrl = imagenUrl,
+                Descripcion = apiRequest.Descripcion
             };
 
             int usuarioEjecutorId = ObtenerUsuarioId();
@@ -89,7 +90,8 @@ namespace SIGEBI.Api.Controllers
                 CategoriaId = apiRequest.CategoriaId,
                 AnioPublicado = apiRequest.AnioPublicado,
                 CantidadEjemplares = apiRequest.CantidadEjemplares,
-                ImagenUrl = imagenUrl
+                ImagenUrl = imagenUrl,
+                Descripcion = apiRequest.Descripcion
             };
 
             int usuarioEjecutorId = ObtenerUsuarioId();

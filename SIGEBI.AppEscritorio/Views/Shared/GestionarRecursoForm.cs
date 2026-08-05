@@ -2,10 +2,9 @@
 using SIGEBI.AppEscritorio.Dtos.Catalogo.Response;
 using SIGEBI.AppEscritorio.Services.Categoria;
 using SIGEBI.AppEscritorio.Services.Interfaces;
-using SIGEBI.AppEscritorio.Session; 
+using SIGEBI.AppEscritorio.Session;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
@@ -20,7 +19,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         // 🎨 PALETA DE COLORES
         private readonly Color bgForm = Color.FromArgb(30, 41, 59);       // Fondo de la ventana
         private readonly Color bgInputs = Color.FromArgb(15, 23, 42);     // Fondo de los inputs
-        private readonly Color textPrimary = Color.White;                 // Texto principal
+        private readonly Color textPrimary = Color.White;                  // Texto principal
         private readonly Color textMuted = Color.FromArgb(148, 163, 184); // Textos secundarios
         private readonly Color primaryColor = Color.FromArgb(59, 130, 246); // Azul
         private readonly Color borderColor = Color.FromArgb(71, 85, 105); // Color del borde
@@ -35,7 +34,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterParent;
             this.BackColor = bgForm;
-            this.Size = new Size(600, 540);
+            this.Size = new Size(600, 660);
 
             this.Load += async (s, e) =>
             {
@@ -93,10 +92,17 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             btnSeleccionarFoto.Location = new Point(colDerecha, 375);
             btnSeleccionarFoto.Size = new Size(240, 40);
 
-            btnCancelar.Location = new Point(350, 475);
+            // 🟢 POSICIONAMIENTO DE DESCRIPCIÓN Y BOTONES INFERIORES
+            lblDescripcion.Location = new Point(colIzquierda, 455);
+            txtDescripcion.Location = new Point(colIzquierda, 480);
+            txtDescripcion.Size = new Size(540, 85);
+            txtDescripcion.Multiline = true;
+            txtDescripcion.ScrollBars = ScrollBars.Vertical;
+
+            btnCancelar.Location = new Point(350, 595);
             btnCancelar.Size = new Size(100, 40);
 
-            btnGuardar.Location = new Point(470, 475);
+            btnGuardar.Location = new Point(470, 595);
             btnGuardar.Size = new Size(100, 40);
 
             // 3. APLICAR ESTILOS A LOS CONTROLES
@@ -109,14 +115,14 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 }
             }
 
-            Control[] inputs = { txtISBN, txtTitulo, txtAutor, cmbCategoria, numAnio, numEjemplares };
+            Control[] inputs = { txtISBN, txtTitulo, txtAutor, cmbCategoria, numAnio, numEjemplares, txtDescripcion };
             foreach (Control input in inputs)
             {
                 input.BackColor = bgInputs;
                 input.ForeColor = textPrimary;
                 input.Font = fontInput;
 
-                if (input is TextBox txt) txt.BorderStyle = BorderStyle.None;
+                if (input is TextBox txt && !txt.Multiline) txt.BorderStyle = BorderStyle.None;
                 if (input is ComboBox cmb) cmb.FlatStyle = FlatStyle.Flat;
                 if (input is NumericUpDown num)
                 {
@@ -272,6 +278,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             numAnio.Value = recurso.AnioPublicado;
             numEjemplares.Value = recurso.TotalEjemplares;
 
+            // 🟢 Carga la descripción en el formulario al editar
+            txtDescripcion.Text = recurso.Descripcion ?? string.Empty;
+
             // 🔒 REGLA DE NEGOCIO: Habilitar modificación de ejemplares ÚNICAMENTE para Administradores
             string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
             bool esAdministrador = rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
@@ -280,7 +289,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
             if (esAdministrador)
             {
-                // Se fija como valor mínimo la cantidad actual para asegurar que sólo se pueda AUMENTAR
                 numEjemplares.Minimum = recurso.TotalEjemplares;
             }
 
@@ -316,6 +324,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                         CategoriaId = cmbCategoria.SelectedValue != null ? (int)cmbCategoria.SelectedValue : 0,
                         AnioPublicado = (int)numAnio.Value,
                         CantidadEjemplares = (int)numEjemplares.Value,
+                        Descripcion = txtDescripcion.Text.Trim(), // 🟢 Envía la descripción al registrar
                         RutaImagenLocal = _rutaImagenSeleccionada
                     };
                     await _catalogoService.RegistrarRecursoAsync(request);
@@ -329,7 +338,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                         Autor = txtAutor.Text.Trim(),
                         CategoriaId = cmbCategoria.SelectedValue != null ? (int)cmbCategoria.SelectedValue : 0,
                         AnioPublicado = (int)numAnio.Value,
-                        CantidadEjemplares = (int)numEjemplares.Value, // 👈 Envía la nueva cantidad de ejemplares al actualizar
+                        CantidadEjemplares = (int)numEjemplares.Value,
+                        Descripcion = txtDescripcion.Text.Trim(), // 🟢 Envía la descripción al actualizar
                         ImagenUrlActual = _urlImagenActual,
                         RutaNuevaImagenLocal = _rutaImagenSeleccionada
                     };

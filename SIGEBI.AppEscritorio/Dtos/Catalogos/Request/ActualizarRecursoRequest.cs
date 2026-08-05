@@ -9,8 +9,7 @@
         public int AnioPublicado { get; set; }
         public int CantidadEjemplares { get; set; }
         public string? ImagenUrlActual { get; set; }
-
-        // Exclusivo de WinForms: Ruta local del nuevo archivo a subir
         public string? RutaNuevaImagenLocal { get; set; }
+        public string? Descripcion { get; set; }
     }
 }

@@ -88,7 +88,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 autor,
                 request.CategoriaId,
                 request.AnioPublicado,
-                imagenUrl
+                imagenUrl,
+                request.Descripcion
             );
 
             for (int i = 1; i <= request.CantidadEjemplares; i++)
@@ -166,7 +167,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 autor,
                 request.CategoriaId,
                 request.AnioPublicado,
-                imagenUrl
+                imagenUrl,
+                request.Descripcion
             );
 
             if (request.CantidadEjemplares > recurso.TotalEjemplares)
@@ -468,7 +470,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 ImagenUrl = recurso.ImagenUrl,
                 TotalEjemplares = recurso.TotalEjemplares,
                 CopiasDisponibles = recurso.CopiasDisponibles,
-                EjemplarDisponibleId = primerDisponible?.EjemplarId
+                EjemplarDisponibleId = primerDisponible?.EjemplarId,
+                Descripcion = recurso?.Descripcion
             };
         }
 
@@ -490,7 +493,8 @@ namespace SIGEBI.Application.UseCase.Catalogo
                 ImagenUrl = recurso.ImagenUrl,
                 TotalEjemplares = recurso.TotalEjemplares,
                 CopiasDisponibles = recurso.CopiasDisponibles,
-                EjemplarDisponibleId = primerDisponible?.EjemplarId
+                EjemplarDisponibleId = primerDisponible?.EjemplarId,
+                Descripcion = recurso.Descripcion
             };
         }
 

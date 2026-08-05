@@ -10,5 +10,6 @@ namespace SIGEBI.Api.Models
         public int AnioPublicado { get; set; }
         public int CantidadEjemplares { get; set; } = 1;
         public IFormFile? ImagenArchivo { get; set; }
+        public string? Descripcion { get; set; }
     }
 }
