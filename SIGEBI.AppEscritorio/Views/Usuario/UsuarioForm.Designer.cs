@@ -26,17 +26,11 @@
             this.lblFiltroEstado = new System.Windows.Forms.Label();
             this.cmbFiltroTipo = new System.Windows.Forms.ComboBox();
             this.lblFiltroTipo = new System.Windows.Forms.Label();
-            this.btnBuscar = new System.Windows.Forms.Button();
             this.txtBusqueda = new System.Windows.Forms.TextBox();
             this.lblBusqueda = new System.Windows.Forms.Label();
-            this.pnlBottom = new System.Windows.Forms.Panel();
-            this.btnResetearPass = new System.Windows.Forms.Button();
-            this.btnEstadoAccion = new System.Windows.Forms.Button();
-            this.btnEditar = new System.Windows.Forms.Button();
             this.pnlGrid = new System.Windows.Forms.Panel();
             this.dgvUsuarios = new System.Windows.Forms.DataGridView();
             this.pnlHeader.SuspendLayout();
-            this.pnlBottom.SuspendLayout();
             this.pnlGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUsuarios)).BeginInit();
             this.SuspendLayout();
@@ -49,7 +43,6 @@
             this.pnlHeader.Controls.Add(this.lblFiltroEstado);
             this.pnlHeader.Controls.Add(this.cmbFiltroTipo);
             this.pnlHeader.Controls.Add(this.lblFiltroTipo);
-            this.pnlHeader.Controls.Add(this.btnBuscar);
             this.pnlHeader.Controls.Add(this.txtBusqueda);
             this.pnlHeader.Controls.Add(this.lblBusqueda);
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
@@ -70,7 +63,7 @@
             this.btnNuevoUsuario.Location = new System.Drawing.Point(710, 22);
             this.btnNuevoUsuario.Name = "btnNuevoUsuario";
             this.btnNuevoUsuario.Size = new System.Drawing.Size(130, 32);
-            this.btnNuevoUsuario.TabIndex = 7;
+            this.btnNuevoUsuario.TabIndex = 6;
             this.btnNuevoUsuario.Text = "➕ Nuevo Usuario";
             this.btnNuevoUsuario.UseVisualStyleBackColor = false;
             this.btnNuevoUsuario.Click += new System.EventHandler(this.btnNuevoUsuario_Click);
@@ -87,21 +80,20 @@
             "Todos",
             "Activo",
             "Inactivo"});
-            this.cmbFiltroEstado.Location = new System.Drawing.Point(550, 26);
+            this.cmbFiltroEstado.Location = new System.Drawing.Point(440, 26);
             this.cmbFiltroEstado.Name = "cmbFiltroEstado";
             this.cmbFiltroEstado.Size = new System.Drawing.Size(110, 25);
-            this.cmbFiltroEstado.TabIndex = 6;
-            this.cmbFiltroEstado.SelectedIndexChanged += new System.EventHandler(this.Filtros_Changed);
+            this.cmbFiltroEstado.TabIndex = 5;
             // 
             // lblFiltroEstado
             // 
             this.lblFiltroEstado.AutoSize = true;
             this.lblFiltroEstado.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             this.lblFiltroEstado.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.lblFiltroEstado.Location = new System.Drawing.Point(547, 8);
+            this.lblFiltroEstado.Location = new System.Drawing.Point(437, 8);
             this.lblFiltroEstado.Name = "lblFiltroEstado";
             this.lblFiltroEstado.Size = new System.Drawing.Size(45, 15);
-            this.lblFiltroEstado.TabIndex = 5;
+            this.lblFiltroEstado.TabIndex = 4;
             this.lblFiltroEstado.Text = "Estado:";
             // 
             // cmbFiltroTipo
@@ -119,38 +111,21 @@
             "Bibliotecario",
             "Auditor",
             "Administrador"});
-            this.cmbFiltroTipo.Location = new System.Drawing.Point(400, 26);
+            this.cmbFiltroTipo.Location = new System.Drawing.Point(290, 26);
             this.cmbFiltroTipo.Name = "cmbFiltroTipo";
             this.cmbFiltroTipo.Size = new System.Drawing.Size(130, 25);
-            this.cmbFiltroTipo.TabIndex = 4;
-            this.cmbFiltroTipo.SelectedIndexChanged += new System.EventHandler(this.Filtros_Changed);
+            this.cmbFiltroTipo.TabIndex = 3;
             // 
             // lblFiltroTipo
             // 
             this.lblFiltroTipo.AutoSize = true;
             this.lblFiltroTipo.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             this.lblFiltroTipo.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
-            this.lblFiltroTipo.Location = new System.Drawing.Point(397, 8);
+            this.lblFiltroTipo.Location = new System.Drawing.Point(287, 8);
             this.lblFiltroTipo.Name = "lblFiltroTipo";
             this.lblFiltroTipo.Size = new System.Drawing.Size(33, 15);
-            this.lblFiltroTipo.TabIndex = 3;
+            this.lblFiltroTipo.TabIndex = 2;
             this.lblFiltroTipo.Text = "Tipo:";
-            // 
-            // btnBuscar
-            // 
-            this.btnBuscar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.btnBuscar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnBuscar.FlatAppearance.BorderSize = 0;
-            this.btnBuscar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBuscar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnBuscar.ForeColor = System.Drawing.Color.White;
-            this.btnBuscar.Location = new System.Drawing.Point(280, 26);
-            this.btnBuscar.Name = "btnBuscar";
-            this.btnBuscar.Size = new System.Drawing.Size(90, 25);
-            this.btnBuscar.TabIndex = 2;
-            this.btnBuscar.Text = "🔍 Buscar";
-            this.btnBuscar.UseVisualStyleBackColor = false;
-            this.btnBuscar.Click += new System.EventHandler(this.btnBuscar_Click);
             // 
             // txtBusqueda
             // 
@@ -162,7 +137,6 @@
             this.txtBusqueda.Name = "txtBusqueda";
             this.txtBusqueda.Size = new System.Drawing.Size(250, 25);
             this.txtBusqueda.TabIndex = 1;
-            this.txtBusqueda.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtBusqueda_KeyDown);
             // 
             // lblBusqueda
             // 
@@ -171,72 +145,9 @@
             this.lblBusqueda.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
             this.lblBusqueda.Location = new System.Drawing.Point(17, 8);
             this.lblBusqueda.Name = "lblBusqueda";
-            this.lblBusqueda.Size = new System.Drawing.Size(126, 15);
+            this.lblBusqueda.Size = new System.Drawing.Size(137, 15);
             this.lblBusqueda.TabIndex = 0;
             this.lblBusqueda.Text = "Buscar Nombre/Matrícula:";
-            // 
-            // pnlBottom
-            // 
-            this.pnlBottom.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
-            this.pnlBottom.Controls.Add(this.btnResetearPass);
-            this.pnlBottom.Controls.Add(this.btnEstadoAccion);
-            this.pnlBottom.Controls.Add(this.btnEditar);
-            this.pnlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlBottom.Location = new System.Drawing.Point(0, 555);
-            this.pnlBottom.Name = "pnlBottom";
-            this.pnlBottom.Size = new System.Drawing.Size(860, 60);
-            this.pnlBottom.TabIndex = 1;
-            // 
-            // btnResetearPass
-            // 
-            this.btnResetearPass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnResetearPass.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(158)))), ((int)(((byte)(11)))));
-            this.btnResetearPass.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnResetearPass.FlatAppearance.BorderSize = 0;
-            this.btnResetearPass.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnResetearPass.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnResetearPass.ForeColor = System.Drawing.Color.White;
-            this.btnResetearPass.Location = new System.Drawing.Point(450, 14);
-            this.btnResetearPass.Name = "btnResetearPass";
-            this.btnResetearPass.Size = new System.Drawing.Size(140, 32);
-            this.btnResetearPass.TabIndex = 2;
-            this.btnResetearPass.Text = "🔑 Resetear Pass";
-            this.btnResetearPass.UseVisualStyleBackColor = false;
-            this.btnResetearPass.Click += new System.EventHandler(this.btnResetearPass_Click);
-            // 
-            // btnEstadoAccion
-            // 
-            this.btnEstadoAccion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnEstadoAccion.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(68)))), ((int)(((byte)(68)))));
-            this.btnEstadoAccion.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnEstadoAccion.FlatAppearance.BorderSize = 0;
-            this.btnEstadoAccion.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnEstadoAccion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnEstadoAccion.ForeColor = System.Drawing.Color.White;
-            this.btnEstadoAccion.Location = new System.Drawing.Point(600, 14);
-            this.btnEstadoAccion.Name = "btnEstadoAccion";
-            this.btnEstadoAccion.Size = new System.Drawing.Size(115, 32);
-            this.btnEstadoAccion.TabIndex = 1;
-            this.btnEstadoAccion.Text = "🚫 Desactivar";
-            this.btnEstadoAccion.UseVisualStyleBackColor = false;
-            this.btnEstadoAccion.Click += new System.EventHandler(this.btnEstadoAccion_Click);
-            // 
-            // btnEditar
-            // 
-            this.btnEditar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnEditar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.btnEditar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnEditar.FlatAppearance.BorderSize = 0;
-            this.btnEditar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnEditar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.btnEditar.ForeColor = System.Drawing.Color.White;
-            this.btnEditar.Location = new System.Drawing.Point(725, 14);
-            this.btnEditar.Name = "btnEditar";
-            this.btnEditar.Size = new System.Drawing.Size(115, 32);
-            this.btnEditar.TabIndex = 0;
-            this.btnEditar.Text = "✏️ Editar";
-            this.btnEditar.UseVisualStyleBackColor = false;
-            this.btnEditar.Click += new System.EventHandler(this.btnEditar_Click);
             // 
             // pnlGrid
             // 
@@ -245,7 +156,7 @@
             this.pnlGrid.Location = new System.Drawing.Point(0, 75);
             this.pnlGrid.Name = "pnlGrid";
             this.pnlGrid.Padding = new System.Windows.Forms.Padding(20);
-            this.pnlGrid.Size = new System.Drawing.Size(860, 480);
+            this.pnlGrid.Size = new System.Drawing.Size(860, 540);
             this.pnlGrid.TabIndex = 2;
             // 
             // dgvUsuarios
@@ -293,11 +204,10 @@
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvUsuarios.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgvUsuarios.RowHeadersVisible = false;
-            this.dgvUsuarios.RowTemplate.Height = 32;
+            this.dgvUsuarios.RowTemplate.Height = 36;
             this.dgvUsuarios.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvUsuarios.Size = new System.Drawing.Size(820, 440);
+            this.dgvUsuarios.Size = new System.Drawing.Size(820, 500);
             this.dgvUsuarios.TabIndex = 0;
-            this.dgvUsuarios.SelectionChanged += new System.EventHandler(this.dgvUsuarios_SelectionChanged);
             // 
             // UsuarioForm
             // 
@@ -306,7 +216,6 @@
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
             this.ClientSize = new System.Drawing.Size(860, 615);
             this.Controls.Add(this.pnlGrid);
-            this.Controls.Add(this.pnlBottom);
             this.Controls.Add(this.pnlHeader);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "UsuarioForm";
@@ -314,7 +223,6 @@
             this.Load += new System.EventHandler(this.UsuarioForm_Load);
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();
-            this.pnlBottom.ResumeLayout(false);
             this.pnlGrid.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvUsuarios)).EndInit();
             this.ResumeLayout(false);
@@ -326,16 +234,11 @@
         private System.Windows.Forms.Panel pnlHeader;
         private System.Windows.Forms.Label lblBusqueda;
         private System.Windows.Forms.TextBox txtBusqueda;
-        private System.Windows.Forms.Button btnBuscar;
         private System.Windows.Forms.Label lblFiltroTipo;
         private System.Windows.Forms.ComboBox cmbFiltroTipo;
         private System.Windows.Forms.Label lblFiltroEstado;
         private System.Windows.Forms.ComboBox cmbFiltroEstado;
         private System.Windows.Forms.Button btnNuevoUsuario;
-        private System.Windows.Forms.Panel pnlBottom;
-        private System.Windows.Forms.Button btnResetearPass;
-        private System.Windows.Forms.Button btnEstadoAccion;
-        private System.Windows.Forms.Button btnEditar;
         private System.Windows.Forms.Panel pnlGrid;
         private System.Windows.Forms.DataGridView dgvUsuarios;
     }

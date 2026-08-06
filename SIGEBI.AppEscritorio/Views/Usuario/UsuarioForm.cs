@@ -1,21 +1,13 @@
 ﻿using SIGEBI.AppEscritorio.Dtos.Usuarios;
 using SIGEBI.AppEscritorio.Services.Usuario;
 using SIGEBI.AppEscritorio.Session;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq; // 👈 Necesario para el filtrado LINQ por rol
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Usuario
 {
     public partial class UsuarioForm : Form
     {
         private readonly IUsuarioService _usuarioService;
-        private UsuarioDto? _usuarioSeleccionado;
 
-        // Inyección limpia por constructor
         public UsuarioForm(IUsuarioService usuarioService)
         {
             InitializeComponent();
@@ -28,8 +20,18 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
         {
             AplicarPermisosPorRol();
 
+            cmbFiltroTipo.SelectedIndexChanged -= Filtros_Changed;
+            cmbFiltroEstado.SelectedIndexChanged -= Filtros_Changed;
+
             if (cmbFiltroTipo.Items.Count > 0) cmbFiltroTipo.SelectedIndex = 0;
             if (cmbFiltroEstado.Items.Count > 0) cmbFiltroEstado.SelectedIndex = 0;
+
+            // 🟢 Filtrado automático en tiempo real
+            txtBusqueda.TextChanged -= Filtros_Changed;
+            txtBusqueda.TextChanged += Filtros_Changed;
+
+            cmbFiltroTipo.SelectedIndexChanged += Filtros_Changed;
+            cmbFiltroEstado.SelectedIndexChanged += Filtros_Changed;
 
             await CargarUsuariosAsync();
         }
@@ -38,7 +40,6 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
 
         private void ConfigurarDisenoTabla()
         {
-            // Propiedades base del DataGridView
             dgvUsuarios.AutoGenerateColumns = false;
             dgvUsuarios.EnableHeadersVisualStyles = false;
             dgvUsuarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -65,29 +66,28 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
             dgvUsuarios.DefaultCellStyle.Font = new Font("Segoe UI", 9.5f);
             dgvUsuarios.DefaultCellStyle.SelectionBackColor = Color.FromArgb(37, 99, 235);
             dgvUsuarios.DefaultCellStyle.SelectionForeColor = Color.White;
-            dgvUsuarios.RowTemplate.Height = 36;
+            dgvUsuarios.RowTemplate.Height = 40;
 
-            // Filas Alternadas (Efecto Zebra)
+            // Filas Alternadas
             dgvUsuarios.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(24, 34, 49);
             dgvUsuarios.AlternatingRowsDefaultCellStyle.ForeColor = Color.White;
             dgvUsuarios.AlternatingRowsDefaultCellStyle.SelectionBackColor = Color.FromArgb(37, 99, 235);
 
-            // Mapeo explicito de columnas y anchos proporcionales
             dgvUsuarios.Columns.Clear();
 
+            // Columnas de datos
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = "UsuarioId",
                 HeaderText = "ID",
-                Width = 60,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                Visible = false
             });
 
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = "Identificacion",
                 HeaderText = "Identificación",
-                Width = 130
+                Width = 140
             });
 
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn
@@ -95,7 +95,7 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
                 DataPropertyName = "NombreCompleto",
                 HeaderText = "Nombre Completo",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                FillWeight = 120
+                FillWeight = 130
             });
 
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn
@@ -109,8 +109,8 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = "TipoUsuario",
-                HeaderText = "Tipo de Usuario",
-                Width = 140
+                HeaderText = "Rol",
+                Width = 130
             });
 
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn
@@ -118,11 +118,34 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
                 DataPropertyName = "Estado",
                 HeaderText = "Estado",
                 Width = 110,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft }
             });
 
-            // Evento para badges visuales en la columna Estado
+            // 🟢 Panel inferior para el Tip informativo
+            var pnlBottom = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 35,
+                BackColor = Color.FromArgb(30, 41, 59)
+            };
+
+            var lblHint = new Label
+            {
+                Text = "💡 Tip: Haz doble clic sobre un usuario para ver sus detalles y gestionarlo.",
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Italic),
+                AutoSize = true,
+                Location = new Point(10, 10)
+            };
+
+            pnlBottom.Controls.Add(lblHint);
+
+            // Añadir el panel al contenedor principal del Grid
+            pnlGrid.Controls.Add(pnlBottom);
+            pnlBottom.SendToBack(); // Mantiene pnlBottom abajo y dgvUsuarios tomando el espacio restante en Dock.Fill
+
             dgvUsuarios.CellFormatting += DgvUsuarios_CellFormatting;
+            dgvUsuarios.CellDoubleClick += DgvUsuarios_CellDoubleClick;
         }
 
         private void DgvUsuarios_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
@@ -148,20 +171,33 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
             }
         }
 
+        private async void DgvUsuarios_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvUsuarios.Rows[e.RowIndex].DataBoundItem is UsuarioDto usuario)
+            {
+                using (var modal = new FrmDetalleUsuario(_usuarioService, usuario))
+                {
+                    if (modal.ShowDialog() == DialogResult.OK)
+                    {
+                        await CargarUsuariosAsync();
+                    }
+                }
+            }
+        }
+
         #endregion
+
+        #region Permisos y Carga de Datos
 
         private void AplicarPermisosPorRol()
         {
             string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
             bool esAdmin = rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
 
-            // Visibilidad de botones de acción
             btnNuevoUsuario.Visible = esAdmin;
-            btnEditar.Visible = esAdmin;
-            btnEstadoAccion.Visible = esAdmin;
-            btnResetearPass.Visible = esAdmin;
 
-            // 🔒 Si el usuario es Bibliotecario, limitar las opciones del ComboBox de filtro
             if (rol.Equals("Bibliotecario", StringComparison.OrdinalIgnoreCase) ||
                 rol.Equals("PersonalBibliotecario", StringComparison.OrdinalIgnoreCase))
             {
@@ -178,16 +214,16 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
             {
                 this.Cursor = Cursors.WaitCursor;
 
+                string? busqueda = string.IsNullOrWhiteSpace(txtBusqueda.Text) ? null : txtBusqueda.Text.Trim();
+
                 var filtro = new ConsultarUsuariosFiltroDto
                 {
-                    Nombre = string.IsNullOrWhiteSpace(txtBusqueda.Text) ? null : txtBusqueda.Text.Trim(),
                     TipoUsuario = cmbFiltroTipo.SelectedItem?.ToString() == "Todos" ? null : cmbFiltroTipo.SelectedItem?.ToString(),
                     Estado = cmbFiltroEstado.SelectedItem?.ToString() == "Todos" ? null : cmbFiltroEstado.SelectedItem?.ToString()
                 };
 
                 var usuarios = await _usuarioService.ConsultarUsuariosAsync(filtro);
 
-                // 🔒 Restricción estricta de seguridad: Bibliotecarios solo ven Estudiantes y Docentes
                 string rolActual = UserSession.Instancia.TipoUsuario ?? string.Empty;
                 if (rolActual.Equals("Bibliotecario", StringComparison.OrdinalIgnoreCase) ||
                     rolActual.Equals("PersonalBibliotecario", StringComparison.OrdinalIgnoreCase))
@@ -198,9 +234,16 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
                         .ToList();
                 }
 
-                dgvUsuarios.DataSource = usuarios;
+                if (!string.IsNullOrWhiteSpace(busqueda) && usuarios != null)
+                {
+                    usuarios = usuarios.Where(u =>
+                        (!string.IsNullOrEmpty(u.NombreCompleto) && u.NombreCompleto.Contains(busqueda, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(u.Identificacion) && u.Identificacion.Contains(busqueda, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(u.Correo) && u.Correo.Contains(busqueda, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
 
-                ActualizarEstadoBotonera();
+                dgvUsuarios.DataSource = usuarios;
             }
             catch (Exception ex)
             {
@@ -212,62 +255,9 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
             }
         }
 
-        private void dgvUsuarios_SelectionChanged(object sender, EventArgs e)
-        {
-            if (dgvUsuarios.SelectedRows.Count > 0)
-            {
-                _usuarioSeleccionado = dgvUsuarios.SelectedRows[0].DataBoundItem as UsuarioDto;
-            }
-            else
-            {
-                _usuarioSeleccionado = null;
-            }
+        #endregion
 
-            ActualizarEstadoBotonera();
-        }
-
-        private void ActualizarEstadoBotonera()
-        {
-            bool seleccionado = _usuarioSeleccionado != null;
-            bool esAdmin = UserSession.Instancia.TipoUsuario == "Administrador";
-
-            btnEditar.Enabled = seleccionado && esAdmin;
-            btnResetearPass.Enabled = seleccionado && esAdmin;
-            btnEstadoAccion.Enabled = seleccionado && esAdmin;
-
-            if (seleccionado)
-            {
-                if (_usuarioSeleccionado!.Estado.Equals("Activo", StringComparison.OrdinalIgnoreCase))
-                {
-                    btnEstadoAccion.Text = "🚫 Desactivar";
-                    btnEstadoAccion.BackColor = Color.FromArgb(239, 68, 68);
-                }
-                else
-                {
-                    btnEstadoAccion.Text = "✅ Activar";
-                    btnEstadoAccion.BackColor = Color.FromArgb(34, 197, 94);
-                }
-            }
-        }
-
-        private async void btnBuscar_Click(object sender, EventArgs e)
-        {
-            await CargarUsuariosAsync();
-        }
-
-        private async void txtBusqueda_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                e.SuppressKeyPress = true;
-                await CargarUsuariosAsync();
-            }
-        }
-
-        private async void Filtros_Changed(object sender, EventArgs e)
-        {
-            await CargarUsuariosAsync();
-        }
+        #region Búsqueda y Filtros
 
         private async void btnNuevoUsuario_Click(object sender, EventArgs e)
         {
@@ -280,77 +270,11 @@ namespace SIGEBI.AppEscritorio.Views.Usuario
             }
         }
 
-        private async void btnEditar_Click(object sender, EventArgs e)
+        private async void Filtros_Changed(object? sender, EventArgs e)
         {
-            if (_usuarioSeleccionado == null) return;
-
-            using (var frm = new FrmEditarUsuario(
-                _usuarioService,
-                _usuarioSeleccionado.UsuarioId,
-                _usuarioSeleccionado.NombreCompleto))
-            {
-                if (frm.ShowDialog() == DialogResult.OK)
-                {
-                    await CargarUsuariosAsync();
-                }
-            }
+            await CargarUsuariosAsync();
         }
 
-        private async void btnEstadoAccion_Click(object sender, EventArgs e)
-        {
-            if (_usuarioSeleccionado == null) return;
-
-            try
-            {
-                if (_usuarioSeleccionado.Estado.Equals("Activo", StringComparison.OrdinalIgnoreCase))
-                {
-                    using (var frm = new FrmDesactivarUsuario(
-                        _usuarioService,
-                        _usuarioSeleccionado.UsuarioId,
-                        _usuarioSeleccionado.NombreCompleto))
-                    {
-                        if (frm.ShowDialog() == DialogResult.OK)
-                        {
-                            await CargarUsuariosAsync();
-                        }
-                    }
-                }
-                else
-                {
-                    var confirm = MessageBox.Show(
-                        $"¿Desea reactivar al usuario {_usuarioSeleccionado.NombreCompleto}?",
-                        "Confirmar Activación",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-
-                    if (confirm == DialogResult.Yes)
-                    {
-                        await _usuarioService.ActivarAsync(_usuarioSeleccionado.UsuarioId);
-                        MessageBox.Show("Usuario activado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        await CargarUsuariosAsync();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al cambiar el estado: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private async void btnResetearPass_Click(object sender, EventArgs e)
-        {
-            if (_usuarioSeleccionado == null) return;
-
-            using (var frm = new FrmResetearPasswordAdmin(
-                _usuarioService,
-                _usuarioSeleccionado.UsuarioId,
-                _usuarioSeleccionado.NombreCompleto))
-            {
-                if (frm.ShowDialog() == DialogResult.OK)
-                {
-                    MessageBox.Show("La contraseña del usuario ha sido restablecida exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-        }
+        #endregion
     }
 }

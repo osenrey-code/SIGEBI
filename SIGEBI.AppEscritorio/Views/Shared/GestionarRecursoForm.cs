@@ -1,10 +1,16 @@
-﻿using SIGEBI.AppEscritorio.Dtos.Catalogo.Request;
+﻿using Microsoft.Extensions.Configuration;
+using SIGEBI.AppEscritorio.Dtos.Catalogo.Request;
 using SIGEBI.AppEscritorio.Dtos.Catalogo.Response;
 using SIGEBI.AppEscritorio.Services.Categoria;
 using SIGEBI.AppEscritorio.Services.Interfaces;
 using SIGEBI.AppEscritorio.Session;
+using System;
+using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace SIGEBI.AppEscritorio.Views.Shared
 {
@@ -12,239 +18,179 @@ namespace SIGEBI.AppEscritorio.Views.Shared
     {
         private readonly ICatalogoService _catalogoService;
         private readonly ICategoriaService _categoriaService;
+        private readonly IConfiguration _configuration;
+
         private int _recursoIdActual = 0;
+        private int _categoriaIdGuardada = 0;
         private string _rutaImagenSeleccionada = string.Empty;
         private string _urlImagenActual = string.Empty;
 
-        // 🎨 PALETA DE COLORES
-        private readonly Color bgForm = Color.FromArgb(30, 41, 59);       // Fondo de la ventana
-        private readonly Color bgInputs = Color.FromArgb(15, 23, 42);     // Fondo de los inputs
-        private readonly Color textPrimary = Color.White;                  // Texto principal
-        private readonly Color textMuted = Color.FromArgb(148, 163, 184); // Textos secundarios
-        private readonly Color primaryColor = Color.FromArgb(59, 130, 246); // Azul
-        private readonly Color borderColor = Color.FromArgb(71, 85, 105); // Color del borde
-
-        public GestionarRecursoForm(ICatalogoService catalogoService, ICategoriaService categoriaService)
+        public GestionarRecursoForm(
+            ICatalogoService catalogoService,
+            ICategoriaService categoriaService,
+            IConfiguration configuration)
         {
             InitializeComponent();
             _catalogoService = catalogoService;
             _categoriaService = categoriaService;
+            _configuration = configuration;
 
-            // Configuración inicial de la ventana
-            this.FormBorderStyle = FormBorderStyle.None;
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.BackColor = bgForm;
-            this.Size = new Size(600, 660);
+            HabilitarArrastre(pnlTopBar);
+            AplicarBordesRedondeados();
 
             this.Load += async (s, e) =>
             {
-                ForzarLayoutPerfecto();
                 await CargarCategoriasAsync();
+
+                if (_recursoIdActual == 0)
+                {
+                    ActivarModoEdicion(esNuevo: true);
+                }
+                else
+                {
+                    if (_categoriaIdGuardada > 0) cmbCategoria.SelectedValue = _categoriaIdGuardada;
+                }
             };
 
             picPortada.Paint += PicPortada_Paint;
+            cmbCategoria.DrawItem += CmbCategoria_DrawItem;
         }
 
-        #region Renderizado y Layout Perfecto
+        #region Arrastre y Bordes Redondeados
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
 
-        private void ForzarLayoutPerfecto()
+        private void AplicarBordesRedondeados()
         {
-            AplicarBordesRedondeadosForm();
-            CrearBarraTituloCustom();
+            this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 14, 18));
+        }
 
-            // 1. FUENTES GLOBALES
-            Font fontLabel = new Font("Segoe UI Semibold", 9.5F);
-            Font fontInput = new Font("Segoe UI", 11F);
+        [DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
 
-            // 2. POSICIONES ABSOLUTAS
-            int colIzquierda = 30;
-            int colDerecha = 330;
-            int anchoInput = 260;
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
 
-            lblISBN.Location = new Point(colIzquierda, 65);
-            txtISBN.Location = new Point(colIzquierda, 90);
-            txtISBN.Size = new Size(anchoInput, 30);
-
-            lblTitulo.Location = new Point(colIzquierda, 145);
-            txtTitulo.Location = new Point(colIzquierda, 170);
-            txtTitulo.Size = new Size(anchoInput, 30);
-
-            lblAutor.Location = new Point(colIzquierda, 225);
-            txtAutor.Location = new Point(colIzquierda, 250);
-            txtAutor.Size = new Size(anchoInput, 30);
-
-            lblCategoria.Location = new Point(colIzquierda, 305);
-            cmbCategoria.Location = new Point(colIzquierda, 330);
-            cmbCategoria.Size = new Size(anchoInput, 30);
-
-            lblAnio.Location = new Point(colIzquierda, 385);
-            numAnio.Location = new Point(colIzquierda, 410);
-            numAnio.Size = new Size(120, 30);
-
-            lblEjemplares.Location = new Point(colIzquierda + 140, 385);
-            numEjemplares.Location = new Point(colIzquierda + 140, 410);
-            numEjemplares.Size = new Size(120, 30);
-
-            picPortada.Location = new Point(colDerecha, 65);
-            picPortada.Size = new Size(240, 295);
-            picPortada.BackColor = bgInputs;
-
-            btnSeleccionarFoto.Location = new Point(colDerecha, 375);
-            btnSeleccionarFoto.Size = new Size(240, 40);
-
-            // 🟢 POSICIONAMIENTO DE DESCRIPCIÓN Y BOTONES INFERIORES
-            lblDescripcion.Location = new Point(colIzquierda, 455);
-            txtDescripcion.Location = new Point(colIzquierda, 480);
-            txtDescripcion.Size = new Size(540, 85);
-            txtDescripcion.Multiline = true;
-            txtDescripcion.ScrollBars = ScrollBars.Vertical;
-
-            btnCancelar.Location = new Point(350, 595);
-            btnCancelar.Size = new Size(100, 40);
-
-            btnGuardar.Location = new Point(470, 595);
-            btnGuardar.Size = new Size(100, 40);
-
-            // 3. APLICAR ESTILOS A LOS CONTROLES
-            foreach (Control ctrl in this.Controls)
+        private void HabilitarArrastre(Control control)
+        {
+            control.MouseDown += (s, e) =>
             {
-                if (ctrl is Label lbl && lbl.Name != "lblTituloApp")
+                if (e.Button == MouseButtons.Left)
                 {
-                    lbl.ForeColor = textMuted;
-                    lbl.Font = fontLabel;
+                    ReleaseCapture();
+                    SendMessage(this.Handle, 0xA1, 0x2, 0);
                 }
+            };
+        }
+        #endregion
+
+        #region Renderizado y Estilos ComboBox / PictureBox
+
+        private void CmbCategoria_DrawItem(object? sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+
+            e.DrawBackground();
+
+            bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+            Color backColor = isSelected ? Color.FromArgb(59, 130, 246) : Color.FromArgb(30, 41, 59);
+            Color textColor = Color.White;
+
+            using (SolidBrush brush = new SolidBrush(backColor))
+            {
+                e.Graphics.FillRectangle(brush, e.Bounds);
             }
 
-            Control[] inputs = { txtISBN, txtTitulo, txtAutor, cmbCategoria, numAnio, numEjemplares, txtDescripcion };
-            foreach (Control input in inputs)
+            var item = cmbCategoria.Items[e.Index];
+            string text = item != null ? cmbCategoria.GetItemText(item) ?? string.Empty : string.Empty;
+            Font fontToUse = e.Font ?? cmbCategoria.Font;
+
+            using (SolidBrush textBrush = new SolidBrush(textColor))
             {
-                input.BackColor = bgInputs;
-                input.ForeColor = textPrimary;
-                input.Font = fontInput;
-
-                if (input is TextBox txt && !txt.Multiline) txt.BorderStyle = BorderStyle.None;
-                if (input is ComboBox cmb) cmb.FlatStyle = FlatStyle.Flat;
-                if (input is NumericUpDown num)
-                {
-                    num.BorderStyle = BorderStyle.None;
-                    num.Controls[0].BackColor = bgInputs;
-                }
-
-                CrearLineaUnderline(input);
+                e.Graphics.DrawString(text, fontToUse, textBrush, e.Bounds.X + 4, e.Bounds.Y + 2);
             }
 
-            EstilitarBotonPildora(btnGuardar, primaryColor, Color.White);
-            EstilitarBotonPildora(btnCancelar, bgInputs, Color.White);
-            EstilitarBotonPildora(btnSeleccionarFoto, bgInputs, Color.White);
-        }
-
-        private void CrearBarraTituloCustom()
-        {
-            Panel pnlHeader = new Panel { Height = 45, Dock = DockStyle.Top, BackColor = bgForm };
-            Label lblTituloApp = new Label { Name = "lblTituloApp", Text = "Detalles del Recurso", ForeColor = Color.White, Font = new Font("Segoe UI", 11F, FontStyle.Bold), AutoSize = true, Location = new Point(15, 12) };
-            Button btnCerrar = new Button { Text = "✕", ForeColor = textMuted, FlatStyle = FlatStyle.Flat, Size = new Size(45, 45), Location = new Point(this.Width - 45, 0), Cursor = Cursors.Hand, Font = new Font("Segoe UI", 12F, FontStyle.Bold) };
-
-            btnCerrar.FlatAppearance.BorderSize = 0;
-            btnCerrar.MouseEnter += (s, e) => { btnCerrar.ForeColor = Color.White; btnCerrar.BackColor = Color.FromArgb(239, 68, 68); };
-            btnCerrar.MouseLeave += (s, e) => { btnCerrar.ForeColor = textMuted; btnCerrar.BackColor = bgForm; };
-            btnCerrar.Click += (s, e) => this.Close();
-
-            pnlHeader.Controls.Add(lblTituloApp);
-            pnlHeader.Controls.Add(btnCerrar);
-            this.Controls.Add(pnlHeader);
-
-            HabilitarArrastre(pnlHeader);
-            HabilitarArrastre(lblTituloApp);
-        }
-
-        private void CrearLineaUnderline(Control ctrl)
-        {
-            Panel linea = new Panel { Height = 2, Width = ctrl.Width, Location = new Point(ctrl.Location.X, ctrl.Bottom + 2), BackColor = borderColor };
-            this.Controls.Add(linea);
-
-            ctrl.Enter += (s, e) => linea.BackColor = primaryColor;
-            ctrl.Leave += (s, e) => linea.BackColor = borderColor;
+            e.DrawFocusRectangle();
         }
 
         private void PicPortada_Paint(object? sender, PaintEventArgs e)
         {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+            using (Pen penBorder = new Pen(Color.FromArgb(71, 85, 105), 1))
+            {
+                e.Graphics.DrawRectangle(penBorder, 0, 0, picPortada.Width - 1, picPortada.Height - 1);
+            }
+
             if (picPortada.Image != null) return;
 
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using (Pen penDashed = new Pen(textMuted, 2) { DashStyle = DashStyle.Dash })
+            using (Pen penDashed = new Pen(Color.FromArgb(148, 163, 184), 2) { DashStyle = DashStyle.Dash })
             {
-                e.Graphics.DrawRectangle(penDashed, 1, 1, picPortada.Width - 3, picPortada.Height - 3);
+                e.Graphics.DrawRectangle(penDashed, 4, 4, picPortada.Width - 9, picPortada.Height - 9);
             }
 
             string texto = "Seleccione una\nportada para\nel recurso";
             using (Font font = new Font("Segoe UI", 10F, FontStyle.Italic))
-            using (Brush brush = new SolidBrush(textMuted))
+            using (Brush brush = new SolidBrush(Color.FromArgb(148, 163, 184)))
             {
                 StringFormat format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
                 e.Graphics.DrawString(texto, font, brush, picPortada.ClientRectangle, format);
             }
         }
 
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using (Pen pen = new Pen(borderColor, 2))
-            {
-                e.Graphics.DrawPath(pen, CrearRutaRedondeada(new Rectangle(1, 1, this.Width - 2, this.Height - 2), 15));
-            }
-        }
-
-        private void EstilitarBotonPildora(Button btn, Color bg, Color fg)
-        {
-            btn.FlatStyle = FlatStyle.Flat;
-            btn.FlatAppearance.BorderSize = 0;
-            btn.BackColor = bg;
-            btn.ForeColor = fg;
-            btn.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btn.Cursor = Cursors.Hand;
-
-            btn.Paint += (sender, e) =>
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                e.Graphics.Clear(bgForm);
-
-                using (GraphicsPath path = CrearRutaRedondeada(new Rectangle(0, 0, btn.Width, btn.Height), 8))
-                using (SolidBrush brush = new SolidBrush(btn.BackColor))
-                {
-                    e.Graphics.FillPath(brush, path);
-                }
-                TextRenderer.DrawText(e.Graphics, btn.Text, btn.Font, btn.ClientRectangle, btn.ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-            };
-
-            btn.MouseEnter += (s, e) => { btn.BackColor = ControlPaint.Light(bg); btn.Invalidate(); };
-            btn.MouseLeave += (s, e) => { btn.BackColor = bg; btn.Invalidate(); };
-            btn.MouseDown += (s, e) => { btn.BackColor = ControlPaint.Dark(bg); btn.Invalidate(); };
-            btn.MouseUp += (s, e) => { btn.BackColor = bg; btn.Invalidate(); };
-        }
-
-        [DllImport("gdi32.dll")] private static extern IntPtr CreateRoundRectRgn(int nL, int nT, int nR, int nB, int nW, int nH);
-        private void AplicarBordesRedondeadosForm() { this.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 15, 15)); }
-
-        private GraphicsPath CrearRutaRedondeada(Rectangle rect, int radio)
-        {
-            GraphicsPath path = new GraphicsPath();
-            int d = radio * 2;
-            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
-        }
-
-        [DllImport("user32.dll")] private static extern bool ReleaseCapture();
-        [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-        private void HabilitarArrastre(Control control) { control.MouseDown += (s, e) => { if (e.Button == MouseButtons.Left) { ReleaseCapture(); SendMessage(this.Handle, 0xA1, 0x2, 0); } }; }
-
         #endregion
 
-        // ------------------ LÓGICA DE NEGOCIO ------------------
+        #region Lógica de Negocio y Estados de Vista
+
+        private void ActivarModoVista()
+        {
+            lblHeaderTitle.Text = "📖 Detalle del Recurso";
+
+            txtISBN.Enabled = false;
+            txtTitulo.Enabled = false;
+            txtAutor.Enabled = false;
+            cmbCategoria.Enabled = false;
+            numAnio.Enabled = false;
+            numEjemplares.Enabled = false;
+            txtDescripcion.Enabled = false;
+
+            btnSeleccionarFoto.Visible = false;
+            btnGuardar.Visible = false;
+
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+            bool esAdministrador = rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
+            bool esAuditor = rol.Equals("Auditor", StringComparison.OrdinalIgnoreCase);
+
+            btnEditar.Visible = !esAuditor;
+            btnDesactivar.Visible = esAdministrador;
+
+            btnCancelar.Text = "Cerrar";
+        }
+
+        private void ActivarModoEdicion(bool esNuevo)
+        {
+            lblHeaderTitle.Text = esNuevo ? "➕ Nuevo Recurso" : "✏️ Editar Recurso";
+
+            txtISBN.Enabled = esNuevo;
+            txtTitulo.Enabled = true;
+            txtAutor.Enabled = true;
+            cmbCategoria.Enabled = true;
+            numAnio.Enabled = true;
+            txtDescripcion.Enabled = true;
+
+            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
+            bool esAdministrador = rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
+
+            numEjemplares.Enabled = esAdministrador || esNuevo;
+
+            btnSeleccionarFoto.Visible = true;
+            btnGuardar.Visible = true;
+            btnGuardar.Text = esNuevo ? "Guardar" : "Actualizar";
+
+            btnEditar.Visible = false;
+            btnDesactivar.Visible = !esNuevo && esAdministrador;
+            btnCancelar.Text = "Cancelar";
+        }
 
         private async Task CargarCategoriasAsync()
         {
@@ -256,6 +202,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                 cmbCategoria.DisplayMember = "Nombre";
                 cmbCategoria.ValueMember = "CategoriaId";
                 cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbCategoria.DrawMode = DrawMode.OwnerDrawFixed;
             }
             catch (Exception ex)
             {
@@ -263,37 +210,94 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
         }
 
-        public void CargarDatosParaEdicion(RecursoResponse recurso)
+        private async Task CargarImagenRecursoAsync(string rutaRelativa)
         {
-            _recursoIdActual = recurso.RecursoBibliograficoId;
+            picPortada.Image = null;
 
-            txtISBN.Text = recurso.ISBN;
-            txtISBN.Enabled = false;
-
-            txtTitulo.Text = recurso.Titulo;
-            txtAutor.Text = recurso.Autor;
-
-            cmbCategoria.SelectedValue = recurso.CategoriaId;
-
-            numAnio.Value = recurso.AnioPublicado;
-            numEjemplares.Value = recurso.TotalEjemplares;
-
-            // 🟢 Carga la descripción en el formulario al editar
-            txtDescripcion.Text = recurso.Descripcion ?? string.Empty;
-
-            // 🔒 REGLA DE NEGOCIO: Habilitar modificación de ejemplares ÚNICAMENTE para Administradores
-            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
-            bool esAdministrador = rol.Equals("Administrador", StringComparison.OrdinalIgnoreCase);
-
-            numEjemplares.Enabled = esAdministrador;
-
-            if (esAdministrador)
+            if (string.IsNullOrWhiteSpace(rutaRelativa))
             {
-                numEjemplares.Minimum = recurso.TotalEjemplares;
+                picPortada.Invalidate();
+                return;
             }
 
-            _urlImagenActual = recurso.ImagenUrl ?? string.Empty;
-            btnGuardar.Text = "Actualizar";
+            try
+            {
+                string fullUrl = rutaRelativa.Replace("\\", "/");
+
+                if (!fullUrl.StartsWith("http://") && !fullUrl.StartsWith("https://"))
+                {
+                    string baseUrl = _configuration?["ApiSettings:BaseUrl"] ?? "https://localhost:54538/";
+                    fullUrl = $"{baseUrl.TrimEnd('/')}/{fullUrl.TrimStart('/')}";
+                }
+
+                using var handler = new System.Net.Http.HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+                };
+
+                using var client = new System.Net.Http.HttpClient(handler);
+                var response = await client.GetAsync(fullUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
+
+                    using (var ms = new MemoryStream(imageBytes))
+                    {
+                        using (var tempImg = Image.FromStream(ms))
+                        {
+                            picPortada.Image = new Bitmap(tempImg);
+                        }
+                    }
+                    picPortada.SizeMode = PictureBoxSizeMode.Zoom;
+                }
+            }
+            catch
+            {
+                picPortada.Image = null;
+            }
+
+            picPortada.Invalidate();
+        }
+
+        public async Task CargarDatosParaEdicionAsync(int recursoId, bool iniciarEnModoEdicion = false)
+        {
+            _recursoIdActual = recursoId;
+
+            try
+            {
+                var recurso = await _catalogoService.ConsultarDetalleAsync(recursoId);
+
+                if (recurso != null)
+                {
+                    _categoriaIdGuardada = recurso.CategoriaId;
+
+                    txtISBN.Text = recurso.ISBN;
+                    txtTitulo.Text = recurso.Titulo;
+                    txtAutor.Text = recurso.Autor;
+                    numAnio.Value = recurso.AnioPublicado;
+                    numEjemplares.Value = recurso.TotalEjemplares;
+                    txtDescripcion.Text = recurso.Descripcion ?? string.Empty;
+
+                    _urlImagenActual = recurso.ImagenUrl ?? string.Empty;
+
+                    await CargarImagenRecursoAsync(_urlImagenActual);
+
+                    if (iniciarEnModoEdicion)
+                        ActivarModoEdicion(esNuevo: false);
+                    else
+                        ActivarModoVista();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al consultar el detalle: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnEditar_Click(object sender, EventArgs e)
+        {
+            ActivarModoEdicion(esNuevo: false);
         }
 
         private void btnSeleccionarFoto_Click(object sender, EventArgs e)
@@ -324,10 +328,12 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                         CategoriaId = cmbCategoria.SelectedValue != null ? (int)cmbCategoria.SelectedValue : 0,
                         AnioPublicado = (int)numAnio.Value,
                         CantidadEjemplares = (int)numEjemplares.Value,
-                        Descripcion = txtDescripcion.Text.Trim(), // 🟢 Envía la descripción al registrar
+                        Descripcion = txtDescripcion.Text.Trim(),
                         RutaImagenLocal = _rutaImagenSeleccionada
                     };
                     await _catalogoService.RegistrarRecursoAsync(request);
+
+                    MessageBox.Show("Recurso registrado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -339,11 +345,13 @@ namespace SIGEBI.AppEscritorio.Views.Shared
                         CategoriaId = cmbCategoria.SelectedValue != null ? (int)cmbCategoria.SelectedValue : 0,
                         AnioPublicado = (int)numAnio.Value,
                         CantidadEjemplares = (int)numEjemplares.Value,
-                        Descripcion = txtDescripcion.Text.Trim(), // 🟢 Envía la descripción al actualizar
+                        Descripcion = txtDescripcion.Text.Trim(),
                         ImagenUrlActual = _urlImagenActual,
                         RutaNuevaImagenLocal = _rutaImagenSeleccionada
                     };
                     await _catalogoService.ActualizarRecursoAsync(request);
+
+                    MessageBox.Show("Recurso actualizado exitosamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
                 this.DialogResult = DialogResult.OK;
@@ -356,10 +364,53 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
         }
 
+        private async void btnDesactivar_Click(object sender, EventArgs e)
+        {
+            if (_recursoIdActual <= 0) return;
+
+            var confirmacion = MessageBox.Show(
+                $"¿Está seguro de que desea desactivar el recurso '{txtTitulo.Text}'?\n\nEl recurso y sus ejemplares quedarán fuera de servicio.",
+                "Confirmar Desactivación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirmacion == DialogResult.Yes)
+            {
+                try
+                {
+                    this.Cursor = Cursors.WaitCursor;
+                    btnDesactivar.Enabled = false;
+
+                    await _catalogoService.EliminarRecursoAsync(_recursoIdActual, "Desactivado desde el detalle del recurso");
+
+                    MessageBox.Show("Recurso desactivado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.DialogResult = DialogResult.OK;
+                    this.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"No se pudo desactivar el recurso: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    this.Cursor = Cursors.Default;
+                    btnDesactivar.Enabled = true;
+                }
+            }
+        }
+
         private void btnCancelar_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
+        }
+
+        #endregion
     }
 }

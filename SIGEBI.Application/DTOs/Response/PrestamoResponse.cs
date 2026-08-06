@@ -12,5 +12,7 @@ namespace SIGEBI.Application.DTOs.Response
 
         public string Estado { get; init; } = string.Empty;
         public bool EstaVencido => DateTime.UtcNow.Date > FechaLimite.Date;
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string IdentificacionUsuario { get; set; } = string.Empty;
     }
 }

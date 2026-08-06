@@ -1,5 +1,4 @@
-﻿
-using SIGEBI.Domain.Exceptions;
+﻿using SIGEBI.Domain.Exceptions;
 using SIGEBI.Domain.Common;
 
 namespace SIGEBI.Domain.Entities
@@ -18,7 +17,6 @@ namespace SIGEBI.Domain.Entities
 
         public Devolucion(int prestamoId, int bibliotecarioId, string condicion, string? observacion = null)
         {
-            
             if (prestamoId <= 0) throw new BusinessException("El ID del préstamo es inválido.");
             if (bibliotecarioId <= 0) throw new BusinessException("El bibliotecario responsable de la devolución es obligatorio.");
             Guard.NotNullOrWhiteSpace(condicion, "La condición del recurso ");
@@ -32,10 +30,10 @@ namespace SIGEBI.Domain.Entities
 
         public bool RequiereRetiro()
         {
-            return Condicion.Equals("Dañado", StringComparison.OrdinalIgnoreCase) ||
-                Condicion.Equals("Extraviado", StringComparison.OrdinalIgnoreCase);
+            return Condicion.Equals("Deteriorado", StringComparison.OrdinalIgnoreCase) ||
+                   Condicion.Equals("Inservible / Perdido", StringComparison.OrdinalIgnoreCase) ||
+                   Condicion.Equals("Dañado", StringComparison.OrdinalIgnoreCase) ||
+                   Condicion.Equals("Extraviado", StringComparison.OrdinalIgnoreCase);
         }
-
-
     }
 }

@@ -43,28 +43,67 @@ namespace SIGEBI.Application.UseCase.Auditory
                 throw new BusinessException("La fecha de inicio no puede ser mayor que la fecha final.");
             }
 
-            var registros = await _auditoria.ConsultarAsync(
-                request.UsuarioId,
+            var registros = (await _auditoria.ConsultarAsync(
+                request.Identificacion,
                 request.Accion,
                 request.EntidadAfectada,
                 request.FechaInicio,
                 request.FechaFin
-            );
 
-            return registros.Select(MapearRegistro).ToList();
-        }
+            )).ToList();
 
-        private static LogAuditoriaResponse MapearRegistro(SIGEBI.Domain.Entities.Auditoria registro)
-        {
-            return new LogAuditoriaResponse
+            
+            var userIds = registros.Select(r => r.UsuarioId).Distinct().ToList();
+            var usuariosDict = new Dictionary<int, (string NombreCompleto, string Identificacion)>();
+
+            foreach (var id in userIds)
+            {
+                var user = await _usuarios.ObtenerporIdAsync(id);
+                if (user != null)
+                {
+                    string identificacion = user switch
+                    {
+                        Estudiante est => est.Matricula,
+                        Docente doc => doc.CodigoEmpleado,
+                        Administrador admin => admin.CodigoEmpleado,
+                        Bibliotecario biblio => biblio.CodigoEmpleado,
+                        Auditor auditor => auditor.CodigoEmpleado,
+                        _ => id.ToString()
+                    };
+
+                    usuariosDict[id] = (user.NombreCompleto, identificacion);
+                }
+                else
+                {
+                    usuariosDict[id] = ("Usuario Desconocido", "N/A");
+                }
+            }
+
+
+            var resultado = registros.Select(registro => new LogAuditoriaResponse
             {
                 AuditoriaId = registro.AuditoriaId,
                 UsuarioId = registro.UsuarioId,
+                NombreCompleto = usuariosDict.ContainsKey(registro.UsuarioId) ? usuariosDict[registro.UsuarioId].NombreCompleto : "Usuario Desconocido",
+                Identificacion = usuariosDict.ContainsKey(registro.UsuarioId) ? usuariosDict[registro.UsuarioId].Identificacion : "N/A",
                 Accion = registro.Accion,
                 EntidadAfectada = registro.EntidadAfectada,
                 Detalle = registro.Detalle,
                 FechaRegistro = registro.FechaRegistro
-            };
+            }).ToList();
+
+ 
+            if (!string.IsNullOrWhiteSpace(request.Identificacion))
+            {
+                string filtro = request.Identificacion.Trim();
+                resultado = resultado
+                    .Where(r => r.Identificacion.Contains(filtro, StringComparison.OrdinalIgnoreCase) ||
+                                r.NombreCompleto.Contains(filtro, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            return resultado;
         }
     }
+
 }

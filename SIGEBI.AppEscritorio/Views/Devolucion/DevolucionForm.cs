@@ -1,25 +1,26 @@
 ﻿using SIGEBI.AppEscritorio.Dtos.Devoluciones;
 using SIGEBI.AppEscritorio.Services.Devolucion;
 using SIGEBI.AppEscritorio.Session;
-using System;
-using System.Drawing;
+using SIGEBI.AppEscritorio.Views.Shared;
+using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+
 
 namespace SIGEBI.AppEscritorio.Views.Devolucion
 {
     public partial class DevolucionForm : Form
     {
         private readonly IDevolucionService _devolucionService;
+        private readonly IServiceProvider _serviceProvider;
 
         [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
         private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
 
-        public DevolucionForm(IDevolucionService devolucionService)
+        public DevolucionForm(IDevolucionService devolucionService, IServiceProvider serviceProvider)
         {
             InitializeComponent();
             _devolucionService = devolucionService;
+            _serviceProvider = serviceProvider;
 
             AplicarEstilosDarkSlate();
         }
@@ -38,7 +39,7 @@ namespace SIGEBI.AppEscritorio.Views.Devolucion
         {
             Color fondoDark = Color.FromArgb(15, 23, 42);      // #0F172A
             Color fondoPanel = Color.FromArgb(30, 41, 59);     // #1E293B
-            Color textoGris = Color.FromArgb(148, 163, 184);  // #94A3B8
+            Color textoGris = Color.FromArgb(148, 163, 184);   // #94A3B8
             Color azulPrimario = Color.FromArgb(37, 99, 235);  // #2563EB
             Color colorBotonGris = Color.FromArgb(51, 65, 85); // #334155
 
@@ -103,6 +104,24 @@ namespace SIGEBI.AppEscritorio.Views.Devolucion
             dgvHistorial.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(24, 34, 49);
 
             ConfigurarGridHistorial();
+            dgvHistorial.CellDoubleClick += DgvHistorial_CellDoubleClick;
+
+            var pnlBottom = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                BackColor = fondoPanel
+            };
+            var lblHint = new Label
+            {
+                Text = "💡 Tip: Haz doble clic sobre una devolución para ver sus detalles completos.",
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Italic),
+                AutoSize = true,
+                Location = new Point(15, 11)
+            };
+            pnlBottom.Controls.Add(lblHint);
+            pnlHistorialContainer.Controls.Add(pnlBottom);
         }
 
         private void ConfigurarDateTimePickerOscuro(DateTimePicker dtp, Color fondoDark, Color textoClaro)
@@ -141,12 +160,12 @@ namespace SIGEBI.AppEscritorio.Views.Devolucion
                 var request = new ConsultarHistorialDevolucionesRequestDto
                 {
                     FechaInicio = dtpInicio.Value.Date,
-                    // 👈 Cubre todo el día final sumando 1 día exacto para evitar exclusión por horas
                     FechaFin = dtpFin.Value.Date.AddDays(1)
                 };
 
                 var lista = await _devolucionService.ConsultarHistorialAsync(request);
                 dgvHistorial.DataSource = lista;
+                dgvHistorial.ClearSelection();
             }
             catch (Exception ex)
             {
@@ -161,14 +180,12 @@ namespace SIGEBI.AppEscritorio.Views.Devolucion
         private void ConfigurarGridHistorial()
         {
             dgvHistorial.Columns.Clear();
-
-            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PrestamoId", HeaderText = "Préstamo ID", Width = 95, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TituloRecurso", HeaderText = "Libro", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "FechaDevolucion", HeaderText = "Fecha Devolución", Width = 140, DefaultCellStyle = { Format = "dd/MM/yyyy HH:mm", Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Condicion", HeaderText = "Condición", Width = 120, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "DiasRetraso", HeaderText = "Días Retraso", Width = 100, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "MontoPenalizacion", HeaderText = "Mora (RD$)", Width = 110, DefaultCellStyle = { Format = "N2", Alignment = DataGridViewContentAlignment.MiddleRight } });
-            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Mensaje", HeaderText = "Detalle", Width = 220 });
+            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TituloRecurso", HeaderText = "Libro", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight = 160 });
+            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "FechaDevolucion", HeaderText = "Fecha Devolución", Width = 150, DefaultCellStyle = { Format = "dd/MM/yyyy HH:mm", Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Condicion", HeaderText = "Condición", Width = 130, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "DiasRetraso", HeaderText = "Días Retraso", Width = 110, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "MontoPenalizacion", HeaderText = "Mora (RD$)", Width = 120, DefaultCellStyle = { Format = "N2", Alignment = DataGridViewContentAlignment.MiddleRight } });
+            dgvHistorial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Mensaje", HeaderText = "Detalle", Width = 250 });
 
             dgvHistorial.CellFormatting += DgvHistorial_CellFormatting;
         }
@@ -177,17 +194,41 @@ namespace SIGEBI.AppEscritorio.Views.Devolucion
         {
             if (e.RowIndex < 0) return;
 
-            // Resaltar registros con penalización
             if (dgvHistorial.Rows[e.RowIndex].DataBoundItem is DevolucionResponseDto dev)
             {
                 if (dev.PenalizacionGenerada)
                 {
                     if (dgvHistorial.Columns[e.ColumnIndex].DataPropertyName == "MontoPenalizacion")
                     {
-                        e.CellStyle.ForeColor = Color.FromArgb(239, 68, 68); // Rojo carmesí
+                        e.CellStyle.ForeColor = Color.FromArgb(239, 68, 68);
                         e.CellStyle.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
                     }
                 }
+            }
+        }
+
+        private void DgvHistorial_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvHistorial.Rows[e.RowIndex].DataBoundItem is DevolucionResponseDto devolucionSeleccionada)
+            {
+                AbrirModalDetalleDevolucion(devolucionSeleccionada);
+            }
+        }
+
+        private void AbrirModalDetalleDevolucion(DevolucionResponseDto devolucion)
+        {
+            try
+            {
+                var modal = _serviceProvider.GetRequiredService<DetallePrestamo>();
+                modal.CargarDevolucion(devolucion);
+
+                modal.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al abrir los detalles: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

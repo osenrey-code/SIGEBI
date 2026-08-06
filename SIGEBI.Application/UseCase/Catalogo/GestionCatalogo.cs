@@ -179,7 +179,7 @@ namespace SIGEBI.Application.UseCase.Catalogo
 
             await _recursos.ActualizarAsync(recurso);
 
-            string detalleAuditoria = $"Se actualizó el recurso ID {recurso.RecursoBibliograficoId}. Título anterior: '{tituloAnterior}', nuevo título: '{recurso.Titulo}'.";
+            string detalleAuditoria = $"Se actualizó el libro '{recurso.Titulo}'. Título anterior: '{tituloAnterior}'.";
             if (recurso.TotalEjemplares > cantidadEjemplaresAnterior)
             {
                 detalleAuditoria += $" Se incrementó la cantidad de ejemplares de {cantidadEjemplaresAnterior} a {recurso.TotalEjemplares}.";

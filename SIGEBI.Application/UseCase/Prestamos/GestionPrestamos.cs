@@ -186,7 +186,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             await _notificaciones.EnviarNotificacionAsync(
                 nuevaSolicitud.UsuarioId,
-                $"Tu solicitud de préstamo #{nuevaSolicitud.SolicitudId} fue recibida y está pendiente de revisión.",
+                $"Tu solicitud de préstamo del libro {nuevaSolicitud.Ejemplar?.RecursoBibliografico?.Titulo} " +
+                $"fue recibida y está pendiente de revisión.",
                 TipoNotificacion.SolicitudRecibida
             );
 
@@ -194,7 +195,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 UsuarioId: usuario.UsuarioId,
                 Accion: "Solicitar Préstamo",
                 EntidadAfectada: "Solicitudes",
-                detalles: $"El usuario '{usuario.NombreCompleto}' solicitó el ejemplar ID {ejemplar.EjemplarId}. Préstamos activos actuales: {prestamosActivos}. Límite permitido: {limitePermitido}."
+                detalles: $"El usuario '{usuario.NombreCompleto}' solicitó el '{ejemplar.RecursoBibliografico?.Titulo}'."
             );
 
             await _db.SaveChangesAsync();
@@ -205,7 +206,9 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 TituloRecurso = ejemplar.RecursoBibliografico?.Titulo ?? "Título no disponible",
                 IdentificadorEjemplar = ejemplar.Identificador,
                 FechaSolicitud = nuevaSolicitud.FechaSolicitud,
-                Estado = nuevaSolicitud.Estado.ToString()
+                Estado = nuevaSolicitud.Estado.ToString(),
+                NombreUsuario = usuario.NombreCompleto,
+                IdentificacionUsuario = ObtenerIdentificacionUsuario(usuario)
             };
         }
 
@@ -375,7 +378,8 @@ namespace SIGEBI.Application.UseCase.Prestamos
 
             await _notificaciones.EnviarNotificacionAsync(
                 nuevoPrestamo.UsuarioId,
-                $"Tu préstamo #{nuevoPrestamo.PrestamoId} fue aprobado correctamente.",
+                $"Tu solicitud de préstamo del libro {nuevoPrestamo.Ejemplar?.RecursoBibliografico?.Titulo}" +
+                $" fue aprobado correctamente.",
                 TipoNotificacion.PrestamoAprobado
             );
 
@@ -383,7 +387,7 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 UsuarioId: usuarioEjecutorId,
                 Accion: "Aprobar Préstamo",
                 EntidadAfectada: "Prestamos",
-                detalles: $"Se aprobó la solicitud ID {solicitud.SolicitudId}. Se registró el préstamo ID {nuevoPrestamo.PrestamoId} para el usuario ID {usuarioSolicitante.UsuarioId}. Ejemplar ID {solicitud.EjemplarId}. Fecha límite: {nuevoPrestamo.FechaLimite:dd/MM/yyyy}."
+                detalles: $"Se aprobó la solicitud de '{solicitud.Usuario?.NombreCompleto}' para el prestamo del libro '{solicitud.Ejemplar.RecursoBibliografico?.Titulo}'."
             );
 
             await _db.SaveChangesAsync();
@@ -394,7 +398,9 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 IdentificadorEjemplar = solicitud.Ejemplar.Identificador,
                 FechaInicio = nuevoPrestamo.FechaInicio,
                 FechaLimite = nuevoPrestamo.FechaLimite,
-                Estado = nuevoPrestamo.Estado.ToString()
+                Estado = nuevoPrestamo.Estado.ToString(),
+                NombreUsuario = usuarioEjecutor.NombreCompleto,
+                IdentificacionUsuario = ObtenerIdentificacionUsuario(usuarioEjecutor)
             };
         }
 
@@ -402,22 +408,6 @@ namespace SIGEBI.Application.UseCase.Prestamos
             ConsultarHistorialPrestamosRequest request)
         {
             Guard.NotNull(request, "Los filtros del historial de préstamos");
-
-            int? usuarioId = null;
-
-            if (!string.IsNullOrWhiteSpace(request.Identificacion))
-            {
-                string identificacion = request.Identificacion.Trim();
-
-                var usuario = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
-                    identificacion
-                );
-
-                if (usuario is null)
-                    throw new BusinessException("Usuario no encontrado en el sistema.");
-
-                usuarioId = usuario.UsuarioId;
-            }
 
             if (request.RecursoBibliograficoId.HasValue &&
                 request.RecursoBibliograficoId.Value <= 0)
@@ -431,23 +421,36 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 throw new BusinessException("El ejemplar debe ser mayor que cero.");
             }
 
+            string? identificacionFiltro = string.IsNullOrWhiteSpace(request.Identificacion)
+                ? null
+                : request.Identificacion.Trim();
+
             var historialPrestamos = await _prestamos.ConsultarHistorialAsync(
-                usuarioId,
+                identificacionFiltro,
                 request.RecursoBibliograficoId,
                 request.EjemplarId
             );
 
-            return historialPrestamos
-                .Select(p => new PrestamoResponse
+            var listaRespuesta = new List<PrestamoResponse>();
+
+            foreach (var p in historialPrestamos)
+            {
+                var usuario = p.Usuario ?? await _usuarios.ObtenerporIdAsync(p.UsuarioId);
+
+                listaRespuesta.Add(new PrestamoResponse
                 {
                     PrestamoId = p.PrestamoId,
                     TituloRecurso = p.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
                     IdentificadorEjemplar = p.Ejemplar?.Identificador ?? "N/A",
                     FechaInicio = p.FechaInicio,
                     FechaLimite = p.FechaLimite,
-                    Estado = p.Estado.ToString()
-                })
-                .ToList();
+                    Estado = p.Estado.ToString(),
+                    NombreUsuario = usuario?.NombreCompleto ?? "Desconocido",
+                    IdentificacionUsuario = ObtenerIdentificacionUsuario(usuario)
+                });
+            }
+
+            return listaRespuesta;
         }
 
         public async Task<IEnumerable<PrestamoResponse>> ConsultarPrestamosActivosAsync(
@@ -464,28 +467,26 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 throw new BusinessException("Usuario actual no encontrado en el sistema.");
 
             bool esGestor = usuarioActual is Administrador || usuarioActual is Bibliotecario;
-            int? usuarioFiltroId = null;
+            string? identificacionFiltro = null;
 
-           
+            
             if (!esGestor)
             {
-                usuarioFiltroId = usuarioActual.UsuarioId;
+                if (usuarioActual is Estudiante es)
+                {
+                    identificacionFiltro = es.Matricula;
+                }
+                else if (usuarioActual is Docente doc)
+                {
+                    identificacionFiltro = doc.CodigoEmpleado;
+                }
             }
             else
             {
-               
+                
                 if (!string.IsNullOrWhiteSpace(request.Identificacion))
                 {
-                    string identificacion = request.Identificacion.Trim();
-
-                    var usuarioFiltro = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(
-                        identificacion
-                    );
-
-                    if (usuarioFiltro is null)
-                        throw new BusinessException("Usuario no encontrado en el sistema.");
-
-                    usuarioFiltroId = usuarioFiltro.UsuarioId;
+                    identificacionFiltro = request.Identificacion.Trim();
                 }
             }
 
@@ -501,23 +502,33 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 throw new BusinessException("El ejemplar debe ser mayor que cero.");
             }
 
+            
             var prestamosActivos = await _prestamos.ConsultarActivosAsync(
-                usuarioFiltroId,
+                identificacionFiltro,
                 request.RecursoBibliograficoId,
                 request.EjemplarId
             );
 
-            return prestamosActivos
-                .Select(p => new PrestamoResponse
+            var listaRespuesta = new List<PrestamoResponse>();
+
+            foreach (var p in prestamosActivos)
+            {
+                var usuario = await _usuarios.ObtenerporIdAsync(p.UsuarioId);
+
+                listaRespuesta.Add(new PrestamoResponse
                 {
                     PrestamoId = p.PrestamoId,
                     TituloRecurso = p.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
                     IdentificadorEjemplar = p.Ejemplar?.Identificador ?? "N/A",
                     FechaInicio = p.FechaInicio,
                     FechaLimite = p.FechaLimite,
-                    Estado = p.Estado.ToString()
-                })
-                .ToList();
+                    Estado = p.Estado.ToString(),
+                    NombreUsuario = usuario?.NombreCompleto ?? "Desconocido",
+                    IdentificacionUsuario = ObtenerIdentificacionUsuario(usuario)
+                });
+            }
+
+            return listaRespuesta;
         }
 
         private async Task RegistrarAuditoriaSolicitudDenegadaAsync(
@@ -545,8 +556,17 @@ namespace SIGEBI.Application.UseCase.Prestamos
                 UsuarioId: usuarioEjecutorId,
                 Accion: "Rechazo Automático de Solicitud",
                 EntidadAfectada: "Solicitudes",
-                detalles: $"La solicitud ID {solicitud.SolicitudId} fue rechazada automáticamente. Motivo: {motivo}"
+                detalles: $"La solicitud de '{solicitud.Usuario?.NombreCompleto}' para el prestamo del libro '{solicitud.Ejemplar?.RecursoBibliografico?.Titulo}' " +
+                $"fue rechazada automáticamente. Motivo: {motivo}"
             );
+
+            await _notificaciones.EnviarNotificacionAsync(
+               solicitud.UsuarioId,
+               $"Tu solicitud de préstamo del libro {solicitud.Ejemplar?.RecursoBibliografico?.Titulo} " +
+               $"fue rechazada. Motivo: {motivo}",
+               TipoNotificacion.SolicitudRechazada
+           );
+
 
             await _db.SaveChangesAsync();
         }
@@ -554,32 +574,51 @@ namespace SIGEBI.Application.UseCase.Prestamos
         public async Task<IEnumerable<SolicitudResponse>> ConsultarTodasAsync()
         {
             var solicitudes = await _solicitudes.ObtenerTodasAsync();
+            var listaRespuesta = new List<SolicitudResponse>();
 
-            return solicitudes
-                .Select(s => new SolicitudResponse
+            foreach (var s in solicitudes)
+            {
+                var usuario = await _usuarios.ObtenerporIdAsync(s.UsuarioId);
+
+                listaRespuesta.Add(new SolicitudResponse
                 {
                     SolicitudId = s.SolicitudId,
                     TituloRecurso = s.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
                     IdentificadorEjemplar = s.Ejemplar?.Identificador ?? "N/A",
                     FechaSolicitud = s.FechaSolicitud,
-                    Estado = s.Estado.ToString()
-                }).ToList();
+                    Estado = s.Estado.ToString(),
+                    MotivoRechazo = s.MotivoRechazo,
+                    NombreUsuario = usuario?.NombreCompleto ?? "Desconocido",
+                    IdentificacionUsuario = ObtenerIdentificacionUsuario(usuario)
+                });
+            }
+
+            return listaRespuesta;
         }
 
         public async Task<IEnumerable<SolicitudResponse>> ConsultarSolicitudesPendientesAsync()
         {
             var pendientes = await _solicitudes.ObtenerPendientesAsync();
+            var listaRespuesta = new List<SolicitudResponse>();
 
-            return pendientes
-                .Select(s => new SolicitudResponse
+            foreach (var s in pendientes)
+            {
+                var usuario = await _usuarios.ObtenerporIdAsync(s.UsuarioId);
+
+                listaRespuesta.Add(new SolicitudResponse
                 {
                     SolicitudId = s.SolicitudId,
                     TituloRecurso = s.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
                     IdentificadorEjemplar = s.Ejemplar?.Identificador ?? "N/A",
                     FechaSolicitud = s.FechaSolicitud,
-                    Estado = s.Estado.ToString()
-                })
-                .ToList();
+                    Estado = s.Estado.ToString(),
+                    MotivoRechazo = s.MotivoRechazo,
+                    NombreUsuario = usuario?.NombreCompleto ?? "Desconocido",
+                    IdentificacionUsuario = ObtenerIdentificacionUsuario(usuario)
+                });
+            }
+
+            return listaRespuesta;
 
         }
 
@@ -593,14 +632,101 @@ namespace SIGEBI.Application.UseCase.Prestamos
             if (solicitud is null)
                 return null;
 
+            var usuario = await _usuarios.ObtenerporIdAsync(solicitud.UsuarioId);
+
             return new SolicitudResponse
             {
                 SolicitudId = solicitud.SolicitudId,
                 TituloRecurso = solicitud.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
                 IdentificadorEjemplar = solicitud.Ejemplar?.Identificador ?? "N/A",
                 FechaSolicitud = solicitud.FechaSolicitud,
-                Estado = solicitud.Estado.ToString()
+                Estado = solicitud.Estado.ToString(),
+                MotivoRechazo = solicitud.MotivoRechazo,
+                NombreUsuario = usuario?.NombreCompleto ?? "Desconocido",
+                IdentificacionUsuario = ObtenerIdentificacionUsuario(usuario)
             };
+        }
+
+        public async Task<SolicitudResponse> RechazarSolicitudAsync(RechazarSolicitudRequest request, int usuarioEjecutorId)
+        {
+            Guard.NotNull(request, "Los datos de rechazo de la solicitud");
+
+            if (usuarioEjecutorId <= 0)
+                throw new BusinessException("El usuario ejecutor es obligatorio.");
+
+            if (request.SolicitudId <= 0)
+                throw new BusinessException("La solicitud es obligatoria.");
+
+            if (string.IsNullOrWhiteSpace(request.MotivoRechazo))
+                throw new BusinessException("El motivo de rechazo es obligatorio.");
+
+            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(usuarioEjecutorId);
+
+            if (usuarioEjecutor is null)
+                throw new BusinessException("El usuario ejecutor no existe.");
+
+            if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
+                throw new BusinessException("El usuario ejecutor no está activo.");
+
+            if (usuarioEjecutor is not Bibliotecario)
+                throw new BusinessException("Solo un bibliotecario puede rechazar solicitudes de forma manual.");
+
+            var solicitud = await _solicitudes.ObtenerConDetallesAsync(request.SolicitudId);
+
+            if (solicitud is null)
+                throw new BusinessException("La solicitud especificada no existe.");
+
+            if (solicitud.Estado != EstadoSolicitud.Pendiente)
+                throw new BusinessException("Solo se pueden rechazar solicitudes pendientes.");
+
+            string motivo = request.MotivoRechazo.Trim();
+
+            solicitud.Rechazar(motivo);
+
+            await _solicitudes.ActualizarAsync(solicitud);
+
+            await _notificaciones.EnviarNotificacionAsync(
+                solicitud.UsuarioId,
+                $"Tu solicitud de préstamo fue rechazada. Motivo: {motivo}",
+                TipoNotificacion.SolicitudRechazada
+            );
+
+            await _auditoria.RegistrarAsync(
+                UsuarioId: usuarioEjecutorId,
+                Accion: "Rechazar Solicitud de Préstamo",
+                EntidadAfectada: "Solicitudes",
+                detalles: $"La solicitud de '{solicitud.Usuario?.NombreCompleto}' para el prestamo del libro '{solicitud.Ejemplar?.RecursoBibliografico?.Titulo}' " +
+                $"fue rechazada. Motivo: {motivo}"
+            );
+
+            await _db.SaveChangesAsync();
+
+            var usuarioSolicitante = await _usuarios.ObtenerporIdAsync(solicitud.UsuarioId);
+
+            return new SolicitudResponse
+            {
+                SolicitudId = solicitud.SolicitudId,
+                TituloRecurso = solicitud.Ejemplar?.RecursoBibliografico?.Titulo ?? "Título no disponible",
+                IdentificadorEjemplar = solicitud.Ejemplar?.Identificador ?? "N/A",
+                FechaSolicitud = solicitud.FechaSolicitud,
+                Estado = solicitud.Estado.ToString(),
+                MotivoRechazo = solicitud.MotivoRechazo,
+                NombreUsuario = usuarioSolicitante?.NombreCompleto ?? "Desconocido",
+                IdentificacionUsuario = ObtenerIdentificacionUsuario(usuarioSolicitante)
+            };
+        }
+
+        private string ObtenerIdentificacionUsuario(Usuario? usuario)
+        {
+            if (usuario is Estudiante estudiante)
+            {
+                return estudiante.Matricula ?? "N/A";
+            }
+            else if (usuario is Docente docente)
+            {
+                return docente.CodigoEmpleado ?? "N/A";
+            }
+            return "N/A";
         }
     }
 }

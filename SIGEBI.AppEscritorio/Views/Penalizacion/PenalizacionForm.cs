@@ -2,7 +2,6 @@
 using SIGEBI.AppEscritorio.Services.Penalizaciones;
 using SIGEBI.AppEscritorio.Session;
 
-
 namespace SIGEBI.AppEscritorio.Views.Penalizaciones
 {
     public partial class PenalizacionForm : Form
@@ -35,9 +34,16 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
                 return;
             }
 
+            cmbEstado.SelectedIndexChanged -= FiltroEnTiempoReal_Changed;
+
             cmbEstado.Items.Clear();
             cmbEstado.Items.AddRange(new object[] { "Todas", "Activa", "Resuelta" });
             cmbEstado.SelectedIndex = 1; // "Activa" por defecto
+
+            cmbEstado.SelectedIndexChanged += FiltroEnTiempoReal_Changed;
+
+            txtUsuarioId.TextChanged -= FiltroEnTiempoReal_Changed;
+            txtUsuarioId.TextChanged += FiltroEnTiempoReal_Changed;
 
             await CargarDatosAsync();
         }
@@ -50,7 +56,6 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
             Color fondoPanel = Color.FromArgb(30, 41, 59);     // #1E293B
             Color textoGris = Color.FromArgb(148, 163, 184);  // #94A3B8
             Color azulPrimario = Color.FromArgb(37, 99, 235);  // #2563EB
-            Color verdeEsmeralda = Color.FromArgb(22, 163, 74);// #16A34A
             Color colorBotonGris = Color.FromArgb(51, 65, 85); // #334155
 
             this.BackColor = fondoDark;
@@ -60,6 +65,7 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
 
             pnlContenedor.BackColor = fondoPanel;
             pnlFiltros.BackColor = fondoPanel;
+            pnlTotal.BackColor = fondoPanel;
 
             // Inputs
             txtUsuarioId.BackColor = fondoDark;
@@ -68,22 +74,6 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
 
             cmbEstado.BackColor = fondoDark;
             cmbEstado.ForeColor = Color.White;
-
-            // Botones
-            btnBuscar.BackColor = azulPrimario;
-            btnBuscar.ForeColor = Color.White;
-            btnBuscar.FlatStyle = FlatStyle.Flat;
-            btnBuscar.FlatAppearance.BorderSize = 0;
-            btnBuscar.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
-            btnBuscar.Cursor = Cursors.Hand;
-
-            btnResolver.BackColor = verdeEsmeralda;
-            btnResolver.ForeColor = Color.White;
-            btnResolver.FlatStyle = FlatStyle.Flat;
-            btnResolver.FlatAppearance.BorderSize = 0;
-            btnResolver.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
-            btnResolver.Cursor = Cursors.Hand;
-            btnResolver.Enabled = true; // 👈 Siempre habilitado para permitir clic interactivo
 
             btnRefrescar.BackColor = colorBotonGris;
             btnRefrescar.ForeColor = Color.White;
@@ -120,15 +110,25 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
             dgvPenalizaciones.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(24, 34, 49);
 
             ConfigurarGridPenalizaciones();
+
+            var lblHint = new Label
+            {
+                Text = "💡 Tip: Haz doble clic sobre una penalización para gestionarla o resolverla.",
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Italic),
+                AutoSize = true,
+                Location = new Point(15, 16)
+            };
+            pnlTotal.Controls.Add(lblHint);
         }
 
         private void ConfigurarGridPenalizaciones()
         {
             dgvPenalizaciones.Columns.Clear();
+            dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PenalizacionId", HeaderText = "ID", Visible = false });
+            dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PrestamoId", HeaderText = "Préstamo ID", Visible = false });
 
-            dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PenalizacionId", HeaderText = "ID", Width = 65, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IdentificacionUsuario", HeaderText = "Lector / Matrícula", Width = 140, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PrestamoId", HeaderText = "Préstamo ID", Width = 100, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IdentificacionUsuario", HeaderText = "Identificación", Width = 140, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "DiasRetraso", HeaderText = "Días Retraso", Width = 100, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "MontoMora", HeaderText = "Mora (RD$)", Width = 110, DefaultCellStyle = { Format = "N2", Alignment = DataGridViewContentAlignment.MiddleRight, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) } });
             dgvPenalizaciones.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Motivo", HeaderText = "Motivo", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
@@ -139,6 +139,7 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
             dgvPenalizaciones.CellFormatting += DgvPenalizaciones_CellFormatting;
             dgvPenalizaciones.SelectionChanged += DgvPenalizaciones_SelectionChanged;
             dgvPenalizaciones.CellClick += DgvPenalizaciones_CellClick;
+            dgvPenalizaciones.CellDoubleClick += DgvPenalizaciones_CellDoubleClick;
         }
 
         private void DgvPenalizaciones_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
@@ -174,6 +175,24 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
             }
         }
 
+        private async void DgvPenalizaciones_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvPenalizaciones.Rows[e.RowIndex].DataBoundItem is PenalizacionDto penalizacionSeleccionada)
+            {
+                using (var modal = new Views.Penalizacion.DetallePenalizacion(_penalizacionService))
+                {
+                    modal.CargarPenalizacion(penalizacionSeleccionada);
+
+                    if (modal.ShowDialog() == DialogResult.OK)
+                    {
+                        await CargarDatosAsync();
+                    }
+                }
+            }
+        }
+
         private void ActualizarSeleccionPenalizacion()
         {
             if (dgvPenalizaciones.CurrentRow?.DataBoundItem is PenalizacionDto penalizacion)
@@ -198,6 +217,11 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
         private async void btnRefrescar_Click(object sender, EventArgs e)
         {
             txtUsuarioId.Clear();
+            cmbEstado.SelectedIndex = 0; // "Todas"
+            await CargarDatosAsync();
+        }
+        private async void FiltroEnTiempoReal_Changed(object? sender, EventArgs e)
+        {
             await CargarDatosAsync();
         }
 
@@ -221,7 +245,8 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
                     request.UsuarioId = usuarioId;
                 }
 
-                var lista = await _penalizacionService.ConsultarPenalizacionesAsync(request);
+                var resultadoApi = await _penalizacionService.ConsultarPenalizacionesAsync(request);
+                var lista = resultadoApi?.ToList() ?? new List<PenalizacionDto>();
 
                 if (!string.IsNullOrWhiteSpace(filtroTexto))
                 {
@@ -234,6 +259,7 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
 
                 dgvPenalizaciones.DataSource = lista;
                 ActualizarSeleccionPenalizacion();
+                CalcularTotalMora(lista);
             }
             catch (Exception ex)
             {
@@ -245,28 +271,13 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
             }
         }
 
-        private void btnResolver_Click(object sender, EventArgs e)
+        private void CalcularTotalMora(IEnumerable<PenalizacionDto> lista)
         {
-            var penalizacion = _penalizacionSeleccionada ?? (dgvPenalizaciones.CurrentRow?.DataBoundItem as PenalizacionDto);
+            decimal totalMora = lista != null ? lista.Sum(p => p.MontoMora) : 0m;
 
-            if (penalizacion == null)
+            if (lblTotalMoraValor != null)
             {
-                MessageBox.Show("Por favor, seleccione una penalización de la lista para resolver.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!penalizacion.Estado.Equals("Activa", StringComparison.OrdinalIgnoreCase))
-            {
-                MessageBox.Show($"La penalización ID #{penalizacion.PenalizacionId} ya se encuentra resuelta.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            using (var frmModal = new FrmResolverPenalizacion(_penalizacionService, penalizacion))
-            {
-                if (frmModal.ShowDialog() == DialogResult.OK)
-                {
-                    _ = CargarDatosAsync();
-                }
+                lblTotalMoraValor.Text = $"RD$ {totalMora:N2}";
             }
         }
 

@@ -17,9 +17,9 @@ namespace SIGEBI.AppEscritorio.Services.Auditoria
         {
             var queryParams = new List<string>();
 
-            if (request.UsuarioId.HasValue && request.UsuarioId > 0)
+            if (!string.IsNullOrWhiteSpace(request.Identificacion))
             {
-                queryParams.Add($"usuarioId={request.UsuarioId.Value}");
+                queryParams.Add($"identificacion={Uri.EscapeDataString(request.Identificacion.Trim())}");
             }
 
             if (!string.IsNullOrWhiteSpace(request.Accion))

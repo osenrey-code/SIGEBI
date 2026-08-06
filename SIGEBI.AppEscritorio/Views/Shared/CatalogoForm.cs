@@ -23,13 +23,10 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private void AplicarDisenoModerno()
         {
-            // Paleta de Colores Dark Slate
             Color fondoPrincipal = Color.FromArgb(15, 23, 42);      // #0F172A
             Color fondoPaneles = Color.FromArgb(30, 41, 59);        // #1E293B
             Color textoSecundario = Color.FromArgb(148, 163, 184);  // Gris claro
             Color colorPrimario = Color.FromArgb(37, 99, 235);      // Azul
-            Color colorPeligro = Color.FromArgb(239, 68, 68);       // Rojo
-            Color colorAdvertencia = Color.FromArgb(245, 158, 11);  // Naranja/Amarillo
             Color colorRefrescar = Color.FromArgb(51, 65, 85);      // Gris pizarra
 
             // 1. Configuración de la Ventana
@@ -38,22 +35,16 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             this.FormBorderStyle = FormBorderStyle.None;
             this.Padding = new Padding(15);
 
-            // 2. Panel Superior de Botones
+            // 2. Panel Superior de Botones (Limpio, solo acciones globales)
             pnlBotones.BackColor = fondoPaneles;
             pnlBotones.Height = 60;
             pnlBotones.Padding = new Padding(15, 11, 15, 11);
 
-            // Estilos de la Botonera
             ConfigurarBoton(btnNuevo, "➕  Nuevo Recurso", colorPrimario, Color.White, 160);
-            ConfigurarBoton(btnEditar, "✏️  Editar", colorAdvertencia, Color.White, 110);
-            ConfigurarBoton(btnEliminar, "🗑️  Desactivar", colorPeligro, Color.White, 120);
             ConfigurarBoton(btnRecargar, "🔄  Refrescar", colorRefrescar, Color.White, 120);
 
-            // 🟢 Habilitado para bibliotecarios/administradores (se controla visibilidad por rol en ValidarPermisosPorRol)
-            btnEliminar.Visible = true;
-
-            // 3. Formateo Profesional del DataGridView
-            dgvCatalogo.AutoGenerateColumns = false; // 👈 Evita columnas automáticas
+            // 3. Formateo del DataGridView
+            dgvCatalogo.AutoGenerateColumns = false;
             dgvCatalogo.BackgroundColor = fondoPaneles;
             dgvCatalogo.BorderStyle = BorderStyle.None;
             dgvCatalogo.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
@@ -84,7 +75,26 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             dgvCatalogo.AlternatingRowsDefaultCellStyle.ForeColor = Color.White;
             dgvCatalogo.AlternatingRowsDefaultCellStyle.SelectionBackColor = colorPrimario;
 
+            dgvCatalogo.CellDoubleClick += DgvCatalogo_CellDoubleClick;
+
             ConfigurarColumnasGrid();
+
+            var pnlBottom = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                BackColor = fondoPaneles
+            };
+            var lblHint = new Label
+            {
+                Text = "💡 Tip: Haz doble clic sobre cualquier recurso para editarlo o gestionarlo.",
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Italic),
+                AutoSize = true,
+                Location = new Point(15, 11)
+            };
+            pnlBottom.Controls.Add(lblHint);
+            this.Controls.Add(pnlBottom);
         }
 
         private void ConfigurarBoton(Button btn, string texto, Color bg, Color fg, int ancho)
@@ -102,14 +112,6 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         private void ConfigurarColumnasGrid()
         {
             dgvCatalogo.Columns.Clear();
-
-            dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = "RecursoBibliograficoId",
-                HeaderText = "ID",
-                Width = 65,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
-            });
 
             dgvCatalogo.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -138,7 +140,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             {
                 DataPropertyName = "Categoria",
                 HeaderText = "Categoría",
-                Width = 130,
+                Width = 140,
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
             });
 
@@ -146,7 +148,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             {
                 DataPropertyName = "AnioPublicado",
                 HeaderText = "Año",
-                Width = 75,
+                Width = 80,
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
             });
 
@@ -171,7 +173,7 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
         private async void CatalogoForm_Load(object sender, EventArgs e)
         {
-            ValidarPermisosPorRol(); // 👈 Oculta los botones de gestión si el usuario es Auditor
+            ValidarPermisosPorRol();
             await CargarDatosAsync();
         }
 
@@ -179,12 +181,9 @@ namespace SIGEBI.AppEscritorio.Views.Shared
         {
             string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
 
-            // 🔒 El Auditor solo tiene permisos de lectura/consulta en el catálogo
             if (rol == "Auditor")
             {
                 btnNuevo.Visible = false;
-                btnEditar.Visible = false;
-                btnEliminar.Visible = false;
             }
         }
 
@@ -206,67 +205,48 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             }
         }
 
+        private async void DgvCatalogo_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvCatalogo.Rows[e.RowIndex].DataBoundItem is RecursoResponse recursoSeleccionado)
+            {
+                await AbrirModalDetallesAsync(recursoSeleccionado.RecursoBibliograficoId);
+            }
+        }
+
+        private async Task AbrirModalDetallesAsync(int recursoId)
+        {
+            try
+            {
+                this.Cursor = Cursors.WaitCursor;
+
+                var modal = _serviceProvider.GetRequiredService<GestionarRecursoForm>();
+                // Carga la data asíncronamente desde el endpoint de detalle para traer la imagen y la descripción
+                await modal.CargarDatosParaEdicionAsync(recursoId);
+
+                this.Cursor = Cursors.Default;
+
+                if (modal.ShowDialog() == DialogResult.OK)
+                {
+                    await CargarDatosAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Cursor = Cursors.Default;
+                MessageBox.Show($"Ocurrió un error al intentar abrir los detalles del recurso: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             var modal = _serviceProvider.GetRequiredService<GestionarRecursoForm>();
 
+            // ID = 0 por defecto indicará al formulario que inicie en "Modo Edición" para registrar
             if (modal.ShowDialog() == DialogResult.OK)
             {
                 _ = CargarDatosAsync();
-            }
-        }
-
-        private void btnEditar_Click(object sender, EventArgs e)
-        {
-            if (dgvCatalogo.CurrentRow?.DataBoundItem is RecursoResponse recursoSeleccionado)
-            {
-                var modal = _serviceProvider.GetRequiredService<GestionarRecursoForm>();
-                modal.CargarDatosParaEdicion(recursoSeleccionado);
-
-                if (modal.ShowDialog() == DialogResult.OK)
-                {
-                    _ = CargarDatosAsync();
-                }
-            }
-            else
-            {
-                MessageBox.Show("Por favor, seleccione un recurso de la lista para editar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        private async void btnEliminar_Click(object sender, EventArgs e)
-        {
-            if (dgvCatalogo.CurrentRow?.DataBoundItem is RecursoResponse recursoSeleccionado)
-            {
-                var confirmacion = MessageBox.Show(
-                    $"¿Está seguro de que desea desactivar el recurso '{recursoSeleccionado.Titulo}'?\n\nEl recurso y sus ejemplares quedarán fuera de servicio y se ocultarán del catálogo activo.",
-                    "Confirmar Desactivación",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (confirmacion == DialogResult.Yes)
-                {
-                    try
-                    {
-                        this.Cursor = Cursors.WaitCursor;
-                        await _catalogoService.EliminarRecursoAsync(recursoSeleccionado.RecursoBibliograficoId, "Desactivado desde el panel de escritorio");
-
-                        MessageBox.Show("Recurso y ejemplares desactivados correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        await CargarDatosAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"No se pudo desactivar el recurso: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    finally
-                    {
-                        this.Cursor = Cursors.Default;
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Por favor, seleccione un recurso de la lista para desactivar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

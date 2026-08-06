@@ -58,6 +58,40 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
             pnlContenedor.BackColor = fondoPanel;
             pnlFiltros.BackColor = fondoPanel;
 
+            lblUsuarioId.Text = "Identificación:";
+            lblUsuarioId.Location = new Point(10, 16);
+            lblUsuarioId.AutoSize = true;
+
+            txtUsuarioId.Location = new Point(102, 13);
+            txtUsuarioId.Size = new Size(85, 23);
+
+            lblEntidad.Location = new Point(198, 16);
+            lblEntidad.AutoSize = true;
+
+            txtEntidad.Location = new Point(250, 13);
+            txtEntidad.Size = new Size(80, 23);
+
+            chkUsarFechas.Location = new Point(340, 15);
+            chkUsarFechas.AutoSize = true;
+
+            lblFechaInicio.Location = new Point(435, 16);
+            lblFechaInicio.AutoSize = true;
+
+            dtpFechaInicio.Location = new Point(478, 13);
+            dtpFechaInicio.Size = new Size(90, 23);
+
+            lblFechaFin.Location = new Point(575, 16);
+            lblFechaFin.AutoSize = true;
+
+            dtpFechaFin.Location = new Point(618, 13);
+            dtpFechaFin.Size = new Size(90, 23);
+
+            btnConsultar.Location = new Point(715, 10);
+            btnConsultar.Size = new Size(88, 30);
+
+            btnRefrescar.Location = new Point(808, 10);
+            btnRefrescar.Size = new Size(88, 30);
+
             // Inputs
             txtUsuarioId.BackColor = fondoDark;
             txtUsuarioId.ForeColor = Color.White;
@@ -71,6 +105,12 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
             dtpFechaInicio.CalendarTitleBackColor = fondoDark;
             dtpFechaFin.CalendarMonthBackground = fondoDark;
             dtpFechaFin.CalendarTitleBackColor = fondoDark;
+
+            txtUsuarioId.TextChanged -= FiltroEnTiempoReal_TextChanged;
+            txtUsuarioId.TextChanged += FiltroEnTiempoReal_TextChanged;
+
+            txtEntidad.TextChanged -= FiltroEnTiempoReal_TextChanged;
+            txtEntidad.TextChanged += FiltroEnTiempoReal_TextChanged;
 
             // Botones
             btnConsultar.BackColor = azulPrimario;
@@ -114,7 +154,33 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
             dgvLogs.RowTemplate.Height = 38;
             dgvLogs.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(24, 34, 49);
 
+            // 🟢 Panel inferior Tip
+            var pnlBottom = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 35,
+                BackColor = fondoPanel
+            };
+
+            var lblHint = new Label
+            {
+                Text = "💡 Tip: Haz doble clic sobre un registro para ver la información completa de auditoría.",
+                ForeColor = textoGris,
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Italic),
+                AutoSize = true,
+                Location = new Point(10, 8)
+            };
+
+            pnlBottom.Controls.Add(lblHint);
+            pnlContenedor.Controls.Add(pnlBottom);
+            pnlBottom.SendToBack();
+
             ConfigurarGrid();
+        }
+
+        private async void FiltroEnTiempoReal_TextChanged(object? sender, EventArgs e)
+        {
+            await CargarDatosAsync();
         }
 
         private void ConfigurarGrid()
@@ -126,7 +192,23 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
                 DataPropertyName = "AuditoriaId",
                 HeaderText = "ID Log",
                 Width = 70,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                Visible = false
+            });
+
+            dgvLogs.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "Identificacion",
+                HeaderText = "Identificación",
+                Width = 110,
+                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) }
+            });
+
+            dgvLogs.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "NombreCompleto",
+                HeaderText = "Usuario",
+                Width = 180,
+                DefaultCellStyle = { Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) }
             });
 
             dgvLogs.Columns.Add(new DataGridViewTextBoxColumn
@@ -134,7 +216,7 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
                 DataPropertyName = "UsuarioId",
                 HeaderText = "Usuario ID",
                 Width = 90,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) }
+                Visible = false
             });
 
             dgvLogs.Columns.Add(new DataGridViewTextBoxColumn
@@ -156,17 +238,33 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
             dgvLogs.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = "Detalle",
-                HeaderText = "Detalles de la Operación",
+                HeaderText = "Detalles",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
 
             dgvLogs.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = "FechaRegistro",
-                HeaderText = "Fecha y Hora",
+                HeaderText = "Fecha",
                 Width = 150,
                 DefaultCellStyle = { Format = "dd/MM/yyyy HH:mm:ss", Alignment = DataGridViewContentAlignment.MiddleCenter }
             });
+
+            // 🟢 Asignación del evento de doble clic
+            dgvLogs.CellDoubleClick += DgvLogs_CellDoubleClick;
+        }
+
+        private void DgvLogs_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvLogs.Rows[e.RowIndex].DataBoundItem is LogAuditoriaResponseDto log)
+            {
+                using (var modal = new FrmDetalleAuditoria(log))
+                {
+                    modal.ShowDialog();
+                }
+            }
         }
 
         #endregion
@@ -200,9 +298,9 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
 
                 var request = new ConsultarLogAuditoriaRequestDto();
 
-                if (int.TryParse(txtUsuarioId.Text.Trim(), out int usuarioId) && usuarioId > 0)
+                if (!string.IsNullOrWhiteSpace(txtUsuarioId.Text))
                 {
-                    request.UsuarioId = usuarioId;
+                    request.Identificacion = txtUsuarioId.Text.Trim();
                 }
 
                 if (!string.IsNullOrWhiteSpace(txtEntidad.Text))
@@ -212,8 +310,8 @@ namespace SIGEBI.AppEscritorio.Views.Auditoria
 
                 if (chkUsarFechas.Checked)
                 {
-                    request.FechaInicio = dtpFechaInicio.Value.Date; // 00:00:00
-                    request.FechaFin = dtpFechaFin.Value.Date.AddDays(1).AddTicks(-1); // 23:59:59
+                    request.FechaInicio = dtpFechaInicio.Value.Date;
+                    request.FechaFin = dtpFechaFin.Value.Date.AddDays(1).AddTicks(-1);
                 }
 
                 var logs = await _auditoriaService.ConsultarLogsAsync(request);

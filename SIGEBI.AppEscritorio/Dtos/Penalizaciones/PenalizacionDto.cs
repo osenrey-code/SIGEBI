@@ -6,6 +6,7 @@ namespace SIGEBI.AppEscritorio.Dtos.Penalizaciones
         public int PenalizacionId { get; set; }
         public int UsuarioId { get; set; }
         public string IdentificacionUsuario { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = string.Empty;
         public int PrestamoId { get; set; }
         public int DiasRetraso { get; set; }
         public decimal MontoMora { get; set; }

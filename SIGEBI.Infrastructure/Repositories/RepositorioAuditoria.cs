@@ -49,7 +49,7 @@ namespace SIGEBI.Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<Auditoria>> ConsultarAsync(
-            int? usuarioId,
+            string? identificacion,
             string? accion,
             string? entidadAfectada,
             DateTime? fechaInicio,
@@ -59,8 +59,45 @@ namespace SIGEBI.Infrastructure.Repositories
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (usuarioId.HasValue)
-                query = query.Where(a => a.UsuarioId == usuarioId.Value);
+            if (!string.IsNullOrWhiteSpace(identificacion))
+            {
+                string filtroId = identificacion.Trim();
+
+                var estudiantesIds = await _context.Set<Estudiante>()
+                    .Where(e => e.Matricula.Contains(filtroId))
+                    .Select(e => e.UsuarioId)
+                    .ToListAsync();
+
+                var docentesIds = await _context.Set<Docente>()
+                    .Where(d => d.CodigoEmpleado.Contains(filtroId))
+                    .Select(d => d.UsuarioId)
+                    .ToListAsync();
+
+                var adminsIds = await _context.Set<Administrador>()
+                    .Where(a => a.CodigoEmpleado.Contains(filtroId))
+                    .Select(a => a.UsuarioId)
+                    .ToListAsync();
+
+                var bibliotecariosIds = await _context.Set<Bibliotecario>()
+                    .Where(b => b.CodigoEmpleado.Contains(filtroId))
+                    .Select(b => b.UsuarioId)
+                    .ToListAsync();
+
+                var auditoresIds = await _context.Set<Auditor>()
+                    .Where(au => au.CodigoEmpleado.Contains(filtroId))
+                    .Select(au => au.UsuarioId)
+                    .ToListAsync();
+
+                var userIdsMatch = estudiantesIds
+                    .Concat(docentesIds)
+                    .Concat(adminsIds)
+                    .Concat(bibliotecariosIds)
+                    .Concat(auditoresIds)
+                    .Distinct()
+                    .ToList();
+
+                query = query.Where(a => userIdsMatch.Contains(a.UsuarioId));
+            }
 
             if (!string.IsNullOrWhiteSpace(accion))
                 query = query.Where(a => a.Accion.Contains(accion.Trim()));

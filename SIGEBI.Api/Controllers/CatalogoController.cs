@@ -183,8 +183,8 @@ namespace SIGEBI.Api.Controllers
             return Ok(historial);
         }
 
-        // DELETE: api/catalogo/5?motivo=Recurso deteriorado
-        [HttpDelete("{id:int}")]
+       
+        [HttpPatch("{id:int}")]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> EliminarRecurso(
             int id,

@@ -171,9 +171,9 @@
             // 
             // txtUsuarioId
             // 
-            this.txtUsuarioId.Location = new System.Drawing.Point(82, 15);
+            this.txtUsuarioId.Location = new System.Drawing.Point(105, 15);
             this.txtUsuarioId.Name = "txtUsuarioId";
-            this.txtUsuarioId.Size = new System.Drawing.Size(65, 23);
+            this.txtUsuarioId.Size = new System.Drawing.Size(95, 23);
             this.txtUsuarioId.TabIndex = 1;
             // 
             // lblUsuarioId
@@ -183,9 +183,9 @@
             this.lblUsuarioId.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
             this.lblUsuarioId.Location = new System.Drawing.Point(10, 18);
             this.lblUsuarioId.Name = "lblUsuarioId";
-            this.lblUsuarioId.Size = new System.Drawing.Size(68, 15);
+            this.lblUsuarioId.Size = new System.Drawing.Size(89, 15);
             this.lblUsuarioId.TabIndex = 0;
-            this.lblUsuarioId.Text = "Usuario ID:";
+            this.lblUsuarioId.Text = "Identificacion:";
             // 
             // AuditoriaForm
             // 

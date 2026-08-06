@@ -35,12 +35,55 @@ namespace SIGEBI.AppEscritorio.Services.Prestamo
 
         public async Task<List<PrestamoDto>> ConsultarActivosAsync(ConsultarPrestamosActivosRequest request)
         {
-            return await _apiClient.GetTAsync<List<PrestamoDto>>("api/prestamos/consultar/activos") ?? new List<PrestamoDto>();
+            var queryParams = new List<string>();
+
+            if (request != null)
+            {
+                if (!string.IsNullOrWhiteSpace(request.Identificacion))
+                {
+                    queryParams.Add($"identificacion={Uri.EscapeDataString(request.Identificacion.Trim())}");
+                }
+            }
+
+            string url = queryParams.Any()
+                ? $"api/prestamos/consultar/activos?{string.Join("&", queryParams)}"
+                : "api/prestamos/consultar/activos";
+
+            return await _apiClient.GetTAsync<List<PrestamoDto>>(url) ?? new List<PrestamoDto>();
         }
 
         public async Task<List<PrestamoDto>> ConsultarHistorialAsync(ConsultarHistorialPrestamosRequest request)
         {
-            return await _apiClient.GetTAsync<List<PrestamoDto>>("api/prestamos/historial") ?? new List<PrestamoDto>();
+            var queryParams = new List<string>();
+
+            if (request != null)
+            {
+                if (!string.IsNullOrWhiteSpace(request.Identificacion))
+                {
+                    queryParams.Add($"identificacion={Uri.EscapeDataString(request.Identificacion.Trim())}");
+                }
+
+                if (request.RecursoBibliograficoId.HasValue && request.RecursoBibliograficoId.Value > 0)
+                {
+                    queryParams.Add($"recursoBibliograficoId={request.RecursoBibliograficoId.Value}");
+                }
+
+                if (request.EjemplarId.HasValue && request.EjemplarId.Value > 0)
+                {
+                    queryParams.Add($"ejemplarId={request.EjemplarId.Value}");
+                }
+            }
+
+            string url = queryParams.Any()
+                ? $"api/prestamos/historial?{string.Join("&", queryParams)}"
+                : "api/prestamos/historial";
+
+            return await _apiClient.GetTAsync<List<PrestamoDto>>(url) ?? new List<PrestamoDto>();
+        }
+
+        public async Task RechazarSolicitudAsync(RechazarSolicitudRequest request)
+        {
+            await _apiClient.PostAsync<RechazarSolicitudRequest, object>("api/solicitudes/rechazar", request);
         }
     }
 }

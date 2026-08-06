@@ -15,6 +15,11 @@ namespace SIGEBI.Application.Interfaces.Service
             int usuarioEjecutorId
         );
 
+        Task<SolicitudResponse> RechazarSolicitudAsync(
+            RechazarSolicitudRequest request,
+            int usuarioEjecutorId
+        );
+
         Task<IEnumerable<PrestamoResponse>> ConsultarHistorialAsync(
             ConsultarHistorialPrestamosRequest request
         );

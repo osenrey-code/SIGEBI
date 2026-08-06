@@ -36,16 +36,9 @@ namespace SIGEBI.Application.UseCase
             string? UsuarioId = null,
             string? EntidadAfectada = null)
         {
-            int? usuarioIdConvertido = null;
-
-            if (!string.IsNullOrWhiteSpace(UsuarioId))
-            {
-                if (int.TryParse(UsuarioId, out int id))
-                    usuarioIdConvertido = id;
-            }
-
+           
             var registros = await _auditoria.ConsultarAsync(
-                usuarioIdConvertido,
+                UsuarioId,
                 null,
                 EntidadAfectada,
                 null,

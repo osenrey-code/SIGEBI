@@ -40,7 +40,7 @@ namespace SIGEBI.Domain.Entities
             if (prestamoId <= 0)
                 throw new BusinessException("El préstamo asociado a la penalización es obligatorio.");
 
-            if (diasRetraso <= 0)
+            if (diasRetraso < 0)
                 throw new BusinessException("Los días de retraso deben ser mayor a cero.");
 
             Guard.GreaterThanD(montoMora, 0, "El monto de mora");

@@ -10,5 +10,7 @@ namespace SIGEBI.AppEscritorio.Dtos.Prestamos
         public DateTime FechaLimite { get; set; }
         public string Estado { get; set; } = string.Empty;
         public bool EstaVencido { get; set; }
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string IdentificacionUsuario { get; set; } = string.Empty;
     }
 }

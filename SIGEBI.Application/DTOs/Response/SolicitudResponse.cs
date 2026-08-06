@@ -11,9 +11,9 @@ namespace SIGEBI.Application.DTOs.Response
         public string IdentificadorEjemplar { get; init; } = string.Empty;
         public DateTime FechaSolicitud { get; init; }
         public string Estado { get; init; } = string.Empty;
-
-
-        // Propiedad opcional: Solo vendrá con datos si la solicitud fue rechazada
         public string? MotivoRechazo { get; init; }
+
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string IdentificacionUsuario { get; set; } = string.Empty;
     }
 }

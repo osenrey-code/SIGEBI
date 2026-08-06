@@ -5,6 +5,8 @@ public class LogAuditoriaResponse
     public int AuditoriaId { get; set; }
 
     public int UsuarioId { get; set; }
+    public string Identificacion { get; set; } = string.Empty;
+    public string NombreCompleto { get; set; } = string.Empty;
 
     public string Accion { get; set; } = string.Empty;
 
@@ -13,4 +15,5 @@ public class LogAuditoriaResponse
     public string Detalle { get; set; } = string.Empty;
 
     public DateTime FechaRegistro { get; set; }
+    
 }

@@ -22,6 +22,7 @@ using SIGEBI.AppEscritorio.Views.Reportes;
 using SIGEBI.AppEscritorio.Views.Shared;
 using SIGEBI.AppEscritorio.Views.Usuario;
 using SIGEBI.AppEscritorio.Views.Auditoria;
+using SIGEBI.AppEscritorio.Views.Penalizacion;
 
 namespace SIGEBI.AppEscritorio.Extensions
 {
@@ -79,6 +80,9 @@ namespace SIGEBI.AppEscritorio.Extensions
             services.AddTransient<PenalizacionForm>();
             services.AddTransient<CategoriaForm>();
             services.AddTransient<AuditoriaForm>();
+            services.AddTransient<DetalleSolicitud>();
+            services.AddTransient<DetallePrestamo>();
+            services.AddTransient<DetallePenalizacion>();
             return services;
 
         }

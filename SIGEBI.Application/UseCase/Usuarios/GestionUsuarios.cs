@@ -84,7 +84,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: usuarioId,
                 Accion: "Registrar Usuario",
                 EntidadAfectada: "Usuarios",
-                detalles: $"Se agregó el usuario {usuario.GetType().Name} con identificación {identificacion}."
+                detalles: $"Se agregó el usuario '{usuario.NombreCompleto}' con identificación '{identificacion}'."
             );
 
             await _db.SaveChangesAsync();
@@ -123,7 +123,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: actorId,
                 Accion: "Actualizar Usuario",
                 EntidadAfectada: "Usuarios",
-                detalles: $"Se actualizó el usuario ({usuario.UsuarioId}). Nombre anterior: '{nombreAnterior}', nuevo nombre: '{usuario.NombreCompleto}'."
+                detalles: $"Se actualizó el usuario '{usuario.NombreCompleto}', nombre anterior: '{nombreAnterior}'."
             );
 
             await _db.SaveChangesAsync();
@@ -173,7 +173,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: actorId,
                 Accion: "Desactivar Usuario",
                 EntidadAfectada: "Usuarios",
-                detalles: $"Se desactivó el usuario con ID #{usuario.UsuarioId}. Motivo: '{motivo}'."
+                detalles: $"Se desactivó el usuario '{usuario.NombreCompleto}'. Motivo: '{motivo}'."
             );
 
             await _db.SaveChangesAsync();
@@ -330,7 +330,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: actorId,
                 Accion: "Activar Usuario",
                 EntidadAfectada: "Usuarios",
-                detalles: $"Se Activo el usuario con id '#{usuario.UsuarioId})'."
+                detalles: $"Se Activo el usuario '{usuario.NombreCompleto}'."
             );
 
             await _db.SaveChangesAsync();
@@ -376,7 +376,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: usuario.UsuarioId,
                 Accion: "Cambio de contraseña",
                 EntidadAfectada: "Usuarios",
-                detalles: $"El usuario con id #{usuario.UsuarioId} cambió su contraseña."
+                detalles: $"El usuario '{usuario.NombreCompleto}' cambió su contraseña."
             );
 
             await _db.SaveChangesAsync();
@@ -419,6 +419,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
             );
 
             var usuario = await _usuarios.ObtenerporIdAsync(usuarioId);
+            var actor = await _usuarios.ObtenerporIdAsync(actorId);
 
             if (usuario is null)
                 throw new BusinessException("El usuario especificado no existe.");
@@ -436,7 +437,7 @@ namespace SIGEBI.Application.UseCase.Usuarios
                 UsuarioId: actorId,
                 Accion: "Restablecer contraseña por Admin",
                 EntidadAfectada: "Usuarios",
-                detalles: $"El administrador con ID #{actorId} restableció la contraseña del usuario con ID #{usuario.UsuarioId}."
+                detalles: $"El administrador '{actor?.NombreCompleto}' restableció la contraseña del usuario '{usuario.NombreCompleto}'."
             );
 
             await _db.SaveChangesAsync();

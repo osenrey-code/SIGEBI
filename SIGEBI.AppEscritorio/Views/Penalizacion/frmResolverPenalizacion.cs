@@ -49,14 +49,19 @@ namespace SIGEBI.AppEscritorio.Views.Penalizaciones
         private void CargarDatos()
         {
             lblTitulo.Text = $"✅ Resolver Penalización #{_penalizacion.PenalizacionId}";
-            lblDetalle.Text = $"Lector: {_penalizacion.IdentificacionUsuario}  |  Préstamo ID: {_penalizacion.PrestamoId}  |  Mora: RD$ {_penalizacion.MontoMora:N2}";
+
+            string lector = !string.IsNullOrWhiteSpace(_penalizacion.NombreUsuario)
+                ? _penalizacion.NombreUsuario
+                : _penalizacion.IdentificacionUsuario;
+
+            lblDetalle.Text = $"Lector: {lector} ({_penalizacion.IdentificacionUsuario})  |  Préstamo ID: #{_penalizacion.PrestamoId}  |  Mora: RD$ {_penalizacion.MontoMora:N2}";
         }
 
         private async void btnConfirmar_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtMotivoResolucion.Text))
             {
-                MessageBox.Show("Por favor, ingrese el motivo de la resolución (ejemplo: 'Mora saldada en caja').", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Por favor, ingrese el motivo de la resolución (ejemplo: 'Mora saldada en caja con recibo #1024').", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtMotivoResolucion.Focus();
                 return;
             }

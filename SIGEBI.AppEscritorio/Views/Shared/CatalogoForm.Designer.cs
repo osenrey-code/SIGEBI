@@ -20,8 +20,6 @@
             this.dgvCatalogo = new System.Windows.Forms.DataGridView();
             this.pnlBotones = new System.Windows.Forms.Panel();
             this.btnRecargar = new System.Windows.Forms.Button();
-            this.btnEliminar = new System.Windows.Forms.Button();
-            this.btnEditar = new System.Windows.Forms.Button();
             this.btnNuevo = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvCatalogo)).BeginInit();
             this.pnlBotones.SuspendLayout();
@@ -44,8 +42,6 @@
             // pnlBotones
             // 
             this.pnlBotones.Controls.Add(this.btnRecargar);
-            this.pnlBotones.Controls.Add(this.btnEliminar);
-            this.pnlBotones.Controls.Add(this.btnEditar);
             this.pnlBotones.Controls.Add(this.btnNuevo);
             this.pnlBotones.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlBotones.Location = new System.Drawing.Point(15, 15);
@@ -60,39 +56,17 @@
             this.btnRecargar.Location = new System.Drawing.Point(735, 11);
             this.btnRecargar.Name = "btnRecargar";
             this.btnRecargar.Size = new System.Drawing.Size(120, 38);
-            this.btnRecargar.TabIndex = 3;
+            this.btnRecargar.TabIndex = 1;
             this.btnRecargar.Text = "🔄 Refrescar";
             this.btnRecargar.UseVisualStyleBackColor = true;
             this.btnRecargar.Click += new System.EventHandler(this.btnRecargar_Click);
-            // 
-            // btnEliminar
-            // 
-            this.btnEliminar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnEliminar.Location = new System.Drawing.Point(300, 11);
-            this.btnEliminar.Name = "btnEliminar";
-            this.btnEliminar.Size = new System.Drawing.Size(110, 38);
-            this.btnEliminar.TabIndex = 2;
-            this.btnEliminar.Text = "🗑️ Eliminar";
-            this.btnEliminar.UseVisualStyleBackColor = true;
-            this.btnEliminar.Click += new System.EventHandler(this.btnEliminar_Click);
-            // 
-            // btnEditar
-            // 
-            this.btnEditar.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnEditar.Location = new System.Drawing.Point(180, 11);
-            this.btnEditar.Name = "btnEditar";
-            this.btnEditar.Size = new System.Drawing.Size(110, 38);
-            this.btnEditar.TabIndex = 1;
-            this.btnEditar.Text = "✏️ Editar";
-            this.btnEditar.UseVisualStyleBackColor = true;
-            this.btnEditar.Click += new System.EventHandler(this.btnEditar_Click);
             // 
             // btnNuevo
             // 
             this.btnNuevo.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnNuevo.Location = new System.Drawing.Point(15, 11);
             this.btnNuevo.Name = "btnNuevo";
-            this.btnNuevo.Size = new System.Drawing.Size(155, 38);
+            this.btnNuevo.Size = new System.Drawing.Size(160, 38);
             this.btnNuevo.TabIndex = 0;
             this.btnNuevo.Text = "➕ Nuevo Recurso";
             this.btnNuevo.UseVisualStyleBackColor = true;
@@ -121,8 +95,6 @@
         private System.Windows.Forms.DataGridView dgvCatalogo;
         private System.Windows.Forms.Panel pnlBotones;
         private System.Windows.Forms.Button btnNuevo;
-        private System.Windows.Forms.Button btnEditar;
-        private System.Windows.Forms.Button btnEliminar;
         private System.Windows.Forms.Button btnRecargar;
     }
 }

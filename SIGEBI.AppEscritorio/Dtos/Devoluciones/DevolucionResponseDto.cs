@@ -11,5 +11,8 @@ namespace SIGEBI.AppEscritorio.Dtos.Devoluciones
         public bool PenalizacionGenerada { get; set; }
         public decimal MontoPenalizacion { get; set; }
         public string Mensaje { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string IdentificacionUsuario { get; set; } = string.Empty;
+        public string Observacion { get; set; } = string.Empty;
     }
 }

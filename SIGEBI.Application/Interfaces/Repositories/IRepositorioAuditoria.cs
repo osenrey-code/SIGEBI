@@ -9,7 +9,7 @@ namespace SIGEBI.Application.Interfaces.Repositories
         Task<IEnumerable<Auditoria>> ObtenerPorEntidadAsync(string entidad);
 
         Task<IEnumerable<Auditoria>> ConsultarAsync(
-            int? usuarioId,
+            string? identificacion,
             string? accion,
             string? entidadAfectada,
             DateTime? fechaInicio,

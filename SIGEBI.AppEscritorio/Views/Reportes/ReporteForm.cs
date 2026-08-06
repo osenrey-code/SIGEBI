@@ -10,8 +10,9 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
     {
         private readonly IReporteService _reporteService;
         private string _pestanaActiva = "Inventario";
+        public Action? OnSolicitarIrACatalogo;
+        public Action? OnSolicitarIrAPrestamos;
 
-        // 🛠️ Función Win32 para desactivar el tema nativo en los DateTimePickers y permitir fondo oscuro
         [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
         private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
 
@@ -26,8 +27,6 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
         private async void ReporteForm_Load(object sender, EventArgs e)
         {
             ValidarPermisosPorRol();
-
-            // Rango de fechas por defecto (último mes)
             dtpInicio.Value = DateTime.Now.AddDays(-30);
             dtpFin.Value = DateTime.Now;
 
@@ -67,7 +66,7 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
             pnlKpis.BackColor = fondoDark;
             pnlContenedorGrid.BackColor = fondoPanel;
 
-            // 📅 1. Configuración de DateTimePickers en tono oscuro con texto blanco
+            //  1. Configuración de DateTimePickers en tono oscuro con texto blanco
             ConfigurarDateTimePickerOscuro(dtpInicio, fondoDark, Color.White);
             ConfigurarDateTimePickerOscuro(dtpFin, fondoDark, Color.White);
 
@@ -86,7 +85,7 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
             btnExportarPdf.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
             btnExportarPdf.Cursor = Cursors.Hand;
 
-            // 📊 2. Formateo de DataGridView (Sin resaltado azul en Encabezados)
+            // 2. Formateo de DataGridView (Sin resaltado azul en Encabezados)
             dgvDatos.AutoGenerateColumns = false;
             dgvDatos.BackgroundColor = fondoPanel;
             dgvDatos.BorderStyle = BorderStyle.None;
@@ -121,6 +120,50 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
             EstilarBotonTab(btnTabPrestamos);
             EstilarBotonTab(btnTabPenalizaciones);
             EstilarBotonTab(btnTabCatalogo);
+
+            pnlKpi1.Cursor = Cursors.Hand;
+            lblKpi1Title.Cursor = Cursors.Hand;
+            lblKpi1Val.Cursor = Cursors.Hand;
+
+            pnlKpi1.Click += TarjetaKpi1_Click;
+            lblKpi1Title.Click += TarjetaKpi1_Click;
+            lblKpi1Val.Click += TarjetaKpi1_Click;
+
+            string rolActual = UserSession.Instancia.TipoUsuario ?? string.Empty;
+            bool esAuditor = rolActual.Equals("Auditor", StringComparison.OrdinalIgnoreCase);
+
+            if (!esAuditor)
+            {
+                pnlKpi4.Cursor = Cursors.Hand;
+                lblKpi4Title.Cursor = Cursors.Hand;
+                lblKpi4Val.Cursor = Cursors.Hand;
+
+                pnlKpi4.Click += TarjetaKpi4_Click;
+                lblKpi4Title.Click += TarjetaKpi4_Click;
+                lblKpi4Val.Click += TarjetaKpi4_Click;
+            }
+            else
+            {
+                pnlKpi4.Cursor = Cursors.Default;
+                lblKpi4Title.Cursor = Cursors.Default;
+                lblKpi4Val.Cursor = Cursors.Default;
+            }
+        }
+
+        private void TarjetaKpi1_Click(object? sender, EventArgs e)
+        {
+            if (_pestanaActiva == "Inventario")
+            {
+                OnSolicitarIrACatalogo?.Invoke();
+            }
+        }
+
+        private void TarjetaKpi4_Click(object? sender, EventArgs e)
+        {
+            if (_pestanaActiva == "Inventario")
+            {
+                OnSolicitarIrAPrestamos?.Invoke();
+            }
         }
 
         private void ConfigurarDateTimePickerOscuro(DateTimePicker dtp, Color fondoDark, Color textoClaro)
@@ -292,7 +335,8 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
         private void ConfigurarGridInventario()
         {
             dgvDatos.Columns.Clear();
-            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "RecursoBibliograficoId", HeaderText = "ID", Width = 65, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "RecursoBibliograficoId", HeaderText = "ID", Visible = false });
+
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ISBN", HeaderText = "ISBN", Width = 130, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Titulo", HeaderText = "Título", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Categoria", HeaderText = "Categoría", Width = 140 });

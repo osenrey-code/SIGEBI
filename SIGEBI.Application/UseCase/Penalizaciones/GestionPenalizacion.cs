@@ -55,8 +55,6 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
 
             if (!esPersonalAutorizado)
             {
-                // Si es un Estudiante o Docente, solo puede ver sus propias penalizaciones.
-                // Forzamos el request.UsuarioId al ID del usuario logueado, ignorando cualquier otra cosa.
                 request.UsuarioId = usuarioId;
             }
 
@@ -158,7 +156,7 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
 
             await _notificaciones.EnviarNotificacionAsync(
                 penalizacion.UsuarioId,
-                $"Tu penalización #{penalizacion.PenalizacionId} fue marcada como resuelta.",
+                $"Tu penalización fue marcada como resuelta.",
                 TipoNotificacion.PenalizacionResuelta
             );
 
@@ -166,40 +164,14 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
                 UsuarioId: usuarioId,
                 Accion: "Resolver Penalización",
                 EntidadAfectada: "Penalizaciones",
-                detalles: $"Se resolvió la penalización ID {penalizacion.PenalizacionId} del usuario ID {penalizacion.UsuarioId}. Motivo: {motivoResolucion}."
+                detalles: $"Se resolvió la penalización del usuario {penalizacion.Usuario?.NombreCompleto}" +
+                $"Motivo: {motivoResolucion}."
             );
 
             await _db.SaveChangesAsync();
             return MapearPenalizacion(
                 penalizacion
             );
-        }
-
-        private async Task<Usuario> ValidarUsuarioAutorizadoParaConsultaAsync(
-            int usuarioId,
-            string mensajeNoAutorizado)
-        {
-            if (usuarioId <= 0)
-                throw new BusinessException("El usuario ejecutor es obligatorio.");
-
-            var usuarioEjecutor = await _usuarios.ObtenerporIdAsync(
-                usuarioId
-            );
-
-            if (usuarioEjecutor is null)
-                throw new BusinessException("El usuario ejecutor no existe.");
-
-            if (usuarioEjecutor.Estado != EstadoUsuario.Activo)
-                throw new BusinessException("El usuario ejecutor no está activo.");
-
-            if (usuarioEjecutor is not Bibliotecario &&
-                usuarioEjecutor is not Administrador &&
-                usuarioEjecutor is not Auditor)
-            {
-                throw new BusinessException(mensajeNoAutorizado);
-            }
-
-            return usuarioEjecutor;
         }
 
         private async Task<Usuario> ValidarUsuarioAutorizadoParaResolverAsync(
@@ -238,7 +210,8 @@ namespace SIGEBI.Application.UseCase.Penalizaciones
             {
                 PenalizacionId = penalizacion.PenalizacionId,
                 UsuarioId = penalizacion.UsuarioId,
-                IdentificacionUsuario = identificacionLector,   
+                IdentificacionUsuario = identificacionLector,
+                NombreUsuario = penalizacion.Usuario?.NombreCompleto ?? "Usuario Desconocido",
                 PrestamoId = penalizacion.PrestamoId,
                 DiasRetraso = penalizacion.DiasRetraso,
                 MontoMora = penalizacion.MontoMora,

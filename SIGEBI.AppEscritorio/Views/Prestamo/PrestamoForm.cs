@@ -1,12 +1,9 @@
-﻿using SIGEBI.AppEscritorio.Dtos.Prestamos;
-using SIGEBI.AppEscritorio.Services.Devolucion; 
+﻿using Microsoft.Extensions.DependencyInjection;
+using SIGEBI.AppEscritorio.Dtos.Prestamos;
+using SIGEBI.AppEscritorio.Services.Devolucion;
 using SIGEBI.AppEscritorio.Services.Prestamo;
-using SIGEBI.AppEscritorio.Session; 
-using SIGEBI.AppEscritorio.Views.Devolucion; 
-using System;
-using System.Drawing;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using SIGEBI.AppEscritorio.Session;
+using SIGEBI.AppEscritorio.Views.Shared;
 
 namespace SIGEBI.AppEscritorio.Views.Prestamo
 {
@@ -14,6 +11,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
     {
         private readonly IPrestamoService _prestamoService;
         private readonly IDevolucionService _devolucionService;
+        private readonly IServiceProvider _serviceProvider;
 
         // Barra de Navegación Superior (Tabs Personalizados)
         private Panel pnlNavegacion = null!;
@@ -28,14 +26,10 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
         // Vista 1: Solicitudes
         private Panel pnlVistaSolicitudes = null!;
         private DataGridView dgvSolicitudes = null!;
-        private Button btnAprobar = null!;
-        private SolicitudDto? _solicitudSeleccionada;
 
-        // Vista 2: Activos (Con Botón de Registrar Devolución)
+        // Vista 2: Activos
         private Panel pnlVistaActivos = null!;
         private DataGridView dgvActivos = null!;
-        private Button btnRegistrarDevolucion = null!;
-        private PrestamoDto? _prestamoActivoSeleccionado;
 
         // Vista 3: Historial
         private Panel pnlVistaHistorial = null!;
@@ -43,11 +37,15 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
 
         private string _pestanaActiva = "Solicitudes";
 
-        public PrestamoForm(IPrestamoService prestamoService, IDevolucionService devolucionService)
+        public PrestamoForm(
+            IPrestamoService prestamoService,
+            IDevolucionService devolucionService,
+            IServiceProvider serviceProvider)
         {
             InitializeComponent();
             _prestamoService = prestamoService;
             _devolucionService = devolucionService;
+            _serviceProvider = serviceProvider;
             ConfigurarDiseñoProfesional();
         }
 
@@ -60,7 +58,6 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
         {
             string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
 
-            // 🔒 1. Caso Auditor: Solo consulta el Historial General
             if (rol == "Auditor")
             {
                 btnTabSolicitudes.Visible = false;
@@ -69,7 +66,6 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
                 btnTabHistorial.Location = new Point(0, 0);
                 _pestanaActiva = "Historial";
             }
-            // 🔒 2. Caso Administrador: Consulta Préstamos Activos e Historial (no aprueba solicitudes)
             else if (rol == "Administrador")
             {
                 btnTabSolicitudes.Visible = false;
@@ -82,12 +78,11 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
 
         private void ConfigurarDiseñoProfesional()
         {
-            this.BackColor = Color.FromArgb(15, 23, 42); // Fondo general Dark Slate
+            this.BackColor = Color.FromArgb(15, 23, 42);
             this.Dock = DockStyle.Fill;
             this.FormBorderStyle = FormBorderStyle.None;
             this.Padding = new Padding(15);
 
-            // 1. Barra de Pestañas (Reemplazo del TabControl)
             pnlNavegacion = new Panel
             {
                 Dock = DockStyle.Top,
@@ -99,17 +94,22 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             btnTabActivos = CrearBotonPestaña("📚 Préstamos Activos", 205);
             btnTabHistorial = CrearBotonPestaña("📜 Historial General", 390);
 
-            btnTabSolicitudes.Click += (s, e) => SeleccionarPestana("Solicitudes");
-            btnTabActivos.Click += (s, e) => SeleccionarPestana("Activos");
-            btnTabHistorial.Click += (s, e) => SeleccionarPestana("Historial");
+            btnTabSolicitudes.Click += async (s, e) => await SeleccionarPestanaAsync("Solicitudes");
+            btnTabActivos.Click += async (s, e) => await SeleccionarPestanaAsync("Activos");
+            btnTabHistorial.Click += async (s, e) => await SeleccionarPestanaAsync("Historial");
 
-            // 🔄 Botón de Refrescar alineado a la derecha
+            var pnlDerechoRefrescar = new Panel
+            {
+                Dock = DockStyle.Right,
+                Width = 580,
+                BackColor = Color.Transparent
+            };
+
             btnRefrescar = new Button
             {
                 Text = "🔄  Refrescar",
                 Size = new Size(130, 38),
-                Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                Location = new Point(pnlNavegacion.Width - 130, 3),
+                Location = new Point(5, 0),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
@@ -119,12 +119,13 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             btnRefrescar.FlatAppearance.BorderSize = 0;
             btnRefrescar.Click += async (s, e) => await CargarDatosPestanaActualAsync();
 
+            pnlDerechoRefrescar.Controls.Add(btnRefrescar);
+
             pnlNavegacion.Controls.Add(btnTabSolicitudes);
             pnlNavegacion.Controls.Add(btnTabActivos);
             pnlNavegacion.Controls.Add(btnTabHistorial);
-            pnlNavegacion.Controls.Add(btnRefrescar);
+            pnlNavegacion.Controls.Add(pnlDerechoRefrescar);
 
-            // 2. Contenedor Dinámico para las Tablas
             pnlContenedor = new Panel
             {
                 Dock = DockStyle.Fill,
@@ -138,11 +139,25 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             this.Controls.Add(pnlContenedor);
             this.Controls.Add(pnlNavegacion);
 
-            // 3. Aplicar filtro de permisos por rol antes de cargar la pestaña
             ValidarPermisosPorRol();
+            EstablecerEstadoPestanaVisual(_pestanaActiva);
 
-            // Cargar la pestaña activa según el rol
-            SeleccionarPestana(_pestanaActiva);
+            var pnlBottom = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                BackColor = Color.FromArgb(30, 41, 59)
+            };
+            var lblHint = new Label
+            {
+                Text = "💡 Tip: Haz doble clic sobre un registro para gestionarlo.",
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Italic),
+                AutoSize = true,
+                Location = new Point(15, 11)
+            };
+            pnlBottom.Controls.Add(lblHint);
+            pnlContenedor.Controls.Add(pnlBottom);
         }
 
         private Button CrearBotonPestaña(string texto, int posicionX)
@@ -161,21 +176,25 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             return btn;
         }
 
-        private void SeleccionarPestana(string nombrePestana)
+        private async Task SeleccionarPestanaAsync(string nombrePestana)
+        {
+            if (_pestanaActiva == nombrePestana) return;
+
+            EstablecerEstadoPestanaVisual(nombrePestana);
+            await CargarDatosPestanaActualAsync();
+        }
+
+        private void EstablecerEstadoPestanaVisual(string nombrePestana)
         {
             _pestanaActiva = nombrePestana;
 
-            // Actualizar colores visuales de los botones
             EstilarBotonPestaña(btnTabSolicitudes, nombrePestana == "Solicitudes");
             EstilarBotonPestaña(btnTabActivos, nombrePestana == "Activos");
             EstilarBotonPestaña(btnTabHistorial, nombrePestana == "Historial");
 
-            // Alternar visibilidad de paneles sin parpadeo
             pnlVistaSolicitudes.Visible = (nombrePestana == "Solicitudes");
             pnlVistaActivos.Visible = (nombrePestana == "Activos");
             pnlVistaHistorial.Visible = (nombrePestana == "Historial");
-
-            _ = CargarDatosPestanaActualAsync();
         }
 
         private void EstilarBotonPestaña(Button btn, bool activo)
@@ -184,120 +203,170 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             btn.ForeColor = activo ? Color.White : Color.FromArgb(148, 163, 184);
         }
 
-        #region Construcción de Vistas Profesionales
+        #region Construcción de Vistas
 
         private void ConstruirVistaSolicitudes()
         {
-            pnlVistaSolicitudes = new Panel { Dock = DockStyle.Fill, Visible = false };
-
-            // Panel superior de acciones
-            var pnlAcciones = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 60,
-                BackColor = Color.FromArgb(30, 41, 59),
-                Padding = new Padding(15, 10, 15, 10)
-            };
-
-            btnAprobar = new Button
-            {
-                Text = "✅  Aprobar Solicitud",
-                BackColor = Color.FromArgb(22, 163, 74), // Verde esmeralda
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-                Size = new Size(180, 38),
-                Location = new Point(15, 10),
-                Cursor = Cursors.Hand,
-                Enabled = false
-            };
-            btnAprobar.FlatAppearance.BorderSize = 0;
-            btnAprobar.Click += BtnAprobar_Click;
-            pnlAcciones.Controls.Add(btnAprobar);
+            pnlVistaSolicitudes = new Panel { Dock = DockStyle.Fill, Visible = false, Padding = new Padding(15) };
 
             dgvSolicitudes = CrearDataGridView();
             ConfigurarColumnasSolicitudes();
 
-            dgvSolicitudes.SelectionChanged += (s, e) =>
-            {
-                _solicitudSeleccionada = dgvSolicitudes.SelectedRows.Count > 0
-                    ? dgvSolicitudes.SelectedRows[0].DataBoundItem as SolicitudDto
-                    : null;
-                btnAprobar.Enabled = _solicitudSeleccionada != null;
-            };
+            dgvSolicitudes.CellDoubleClick += DgvSolicitudes_CellDoubleClick;
 
-            var pnlWrapper = new Panel { Dock = DockStyle.Fill, Padding = new Padding(15) };
-            pnlWrapper.Controls.Add(dgvSolicitudes);
-
-            pnlVistaSolicitudes.Controls.Add(pnlWrapper);
-            pnlVistaSolicitudes.Controls.Add(pnlAcciones);
+            pnlVistaSolicitudes.Controls.Add(dgvSolicitudes);
             pnlContenedor.Controls.Add(pnlVistaSolicitudes);
+        }
+
+        private void DgvSolicitudes_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvSolicitudes.Rows[e.RowIndex].DataBoundItem is SolicitudDto solicitud)
+            {
+                AbrirModalSolicitud(solicitud);
+            }
+        }
+
+        private void AbrirModalSolicitud(SolicitudDto? solicitud)
+        {
+            if (solicitud == null) return;
+
+            var modal = _serviceProvider.GetRequiredService<DetalleSolicitud>();
+            modal.CargarSolicitud(solicitud);
+
+            if (modal.ShowDialog() == DialogResult.OK)
+            {
+                _ = CargarDatosPestanaActualAsync();
+            }
         }
 
         private void ConstruirVistaActivos()
         {
-            pnlVistaActivos = new Panel { Dock = DockStyle.Fill, Visible = false };
+            pnlVistaActivos = new Panel { Dock = DockStyle.Fill, Visible = false, Padding = new Padding(15) };
 
-            string rol = UserSession.Instancia.TipoUsuario ?? string.Empty;
-            bool esBibliotecario = (rol == "Bibliotecario" || rol == "PersonalBibliotecario");
-
-            // Panel superior de acciones para Registrar Devolución
-            var pnlAccionesActivos = new Panel
+            var pnlFiltrosActivos = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 60,
-                BackColor = Color.FromArgb(30, 41, 59),
-                Padding = new Padding(15, 10, 15, 10),
-                Visible = esBibliotecario 
+                Height = 45,
+                BackColor = Color.FromArgb(30, 41, 59)
             };
 
-            btnRegistrarDevolucion = new Button
+            var lblFiltroId = new Label
             {
-                Text = "↩️  Registrar Devolución",
-                BackColor = Color.FromArgb(37, 99, 235), // Azul primario
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-                Size = new Size(200, 38),
-                Location = new Point(15, 10),
-                Cursor = Cursors.Hand,
-                Enabled = false
+                Text = "Identificación:",
+                Location = new Point(0, 12),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(148, 163, 184)
             };
-            btnRegistrarDevolucion.FlatAppearance.BorderSize = 0;
-            btnRegistrarDevolucion.Click += BtnRegistrarDevolucion_Click;
-            pnlAccionesActivos.Controls.Add(btnRegistrarDevolucion);
+
+            var txtFiltroId = new TextBox
+            {
+                Name = "txtFiltroIdentificacionActivos",
+                Location = new Point(95, 9),
+                Size = new Size(110, 23),
+                BackColor = Color.FromArgb(15, 23, 42),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            txtFiltroId.TextChanged += TxtFiltroIdActivos_TextChanged;
+
+            pnlFiltrosActivos.Controls.Add(lblFiltroId);
+            pnlFiltrosActivos.Controls.Add(txtFiltroId);
 
             dgvActivos = CrearDataGridView();
             ConfigurarColumnasPrestamos(dgvActivos);
 
-            dgvActivos.SelectionChanged += (s, e) =>
-            {
-                _prestamoActivoSeleccionado = dgvActivos.SelectedRows.Count > 0
-                    ? dgvActivos.SelectedRows[0].DataBoundItem as PrestamoDto
-                    : null;
-                btnRegistrarDevolucion.Enabled = _prestamoActivoSeleccionado != null;
-            };
+            dgvActivos.CellDoubleClick += DgvActivos_CellDoubleClick;
 
-            var pnlWrapper = new Panel { Dock = DockStyle.Fill, Padding = new Padding(15) };
-            pnlWrapper.Controls.Add(dgvActivos);
-
-            pnlVistaActivos.Controls.Add(pnlWrapper);
-            pnlVistaActivos.Controls.Add(pnlAccionesActivos);
+            pnlVistaActivos.Controls.Add(dgvActivos);
+            pnlVistaActivos.Controls.Add(pnlFiltrosActivos);
             pnlContenedor.Controls.Add(pnlVistaActivos);
+        }
+
+        private void DgvActivos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvActivos.Rows[e.RowIndex].DataBoundItem is PrestamoDto prestamo)
+            {
+                AbrirModalPrestamo(prestamo, esSoloLectura: false);
+            }
         }
 
         private void ConstruirVistaHistorial()
         {
             pnlVistaHistorial = new Panel { Dock = DockStyle.Fill, Visible = false, Padding = new Padding(15) };
+
+            var pnlFiltrosHistorial = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 45,
+                BackColor = Color.FromArgb(30, 41, 59)
+            };
+
+            var lblFiltroIdHistorial = new Label
+            {
+                Text = "Identificación:",
+                Location = new Point(0, 12),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(148, 163, 184)
+            };
+
+            var txtFiltroIdHistorial = new TextBox
+            {
+                Name = "txtFiltroIdentificacionHistorial",
+                Location = new Point(95, 9),
+                Size = new Size(110, 23),
+                BackColor = Color.FromArgb(15, 23, 42),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            txtFiltroIdHistorial.TextChanged += TxtFiltroIdHistorial_TextChanged;
+
+            pnlFiltrosHistorial.Controls.Add(lblFiltroIdHistorial);
+            pnlFiltrosHistorial.Controls.Add(txtFiltroIdHistorial);
+
             dgvHistorial = CrearDataGridView();
             ConfigurarColumnasPrestamos(dgvHistorial);
+
+            dgvHistorial.CellDoubleClick += DgvHistorial_CellDoubleClick;
+
             pnlVistaHistorial.Controls.Add(dgvHistorial);
+            pnlVistaHistorial.Controls.Add(pnlFiltrosHistorial);
             pnlContenedor.Controls.Add(pnlVistaHistorial);
+        }
+
+        private void DgvHistorial_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvHistorial.Rows[e.RowIndex].DataBoundItem is PrestamoDto prestamo)
+            {
+                AbrirModalPrestamo(prestamo, esSoloLectura: true);
+            }
+        }
+
+        private void AbrirModalPrestamo(PrestamoDto? prestamo, bool esSoloLectura = false)
+        {
+            if (prestamo == null) return;
+
+            var modal = _serviceProvider.GetRequiredService<DetallePrestamo>();
+            modal.CargarPrestamo(prestamo, esSoloLectura);
+
+            if (modal.ShowDialog() == DialogResult.OK)
+            {
+                _ = CargarDatosPestanaActualAsync();
+            }
         }
 
         #endregion
 
-        #region Formateo del DataGridView
+        #region Formateo y Estilo de DataGridView
 
         private DataGridView CrearDataGridView()
         {
@@ -318,7 +387,6 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
                 GridColor = Color.FromArgb(51, 65, 85)
             };
 
-            // Estilo del encabezado de la tabla
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(15, 23, 42);
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(148, 163, 184);
@@ -326,7 +394,6 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(15, 23, 42);
             dgv.ColumnHeadersHeight = 42;
 
-            // Estilo de las celdas y filas
             dgv.DefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
             dgv.DefaultCellStyle.ForeColor = Color.White;
             dgv.DefaultCellStyle.Font = new Font("Segoe UI", 9.5f);
@@ -338,20 +405,40 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             dgv.AlternatingRowsDefaultCellStyle.ForeColor = Color.White;
             dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = Color.FromArgb(37, 99, 235);
 
+            dgv.CellFormatting += Dgv_CellFormatting;
+
             return dgv;
+        }
+
+        private void Dgv_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (sender is DataGridView dgv && dgv.Columns[e.ColumnIndex].DataPropertyName == "Estado" && e.Value != null)
+            {
+                string estado = e.Value.ToString()?.ToUpperInvariant() ?? string.Empty;
+                switch (estado)
+                {
+                    case "PENDIENTE":
+                        e.CellStyle.ForeColor = Color.FromArgb(251, 191, 36);
+                        break;
+                    case "APROBADO":
+                    case "ACTIVO":
+                        e.CellStyle.ForeColor = Color.FromArgb(74, 222, 128);
+                        break;
+                    case "RECHAZADO":
+                    case "VENCIDO":
+                        e.CellStyle.ForeColor = Color.FromArgb(248, 113, 113);
+                        break;
+                    case "DEVUELTO":
+                    case "FINALIZADO":
+                        e.CellStyle.ForeColor = Color.FromArgb(148, 163, 184);
+                        break;
+                }
+            }
         }
 
         private void ConfigurarColumnasSolicitudes()
         {
             dgvSolicitudes.Columns.Clear();
-
-            dgvSolicitudes.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = "SolicitudId",
-                HeaderText = "ID",
-                Width = 70,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
-            });
 
             dgvSolicitudes.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -365,7 +452,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             {
                 DataPropertyName = "IdentificadorEjemplar",
                 HeaderText = "Ejemplar ID",
-                Width = 140,
+                Width = 160,
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
             });
 
@@ -381,7 +468,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             {
                 DataPropertyName = "Estado",
                 HeaderText = "Estado",
-                Width = 120,
+                Width = 130,
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) }
             });
 
@@ -389,21 +476,13 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             {
                 DataPropertyName = "MotivoRechazo",
                 HeaderText = "Motivo Rechazo",
-                Width = 180
+                Width = 200
             });
         }
 
         private void ConfigurarColumnasPrestamos(DataGridView dgv)
         {
             dgv.Columns.Clear();
-
-            dgv.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = "PrestamoId",
-                HeaderText = "ID",
-                Width = 70,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
-            });
 
             dgv.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -417,7 +496,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             {
                 DataPropertyName = "IdentificadorEjemplar",
                 HeaderText = "Ejemplar ID",
-                Width = 130,
+                Width = 160,
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
             });
 
@@ -425,7 +504,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             {
                 DataPropertyName = "FechaInicio",
                 HeaderText = "Fecha Inicio",
-                Width = 130,
+                Width = 140,
                 DefaultCellStyle = { Format = "dd/MM/yyyy", Alignment = DataGridViewContentAlignment.MiddleCenter }
             });
 
@@ -433,7 +512,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             {
                 DataPropertyName = "FechaLimite",
                 HeaderText = "Fecha Límite",
-                Width = 130,
+                Width = 140,
                 DefaultCellStyle = { Format = "dd/MM/yyyy", Alignment = DataGridViewContentAlignment.MiddleCenter }
             });
 
@@ -441,7 +520,7 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             {
                 DataPropertyName = "Estado",
                 HeaderText = "Estado",
-                Width = 110,
+                Width = 130,
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) }
             });
         }
@@ -458,16 +537,15 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
                 {
                     var lista = await _prestamoService.ConsultarSolicitudesPendientesAsync();
                     dgvSolicitudes.DataSource = lista;
+                    dgvSolicitudes.ClearSelection();
                 }
                 else if (_pestanaActiva == "Activos")
                 {
-                    var lista = await _prestamoService.ConsultarActivosAsync(new ConsultarPrestamosActivosRequest());
-                    dgvActivos.DataSource = lista;
+                    await CargarPrestamosActivosAsync();
                 }
                 else if (_pestanaActiva == "Historial")
                 {
-                    var lista = await _prestamoService.ConsultarHistorialAsync(new ConsultarHistorialPrestamosRequest());
-                    dgvHistorial.DataSource = lista;
+                    await CargarHistorialGeneralAsync();
                 }
             }
             catch (Exception ex)
@@ -480,55 +558,78 @@ namespace SIGEBI.AppEscritorio.Views.Prestamo
             }
         }
 
-        private async void BtnAprobar_Click(object? sender, EventArgs e)
+        public async void IrAPrestamosActivos()
         {
-            if (_solicitudSeleccionada == null) return;
+            await SeleccionarPestanaAsync("Activos");
+        }
 
-            var confirm = MessageBox.Show(
-                $"¿Está seguro de aprobar la solicitud para el libro '{_solicitudSeleccionada.TituloRecurso}'?\nEsto generará el préstamo oficialmente.",
-                "Confirmar Aprobación",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            if (confirm == DialogResult.Yes)
+        private async void TxtFiltroIdActivos_TextChanged(object? sender, EventArgs e)
+        {
+            if (_pestanaActiva == "Activos")
             {
-                try
-                {
-                    this.Cursor = Cursors.WaitCursor;
-
-                    var request = new AprobarSolicitudRequest { SolicitudId = _solicitudSeleccionada.SolicitudId };
-                    await _prestamoService.AprobarSolicitudAsync(request);
-
-                    MessageBox.Show("Solicitud aprobada y préstamo generado con éxito.", "Operación Exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    await CargarDatosPestanaActualAsync();
-                    btnAprobar.Enabled = false;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ocurrió un error al aprobar la solicitud: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                finally
-                {
-                    this.Cursor = Cursors.Default;
-                }
+                await CargarPrestamosActivosAsync();
             }
         }
 
-        // 🚀 Evento para abrir el modal de Devolución tomando los datos de la fila seleccionada
-        private async void BtnRegistrarDevolucion_Click(object? sender, EventArgs e)
+        private async void TxtFiltroIdHistorial_TextChanged(object? sender, EventArgs e)
         {
-            if (_prestamoActivoSeleccionado == null) return;
-
-            using (var frmModal = new RegistrarDevolucion(
-                _devolucionService,
-                _prestamoActivoSeleccionado.PrestamoId,
-                _prestamoActivoSeleccionado.TituloRecurso))
+            if (_pestanaActiva == "Historial")
             {
-                if (frmModal.ShowDialog() == DialogResult.OK)
+                await CargarHistorialGeneralAsync();
+            }
+        }
+
+        private async Task CargarPrestamosActivosAsync()
+        {
+            try
+            {
+                string? identificacionFiltro = null;
+
+                var txtFiltro = pnlVistaActivos.Controls.Find("txtFiltroIdentificacionActivos", true).FirstOrDefault() as TextBox;
+                if (txtFiltro != null && !string.IsNullOrWhiteSpace(txtFiltro.Text))
                 {
-                    await CargarDatosPestanaActualAsync();
+                    identificacionFiltro = txtFiltro.Text.Trim();
                 }
+
+                var request = new ConsultarPrestamosActivosRequest
+                {
+                    Identificacion = identificacionFiltro
+                };
+
+                var lista = await _prestamoService.ConsultarActivosAsync(request);
+                dgvActivos.DataSource = lista;
+                dgvActivos.ClearSelection();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al filtrar préstamos activos: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task CargarHistorialGeneralAsync()
+        {
+            try
+            {
+                string? identificacionFiltro = null;
+
+                var txtFiltro = pnlVistaHistorial.Controls.Find("txtFiltroIdentificacionHistorial", true).FirstOrDefault() as TextBox;
+                if (txtFiltro != null && !string.IsNullOrWhiteSpace(txtFiltro.Text))
+                {
+                    identificacionFiltro = txtFiltro.Text.Trim();
+                }
+
+                var request = new ConsultarHistorialPrestamosRequest
+                {
+                    Identificacion = identificacionFiltro
+                };
+
+                var lista = await _prestamoService.ConsultarHistorialAsync(request);
+                dgvHistorial.DataSource = lista;
+                dgvHistorial.ClearSelection();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al filtrar historial general: {ex.Message}", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

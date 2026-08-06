@@ -8,6 +8,7 @@ namespace SIGEBI.AppEscritorio.Services.Prestamo
         Task<List<SolicitudDto>> ConsultarSolicitudesPendientesAsync();
         Task<SolicitudDto?> ObtenerDetalleSolicitudAsync(int id);
         Task AprobarSolicitudAsync(AprobarSolicitudRequest request);
+        Task RechazarSolicitudAsync(RechazarSolicitudRequest request);
         Task<List<PrestamoDto>> ConsultarActivosAsync(ConsultarPrestamosActivosRequest request);
         Task<List<PrestamoDto>> ConsultarHistorialAsync(ConsultarHistorialPrestamosRequest request);
     }

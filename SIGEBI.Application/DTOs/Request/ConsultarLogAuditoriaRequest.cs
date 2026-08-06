@@ -2,7 +2,7 @@
 
 public class ConsultarLogAuditoriaRequest
 {
-    public int? UsuarioId { get; set; }
+    public string? Identificacion { get; set; } = string.Empty;
 
     public string? Accion { get; set; }
 

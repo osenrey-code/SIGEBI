@@ -521,15 +521,28 @@ namespace SIGEBI.AppEscritorio.Views.Shared
             AbrirFormularioEnPanel(penalizacionForm);
         }
 
-        // 🚀 Evento para abrir el módulo de Reportes y KPIs
         private void btnMenuReportes_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuReportes, "Reportes y Estadísticas");
             var reporteForm = Program.ServiceProvider.GetRequiredService<ReporteForm>();
+
+            reporteForm.OnSolicitarIrACatalogo = () =>
+            {
+                btnMenuCatalogo_Click(null, EventArgs.Empty);
+            };
+
+            reporteForm.OnSolicitarIrAPrestamos = () =>
+            {
+                btnMenuPrestamos_Click(null, EventArgs.Empty);
+
+                if (_formularioActivo is PrestamoForm formPrestamo)
+                {
+                    formPrestamo.IrAPrestamosActivos(); 
+                }
+            };
             AbrirFormularioEnPanel(reporteForm);
         }
 
-        // 🚀 Evento para abrir el módulo de Log de Auditoría
         private void btnMenuAuditoria_Click(object? sender, EventArgs e)
         {
             SeleccionarBotonMenu(btnMenuAuditoria, "Log de Auditoría");

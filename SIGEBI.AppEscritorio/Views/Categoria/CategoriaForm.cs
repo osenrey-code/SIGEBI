@@ -108,7 +108,7 @@ namespace SIGEBI.AppEscritorio.Views.Categorias
                 DataPropertyName = "CategoriaId",
                 HeaderText = "ID",
                 Width = 70,
-                DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter }
+                Visible = false
             });
 
             dgvCategorias.Columns.Add(new DataGridViewTextBoxColumn

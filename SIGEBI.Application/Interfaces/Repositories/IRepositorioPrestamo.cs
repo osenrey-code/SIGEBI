@@ -18,12 +18,12 @@ namespace SIGEBI.Application.Interfaces.Repositories
         Task<Prestamo?> ObtenerConDetallesAsync(int id);
 
         Task<IEnumerable<Prestamo>> ConsultarActivosAsync(
-             int? usuarioId,
+             string? Identificacion,
              int? recursoBibliograficoId,
              int? ejemplarId
         );
         Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(
-            int? usuarioId,
+            string? identificacion,
             int? recursoBibliograficoId,
             int? ejemplarId
         );

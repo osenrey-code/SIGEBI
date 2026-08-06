@@ -46,12 +46,25 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpPost("aprobar")]
-        [Authorize(Roles = "Administrador,Bibliotecario")]
+        [Authorize(Roles = "Bibliotecario")]
         public async Task<IActionResult> Aprobar([FromBody] AprobarSolicitudRequest request)
         {
             int usuarioId = ObtenerUsuarioId();
             await _prestamos.AprobarPrestamoAsync(request, usuarioId);
             return Ok(new { Mensaje = "Solicitud aprobada y préstamo generado exitosamente." });
+        }
+
+        [HttpPost("rechazar")]
+        [Authorize(Roles = "Bibliotecario")]
+        public async Task<IActionResult> Rechazar([FromBody] RechazarSolicitudRequest request)
+        {
+            int usuarioId = ObtenerUsuarioId();
+            var resultado = await _prestamos.RechazarSolicitudAsync(request, usuarioId);
+            return Ok(new
+            {
+                Mensaje = "Solicitud Rechazada exitosamente.",
+                Solicitud = resultado
+            });
         }
     }
 }

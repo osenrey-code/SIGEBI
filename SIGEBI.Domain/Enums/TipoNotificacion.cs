@@ -7,6 +7,7 @@
         PrestamoAprobado,
         PenalizacionGenerada,
         PenalizacionResuelta,
-        RecordatorioVencimiento
+        RecordatorioVencimiento,
+        SolicitudRechazada
     }
 }

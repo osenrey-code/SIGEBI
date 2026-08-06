@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
 
 namespace SIGEBI.AppEscritorio.Dtos.Prestamos
 {
@@ -12,5 +10,7 @@ namespace SIGEBI.AppEscritorio.Dtos.Prestamos
         public DateTime FechaSolicitud { get; set; }
         public string Estado { get; set; } = string.Empty;
         public string? MotivoRechazo { get; set; }
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string IdentificacionUsuario { get; set; } = string.Empty;
     }
 }

@@ -12,6 +12,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
     public class GestionDevoluciones : IGestionDevolucionesUseCase
     {
         private const decimal MontoMoraPorDia = 25m;
+        private const decimal MontoPenalizacionDano = 500m;
 
         private readonly IRepositorioPrestamo _prestamos;
         private readonly IEjemplarRepository _ejemplares;
@@ -105,11 +106,20 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 nuevaDevolucion.FechaDevolucion
             );
 
+            if (diasRetraso < 0)
+            {
+                diasRetraso = 0;
+            }
             bool tieneRetraso = diasRetraso > 0;
+
+            bool penalizaPorCondicion = condicion.Equals("Deteriorado", StringComparison.OrdinalIgnoreCase) ||
+                                        condicion.Equals("Inservible / Perdido", StringComparison.OrdinalIgnoreCase);
+
             bool requiereRetiroDeServicio = nuevaDevolucion.RequiereRetiro();
 
             decimal montoPenalizacion = 0;
             bool penalizacionGenerada = false;
+            string motivoPenalizacion = string.Empty;
 
             prestamo.MarcarComoDevuelto();
 
@@ -124,25 +134,34 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 );
             }
 
-            if (tieneRetraso)
+            if (tieneRetraso || penalizaPorCondicion)
             {
-                montoPenalizacion = diasRetraso * MontoMoraPorDia;
+                if (tieneRetraso)
+                {
+                    montoPenalizacion += diasRetraso * MontoMoraPorDia;
+                    motivoPenalizacion += $"Devolución tardía de {diasRetraso} día(s). ";
+                }
+
+                if (penalizaPorCondicion)
+                {
+                    montoPenalizacion += MontoPenalizacionDano;
+                    motivoPenalizacion += $"Recurso devuelto en mala condición ({condicion}).";
+                }
 
                 var penalizacion = new Penalizacion(
                     usuarioId: prestamo.UsuarioId,
                     prestamoId: prestamo.PrestamoId,
                     diasRetraso: diasRetraso,
                     montoMora: montoPenalizacion,
-                    motivo: $"Devolución tardía de {diasRetraso} día(s) en el préstamo #{prestamo.PrestamoId}."
+                    motivo: motivoPenalizacion.Trim()
                 );
 
-                await _penalizaciones.AgregarAsync(
-                    penalizacion
-                );
+                await _penalizaciones.AgregarAsync(penalizacion);
 
                 await _notificaciones.EnviarNotificacionAsync(
                     penalizacion.UsuarioId,
-                    $"Se ha generado una penalización por retraso en la devolución del préstamo #{prestamo.PrestamoId}.",
+                    $"Se ha generado una penalización por su préstamo del recurso #{prestamo.Ejemplar.RecursoBibliografico?.Titulo}." +
+                    $" Motivo: {motivoPenalizacion.Trim()}",
                     TipoNotificacion.PenalizacionGenerada
                 );
 
@@ -168,7 +187,8 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 UsuarioId: bibliotecarioId,
                 Accion: "Registrar Devolución",
                 EntidadAfectada: "Devoluciones",
-                detalles: $"Se registró la devolución del préstamo #{prestamo.PrestamoId}. Usuario ID {prestamo.UsuarioId}. Ejemplar ID {prestamo.EjemplarId}. Condición: {condicion}. Días de retraso: {diasRetraso}. Penalización generada: {penalizacionGenerada}. Monto: {montoPenalizacion}."
+                detalles: $"Se registró la devolución del libro '{prestamo.Ejemplar?.RecursoBibliografico?.Titulo}'" +
+                $"devuelto por el usuario '{prestamo.Usuario?.NombreCompleto}'."
             );
 
             await _db.SaveChangesAsync();
@@ -183,7 +203,7 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 PenalizacionGenerada = penalizacionGenerada,
                 MontoPenalizacion = montoPenalizacion,
                 Mensaje = penalizacionGenerada
-                    ? $"Devolución registrada. Se generó una penalización de {montoPenalizacion} por {diasRetraso} día(s) de retraso."
+                    ? $"Devolución registrada con penalización de RD$ {montoPenalizacion:N2}. Motivo: {motivoPenalizacion.Trim()}"
                     : "Devolución registrada exitosamente sin penalización."
             };
         }
@@ -228,25 +248,60 @@ namespace SIGEBI.Application.UseCase.Devoluciones
                 ? devolucion.Prestamo.CalcularDiasRetraso(devolucion.FechaDevolucion)
                 : 0;
 
-            decimal montoPenalizacion = diasRetraso > 0
-                ? diasRetraso * MontoMoraPorDia
-                : 0;
+            bool penalizaPorCondicion = devolucion.Condicion.Equals("Deteriorado", StringComparison.OrdinalIgnoreCase) ||
+                                         devolucion.Condicion.Equals("Inservible / Perdido", StringComparison.OrdinalIgnoreCase);
+
+            decimal montoPenalizacion = 0;
+            string mensaje = string.Empty;
+
+            if (diasRetraso > 0)
+            {
+                montoPenalizacion += diasRetraso * MontoMoraPorDia;
+                mensaje += $"Devolución tardía ({diasRetraso} días). ";
+            }
+
+            if (penalizaPorCondicion)
+            {
+                montoPenalizacion += MontoPenalizacionDano;
+                mensaje += $"Recurso con daños ({devolucion.Condicion}). ";
+            }
+
+            if (diasRetraso == 0 && !penalizaPorCondicion)
+            {
+                mensaje = "Devolución realizada dentro del plazo y en buena condición.";
+            }
 
             string tituloRecurso = devolucion.Prestamo?.Ejemplar?.RecursoBibliografico?.Titulo
                 ?? "Recurso no especificado";
+
+            string nombreUsuario = devolucion.Prestamo?.Usuario?.NombreCompleto ?? "Usuario Desconocido";
+
+            string identificacion = "N/A";
+
+            if (devolucion.Prestamo?.Usuario is Estudiante est)
+            {
+                identificacion = est.Matricula;
+            }
+            else if (devolucion.Prestamo?.Usuario is Docente doc)
+            {
+                identificacion = doc.CodigoEmpleado;
+            }
+
+
 
             return new DevolucionResponse
             {
                 PrestamoId = devolucion.PrestamoId,
                 TituloRecurso = tituloRecurso,
                 FechaDevolucion = devolucion.FechaDevolucion,
+                NombreUsuario = nombreUsuario,
+                IdentificacionUsuario = identificacion,
                 DiasRetraso = diasRetraso,
+                Observacion = devolucion.Observacion ?? string.Empty,
                 Condicion = devolucion.Condicion,
-                PenalizacionGenerada = diasRetraso > 0,
+                PenalizacionGenerada = diasRetraso > 0 || penalizaPorCondicion,
                 MontoPenalizacion = montoPenalizacion,
-                Mensaje = diasRetraso > 0
-                    ? $"Devolución tardía con {diasRetraso} día(s) de retraso."
-                    : "Devolución realizada dentro del plazo."
+                Mensaje = mensaje.Trim()
             };
         }
     }

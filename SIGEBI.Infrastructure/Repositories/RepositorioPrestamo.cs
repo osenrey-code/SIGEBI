@@ -17,7 +17,7 @@ namespace SIGEBI.Infrastructure.Repositories
             _loggerPrestamo = logger;
         }
 
-        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(int? usuarioId, int? recursoBibliograficoId, int? ejemplarId)
+        public async Task<IEnumerable<Prestamo>> ConsultarActivosAsync(string? Identificacion, int? recursoBibliograficoId, int? ejemplarId)
         {
             try
             {
@@ -31,9 +31,26 @@ namespace SIGEBI.Infrastructure.Repositories
                     .Where(p => p.Estado == EstadoPrestamo.Activo)
                     .AsQueryable();
 
-                if (usuarioId.HasValue)
+                if (!string.IsNullOrWhiteSpace(Identificacion))
                 {
-                    query = query.Where(p => p.UsuarioId == usuarioId.Value);
+                    string filtroId = Identificacion.Trim();
+
+                    var estudiantesIds = await _context.Set<Estudiante>()
+                        .Where(e => e.Matricula.Contains(filtroId))
+                        .Select(e => e.UsuarioId)
+                        .ToListAsync();
+
+                    var docentesIds = await _context.Set<Docente>()
+                        .Where(d => d.CodigoEmpleado.Contains(filtroId))
+                        .Select(d => d.UsuarioId)
+                        .ToListAsync();
+
+                    var userIdsMatch = estudiantesIds
+                        .Concat(docentesIds)
+                        .Distinct()
+                        .ToList();
+
+                    query = query.Where(p => userIdsMatch.Contains(p.UsuarioId));
                 }
 
                 if (recursoBibliograficoId.HasValue)
@@ -59,7 +76,7 @@ namespace SIGEBI.Infrastructure.Repositories
             }
         }
 
-        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(int? usuarioId, int? recursoBibliograficoId, int? ejemplarId)
+        public async Task<IEnumerable<Prestamo>> ConsultarHistorialAsync(string? identificacion, int? recursoBibliograficoId, int? ejemplarId)
         {
             try
             {
@@ -72,9 +89,31 @@ namespace SIGEBI.Infrastructure.Repositories
                         .ThenInclude(e => e!.RecursoBibliografico)
                     .AsQueryable();
 
-                if (usuarioId.HasValue)
+                if (!string.IsNullOrWhiteSpace(identificacion))
                 {
-                    query = query.Where(p => p.UsuarioId == usuarioId.Value);
+                    string filtro = identificacion.Trim();
+
+                    // Buscar совincidencias en Matrícula de Estudiantes
+                    var estudiantesIds = await _context.Set<Estudiante>()
+                        .Where(e => e.Matricula.Contains(filtro))
+                        .Select(e => e.UsuarioId)
+                        .ToListAsync();
+
+                    // Buscar coincidencias en Código de Empleado de Docentes
+                    var docentesIds = await _context.Set<Docente>()
+                        .Where(d => d.CodigoEmpleado.Contains(filtro))
+                        .Select(d => d.UsuarioId)
+                        .ToListAsync();
+
+                    var userIdsMatch = estudiantesIds.Concat(docentesIds).Distinct().ToList();
+
+                    // Filtrar por Nombre Completo del Usuario, Identificación, Título del Libro o Código de Ejemplar
+                    query = query.Where(p =>
+                        userIdsMatch.Contains(p.UsuarioId) ||
+                        (p.Usuario != null && p.Usuario.NombreCompleto.Contains(filtro)) ||
+                        (p.Ejemplar != null && p.Ejemplar.Identificador.Contains(filtro)) ||
+                        (p.Ejemplar != null && p.Ejemplar.RecursoBibliografico != null && p.Ejemplar.RecursoBibliografico.Titulo.Contains(filtro))
+                    );
                 }
 
                 if (recursoBibliograficoId.HasValue)
