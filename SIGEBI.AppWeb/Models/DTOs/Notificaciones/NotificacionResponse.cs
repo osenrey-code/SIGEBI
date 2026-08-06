@@ -8,5 +8,6 @@
         public string Mensaje { get; set; } = string.Empty;
         public DateTime FechaRegistro { get; set; }
         public bool Leida { get; set; }
+        public DateTime FechaCreacion { get; set; }
     }
 }

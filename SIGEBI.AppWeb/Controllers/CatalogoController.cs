@@ -6,7 +6,7 @@ using SIGEBI.AppWeb.Models.ViewModels.Catalogo;
 
 namespace SIGEBI.AppWeb.Controllers
 {
-    [Authorize(Roles = "Estudiante,Docente")]
+    [AllowAnonymous]
     public class CatalogoController : BaseController
     {
         private readonly IApiClient _apiClient;
@@ -28,7 +28,7 @@ namespace SIGEBI.AppWeb.Controllers
                 Titulo = filtro.Titulo,
                 Autor = filtro.Autor,
                 Categoria = filtro.Categoria,
-                SoloDisponibles = filtro.SoloDisponibles ??  false
+                SoloDisponibles = filtro.SoloDisponibles ?? false
             };
 
             try
@@ -47,15 +47,9 @@ namespace SIGEBI.AppWeb.Controllers
                 if (filtro.SoloDisponibles.HasValue && filtro.SoloDisponibles.Value)
                     queryParams.Add("soloDisponibles=true");
 
-                string endpoint;
-                if (queryParams.Any())
-                {
-                    endpoint = $"api/catalogo/consultar?{string.Join("&", queryParams)}";
-                }
-                else
-                {
-                    endpoint = "api/catalogo/todos";
-                }
+                string endpoint = queryParams.Any()
+                    ? $"api/catalogo/consultar?{string.Join("&", queryParams)}"
+                    : "api/catalogo/todos";
 
                 var respuesta = await _apiClient.GetAsync<List<Recursodto>>(endpoint)
                     ?? new List<Recursodto>();
@@ -74,7 +68,21 @@ namespace SIGEBI.AppWeb.Controllers
                     EjemplarDisponibleId = r.EjemplarDisponibleId
                 }).ToList();
 
-            } catch(Exception ex)
+                if (!queryParams.Any())
+                {
+                    try
+                    {
+                        var destacados = await _apiClient.GetAsync<List<RecursoMasSolicitadoResponse>>("api/catalogo/mas-solicitados?cantidad=6");
+                        viewModel.LibrosDestacados = destacados ?? new List<RecursoMasSolicitadoResponse>();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "No se pudieron cargar los libros destacados.");
+                        viewModel.LibrosDestacados = new List<RecursoMasSolicitadoResponse>();
+                    }
+                }
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al consultar el catálogo de recursos.");
                 TempData["Error"] = ex.Message;
@@ -86,6 +94,7 @@ namespace SIGEBI.AppWeb.Controllers
         [HttpGet]
         public async Task<IActionResult> Detalles(int id)
         {
+            // ... (tu método Detalles se mantiene igual)
             if (id <= 0)
             {
                 TempData["Error"] = "Identificador de recurso no válido.";
@@ -119,7 +128,8 @@ namespace SIGEBI.AppWeb.Controllers
 
                 return View(viewModel);
 
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al consultar el detalle del recurso {Id}", id);
                 TempData["Error"] = ex.Message;

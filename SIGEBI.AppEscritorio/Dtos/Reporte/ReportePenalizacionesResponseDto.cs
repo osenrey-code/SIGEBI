@@ -12,5 +12,7 @@ namespace SIGEBI.AppEscritorio.Dtos.Reporte
         public decimal MontoMoraResuelta { get; set; }
         public List<PenalizacionPorTipoUsuarioResponseDto> PorTipoUsuario { get; set; } = new();
         public List<DetallePenalizacionReporteResponseDto> Detalles { get; set; } = new();
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string IdentificacionUsuario { get; set; } = string.Empty;
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SIGEBI.Api.Models;
 using SIGEBI.Application.DTOs.Request;
+using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Application.Interfaces.Service;
 
 namespace SIGEBI.Api.Controllers
@@ -13,11 +14,16 @@ namespace SIGEBI.Api.Controllers
     {
         private readonly IGestionCatalogo _gestionCatalogo;
         private readonly IStorageService _storageService;
+        private readonly IRepositorioReporte _repositorioReporte;
 
-        public CatalogoController(IGestionCatalogo gestionCatalogo, IStorageService storageService)
+        public CatalogoController(
+            IGestionCatalogo gestionCatalogo,
+            IStorageService storageService,
+            IRepositorioReporte repositorioReporte)
         {
             _gestionCatalogo = gestionCatalogo;
             _storageService = storageService;
+            _repositorioReporte = repositorioReporte;
         }
 
         // POST: api/catalogo/registrar
@@ -130,7 +136,7 @@ namespace SIGEBI.Api.Controllers
 
         // GET: api/catalogo/consultar?titulo=...&autor=...&categoria=...
         [HttpGet("consultar")]
-        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
+        [AllowAnonymous]
         public async Task<IActionResult> ConsultarCatalogo(
             [FromQuery] ConsultarCatalogoRequest request)
         {
@@ -143,7 +149,7 @@ namespace SIGEBI.Api.Controllers
 
         // GET: api/catalogo/todos
         [HttpGet("todos")]
-        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
+        [AllowAnonymous]
         public async Task<IActionResult> ConsultarTodos()
         {
             var recursos = await _gestionCatalogo.ConsultarTodosAsync();
@@ -151,9 +157,34 @@ namespace SIGEBI.Api.Controllers
             return Ok(recursos);
         }
 
+        // 🌟 GET: api/catalogo/mas-solicitados (Nuevo endpoint para la web)
+        [HttpGet("mas-solicitados")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetMasSolicitados([FromQuery] int cantidad = 6)
+        {
+            try
+            {
+                // Evaluamos los últimos 6 meses para las tendencias del catálogo
+                var fechaInicio = DateTime.Now.AddMonths(-6);
+                var fechaFin = DateTime.Now;
+
+                var reporte = await _repositorioReporte.ObtenerReporteUsoCatalogoAsync(fechaInicio, fechaFin);
+
+                var topLibros = reporte.RecursosMasSolicitados
+                    .Take(cantidad)
+                    .ToList();
+
+                return Ok(topLibros);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al obtener los libros más solicitados", error = ex.Message });
+            }
+        }
+
         // GET: api/catalogo/5
         [HttpGet("{id:int}")]
-        [Authorize(Roles = "Administrador,Bibliotecario,Auditor,Estudiante,Docente")]
+        [AllowAnonymous]
         public async Task<IActionResult> ConsultarDetalle(int id)
         {
             var request = new ConsultarDetalleRecursoRequest
@@ -183,7 +214,6 @@ namespace SIGEBI.Api.Controllers
             return Ok(historial);
         }
 
-       
         [HttpPatch("{id:int}")]
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> EliminarRecurso(

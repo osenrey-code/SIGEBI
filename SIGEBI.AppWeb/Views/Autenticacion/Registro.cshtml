@@ -1,0 +1,367 @@
+﻿@model SIGEBI.AppWeb.Models.DTOs.Usuarios.RegistrarUsuarioRequestDto
+
+@{
+    ViewData["Title"] = "Registro de Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Estilos Avanzados UI/UX (Premium SaaS - Full Bleed Background) -->
+<style>
+    :root {
+        /* Paleta Modo Claro */
+        --bg-color: #f8fafc;
+        --card-bg: rgba(255, 255, 255, 0.65);
+        --card-border: rgba(255, 255, 255, 0.6);
+        --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --input-bg: rgba(255, 255, 255, 0.8);
+        --input-border: rgba(203, 213, 225, 0.8);
+        --input-focus-border: #3b82f6;
+        --input-focus-ring: rgba(59, 130, 246, 0.15);
+        --input-icon: #94a3b8;
+        --pattern-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E");
+        --pattern-opacity: 0.04;
+    }
+
+    /* Activación del Modo Oscuro */
+    [data-bs-theme="dark"], body.dark-mode, body.dark {
+        --bg-color: #0b1120;
+        --card-bg: rgba(15, 23, 42, 0.55);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --input-bg: rgba(30, 41, 59, 0.6);
+        --input-border: rgba(51, 65, 85, 0.8);
+        --input-focus-border: #60a5fa;
+        --input-focus-ring: rgba(96, 165, 250, 0.15);
+        --input-icon: #64748b;
+        --pattern-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E");
+        --pattern-opacity: 0.03;
+    }
+
+    /* Fondo pegado a la pantalla */
+    .auth-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: var(--bg-color);
+        z-index: -2;
+        transition: background-color 0.4s ease;
+    }
+
+        .auth-background::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--pattern-svg);
+            background-size: 80px 80px;
+            opacity: var(--pattern-opacity);
+            pointer-events: none;
+            transition: opacity 0.4s ease, background-image 0.4s ease;
+        }
+
+    /* Centrador de la tarjeta */
+    .auth-viewport {
+        position: relative;
+        min-height: calc(100vh - 140px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        z-index: 10;
+    }
+
+    /* Tarjeta Glassmorphism (Más ancha para el registro) */
+    .auth-card {
+        width: 100%;
+        max-width: 650px;
+        background-color: var(--card-bg);
+        backdrop-filter: blur(24px) saturate(150%);
+        -webkit-backdrop-filter: blur(24px) saturate(150%);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 3rem 2.5rem;
+        transition: all 0.4s ease;
+    }
+
+    .auth-title {
+        color: var(--text-main);
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        font-size: 1.75rem;
+    }
+
+    .auth-subtitle {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        font-weight: 400;
+    }
+
+    .auth-label {
+        color: var(--text-main);
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    /* Inputs Modernos con Íconos Superpuestos */
+    .input-icon-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        color: var(--input-icon);
+        font-size: 1.1rem;
+        pointer-events: none;
+        transition: color 0.3s ease;
+    }
+
+    /* Aseguramos que select e input se comporten igual */
+    .auth-input {
+        width: 100%;
+        background-color: var(--input-bg);
+        border: 1px solid var(--input-border);
+        color: var(--text-main);
+        border-radius: 12px;
+        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        outline: none;
+        appearance: auto; /* Para los selects */
+    }
+
+        .auth-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .auth-input:focus {
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 4px var(--input-focus-ring);
+            background-color: var(--card-bg);
+        }
+
+            .auth-input:focus + .input-icon {
+                color: var(--input-focus-border);
+            }
+
+    /* Botón Principal */
+    .auth-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        padding: 0.85rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.15);
+        }
+
+    .auth-divider {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--card-border);
+        text-align: center;
+    }
+
+    .auth-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s ease;
+    }
+
+        .auth-link:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+</style>
+
+<!-- FONDO FULL SCREEN -->
+<div class="auth-background"></div>
+
+<!-- CONTENEDOR DE LA TARJETA -->
+<div class="auth-viewport">
+    <div class="auth-card">
+
+        <!-- Cabecera -->
+        <div class="text-center mb-5">
+            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-4 mb-3" style="width: 64px; height: 64px;">
+                <i class="bi bi-person-plus-fill text-primary" style="font-size: 2rem;"></i>
+            </div>
+            <h1 class="auth-title">Crear Cuenta</h1>
+            <p class="auth-subtitle">Portal exclusivo para Estudiantes y Docentes</p>
+        </div>
+
+        <form asp-action="Registro" method="post" id="formRegistro">
+            <!-- Alerta de validaciones del servidor -->
+            <div asp-validation-summary="ModelOnly"
+                 class="alert p-3 mb-4 rounded-3 border-0 bg-danger bg-opacity-10 text-danger d-flex align-items-center"
+                 role="alert"
+                 style="font-size: 0.9rem; font-weight: 500; display: @(ViewData.ModelState.IsValid ? "none" : "block")">
+            </div>
+
+            <!-- Campo Oculto (Nombre Completo) -->
+            <input type="hidden" asp-for="NombreCompleto" id="txtNombreCompleto" />
+
+            <!-- FILA 1: Tipo de Usuario e Identificación -->
+            <div class="row mb-3">
+                <!-- Tipo de Usuario -->
+                <div class="col-md-5 mb-4 mb-md-0">
+                    <label asp-for="Tipo" class="auth-label">Tipo de Usuario</label>
+                    <div class="input-icon-wrapper">
+                        <select asp-for="Tipo" id="cmbTipoUsuario" class="auth-input">
+                            <option value="estudiante">Estudiante</option>
+                            <option value="docente">Docente</option>
+                        </select>
+                        <i class="bi bi-person-vcard input-icon"></i>
+                    </div>
+                    <span asp-validation-for="Tipo" class="text-danger small mt-1 d-block fw-medium"></span>
+                </div>
+
+                <!-- Identificación -->
+                <div class="col-md-7 mb-4 mb-md-0">
+                    <label asp-for="Identificacion" id="lblIdentificacion" class="auth-label">Matrícula</label>
+                    <div class="input-icon-wrapper">
+                        <input asp-for="Identificacion" id="txtIdentificacion" class="auth-input" placeholder="Ej. 2025-1020" autocomplete="off" />
+                        <i class="bi bi-person-badge input-icon"></i>
+                    </div>
+                    <span asp-validation-for="Identificacion" class="text-danger small mt-1 d-block fw-medium"></span>
+                </div>
+            </div>
+
+            <!-- FILA 2: Nombres y Apellidos -->
+            <div class="row mb-3">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <label class="auth-label">Nombres</label>
+                    <div class="input-icon-wrapper">
+                        <input type="text" id="txtNombres" class="auth-input" placeholder="Ej. Juan Antonio" required />
+                        <i class="bi bi-person input-icon"></i>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <label class="auth-label">Apellidos</label>
+                    <div class="input-icon-wrapper">
+                        <input type="text" id="txtApellidos" class="auth-input" placeholder="Ej. Pérez Gómez" required />
+                        <i class="bi bi-person input-icon"></i>
+                    </div>
+                </div>
+                <!-- Mensaje de error para el campo oculto si falla en el servidor -->
+                <span asp-validation-for="NombreCompleto" class="text-danger small mt-1 d-block fw-medium px-3"></span>
+            </div>
+
+            <!-- Correo Electrónico -->
+            <div class="mb-4">
+                <label asp-for="Correo" class="auth-label">Correo Electrónico</label>
+                <div class="input-icon-wrapper">
+                    <input asp-for="Correo" type="email" class="auth-input" placeholder="ejemplo@itla.edu.do" />
+                    <i class="bi bi-envelope input-icon"></i>
+                </div>
+                <span asp-validation-for="Correo" class="text-danger small mt-1 d-block fw-medium"></span>
+            </div>
+
+            <!-- FILA 3: Contraseña y Confirmar -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <label asp-for="Password" class="auth-label">Contraseña</label>
+                    <div class="input-icon-wrapper">
+                        <input asp-for="Password" type="password" class="auth-input" placeholder="••••••••" />
+                        <i class="bi bi-shield-lock input-icon"></i>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small mt-1 d-block fw-medium"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ConfirmarPassword" class="auth-label">Confirmar</label>
+                    <div class="input-icon-wrapper">
+                        <input asp-for="ConfirmarPassword" type="password" class="auth-input" placeholder="••••••••" />
+                        <i class="bi bi-shield-check input-icon"></i>
+                    </div>
+                    <span asp-validation-for="ConfirmarPassword" class="text-danger small mt-1 d-block fw-medium"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="auth-btn mt-3">
+                Completar Registro <i class="bi bi-arrow-right-short fs-4"></i>
+            </button>
+        </form>
+
+        <!-- Separador y Enlace a Login -->
+        <div class="auth-divider">
+            <p class="auth-subtitle mb-1">¿Ya tienes una cuenta?</p>
+            <a asp-controller="Autenticacion" asp-action="Login" class="auth-link">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+            </a>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const cmbTipo = document.getElementById("cmbTipoUsuario");
+            const lblIdentificacion = document.getElementById("lblIdentificacion");
+            const txtIdentificacion = document.getElementById("txtIdentificacion");
+
+            const txtNombres = document.getElementById("txtNombres");
+            const txtApellidos = document.getElementById("txtApellidos");
+            const txtNombreCompleto = document.getElementById("txtNombreCompleto");
+            const formRegistro = document.getElementById("formRegistro");
+
+            function actualizarCampoIdentificacion() {
+                if (cmbTipo.value === "docente") {
+                    lblIdentificacion.textContent = "Código de Empleado";
+                    txtIdentificacion.placeholder = "Ej. DOC-001";
+                } else {
+                    lblIdentificacion.textContent = "Matrícula";
+                    txtIdentificacion.placeholder = "Ej. 2025-1020";
+                }
+            }
+
+            function concatenarNombreCompleto() {
+                const nombres = txtNombres.value.trim();
+                const apellidos = txtApellidos.value.trim();
+                txtNombreCompleto.value = (nombres + " " + apellidos).trim();
+            }
+
+            cmbTipo.addEventListener("change", actualizarCampoIdentificacion);
+            txtNombres.addEventListener("input", concatenarNombreCompleto);
+            txtApellidos.addEventListener("input", concatenarNombreCompleto);
+            formRegistro.addEventListener("submit", concatenarNombreCompleto);
+
+            actualizarCampoIdentificacion();
+        });
+    </script>
+    <style>
+        .alert ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+    </style>
+}

@@ -17,19 +17,34 @@ namespace SIGEBI.Api.Controllers
         }
 
         [HttpGet("consultar")]
-        public async Task<IActionResult> Consultar()
+        public async Task<IActionResult> Consultar([FromQuery] bool soloNoLeidas = false)
         {
             int usuarioId = ObtenerUsuarioId();
 
-            var notificaciones = await _servicioNotificacion.ObtenerPendientesAsync(usuarioId);
+            if (soloNoLeidas)
+            {
+                // Devuelve únicamente las pendientes/no leídas
+                var pendientes = await _servicioNotificacion.ObtenerPendientesAsync(usuarioId);
+                return Ok(pendientes);
+            }
 
-            return Ok(notificaciones);
+            // Devuelve el historial completo (leídas y no leídas)
+            var todas = await _servicioNotificacion.ObtenerTodasAsync(usuarioId);
+            return Ok(todas);
         }
 
         [HttpPost("marcarleida/{id}")]
         public async Task<IActionResult> MarcarComoLeida(int id)
         {
             await _servicioNotificacion.MarcarComoLeidaAsync(id);
+
+            return Ok();
+        }
+
+        [HttpDelete("eliminar/{id}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            await _servicioNotificacion.EliminarAsync(id);
 
             return Ok();
         }

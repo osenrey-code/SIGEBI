@@ -20,13 +20,14 @@ namespace SIGEBI.AppWeb.Controllers
 
 
         [HttpGet]
-        public IActionResult Solicitar(int? ejemplarId)
+        public IActionResult Solicitar(int? ejemplarId, string? tituloLibro)
         {
             var modelo = new RegistrarSolicitudViewModel();
 
             if (ejemplarId.HasValue && ejemplarId.Value > 0)
             {
                 modelo.EjemplarId = ejemplarId.Value;
+                modelo.TituloLibro = tituloLibro ?? string.Empty;
             }
 
 

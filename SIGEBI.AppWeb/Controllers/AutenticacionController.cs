@@ -1,13 +1,14 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using SIGEBI.AppWeb.Services;
-using SIGEBI.AppWeb.Models.ViewModels.Auth;
-using SIGEBI.AppWeb.Models.DTOs.Auth;
 using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
+using SIGEBI.AppWeb.Models.DTOs.Auth;
+using SIGEBI.AppWeb.Models.DTOs.Usuarios;
+using SIGEBI.AppWeb.Models.ViewModels.Auth;
+using SIGEBI.AppWeb.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace SIGEBI.AppWeb.Controllers
 {
@@ -110,6 +111,45 @@ namespace SIGEBI.AppWeb.Controllers
                     ModelState.AddModelError(string.Empty, ex.Message);
                     return View(model);
                 
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult Registro()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View(new RegistrarUsuarioRequestDto());
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Registro(RegistrarUsuarioRequestDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                await _apiClient.PostAsync<RegistrarUsuarioRequestDto, object>("api/account/registro", model);
+
+                _logger.LogInformation("Usuario registrado exitosamente con identificación: {Identificacion}", model.Identificacion);
+                TempData["Success"] = "¡Registro exitoso! Ya puedes iniciar sesión con tus credenciales.";
+
+                return RedirectToAction(nameof(Login));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error durante el registro para la identificación: {Identificacion}", model.Identificacion);
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
             }
         }
 

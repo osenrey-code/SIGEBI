@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.Interfaces.Service;
+using SIGEBI.Application.UseCase.Usuarios;
 
 
 namespace SIGEBI.Api.Controllers
@@ -11,10 +13,12 @@ namespace SIGEBI.Api.Controllers
     public class AutenticacionController : ControllerBase
     {
         private readonly ILogin _login;
+        private readonly IGestionUsuariosUseCase _gestionUsuarios;
 
-        public AutenticacionController(ILogin login)
+        public AutenticacionController(ILogin login, IGestionUsuariosUseCase gestionUsuarios)
         {
             _login = login;
+            _gestionUsuarios = gestionUsuarios;
         }
 
         [AllowAnonymous]
@@ -23,6 +27,14 @@ namespace SIGEBI.Api.Controllers
         {
             var Token = await _login.AutenticarAsync(request);
             return Ok(Token);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("registro")]
+        public async Task<IActionResult> Registrarse([FromBody] RegistrarUsuarioRequest request)
+        {
+            var usuario = await _gestionUsuarios.RegistrarUsuarioPublicoAsync(request);
+            return StatusCode(201, usuario);
         }
     }
 }

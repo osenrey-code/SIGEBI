@@ -161,7 +161,7 @@
             this.pnlFooter.Controls.Add(this.btnConfirmarDevolucion);
             this.pnlFooter.Controls.Add(this.btnCancelar);
             this.pnlFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlFooter.Location = new System.Drawing.Point(0, 385);
+            this.pnlFooter.Location = new System.Drawing.Point(0, 455);
             this.pnlFooter.Name = "pnlFooter";
             this.pnlFooter.Size = new System.Drawing.Size(520, 65);
             this.pnlFooter.TabIndex = 2;
@@ -220,7 +220,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(23)))), ((int)(((byte)(42)))));
-            this.ClientSize = new System.Drawing.Size(520, 450);
+            this.ClientSize = new System.Drawing.Size(520, 520);
             this.Controls.Add(this.pnlContenedor);
             this.Controls.Add(this.pnlFooter);
             this.Controls.Add(this.pnlTopBar);

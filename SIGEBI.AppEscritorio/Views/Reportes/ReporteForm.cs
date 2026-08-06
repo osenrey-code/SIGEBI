@@ -335,8 +335,7 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
         private void ConfigurarGridInventario()
         {
             dgvDatos.Columns.Clear();
-            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "RecursoBibliograficoId", HeaderText = "ID", Visible = false });
-
+            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Titulo", HeaderText = "Título", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ISBN", HeaderText = "ISBN", Width = 130, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Titulo", HeaderText = "Título", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Categoria", HeaderText = "Categoría", Width = 140 });
@@ -350,7 +349,6 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
         private void ConfigurarGridPrestamos()
         {
             dgvDatos.Columns.Clear();
-            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PrestamoId", HeaderText = "ID", Width = 65, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TituloRecurso", HeaderText = "Libro", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IdentificadorEjemplar", HeaderText = "Ejemplar ID", Width = 130, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "FechaPrestamo", HeaderText = "Fecha Préstamo", Width = 130, DefaultCellStyle = { Format = "dd/MM/yyyy", Alignment = DataGridViewContentAlignment.MiddleCenter } });
@@ -362,8 +360,8 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
         private void ConfigurarGridPenalizaciones()
         {
             dgvDatos.Columns.Clear();
-            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "PenalizacionId", HeaderText = "ID", Width = 65, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "UsuarioId", HeaderText = "Usuario ID", Width = 90, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "NombreUsuario", HeaderText = "Lector", Width = 160 });
+            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IdentificacionUsuario", HeaderText = "Identificación", Width = 120, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TipoUsuario", HeaderText = "Rol Usuario", Width = 120, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Motivo", HeaderText = "Motivo Penalización", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "DiasRetraso", HeaderText = "Días Retraso", Width = 100, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
@@ -374,7 +372,6 @@ namespace SIGEBI.AppEscritorio.Views.Reportes
         private void ConfigurarGridUsoCatalogo()
         {
             dgvDatos.Columns.Clear();
-            dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "RecursoBibliograficoId", HeaderText = "Recurso ID", Width = 95, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Titulo", HeaderText = "Título del Recurso", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
             dgvDatos.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CantidadSolicitudes", HeaderText = "Total Solicitudes Recibidas", Width = 180, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) } });
         }

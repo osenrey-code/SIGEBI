@@ -4,12 +4,14 @@
 @{
     ViewData["Title"] = "Detalles del Recurso";
 
-    // 🟢 Obtiene la URL base de la API desde la configuración
     string apiBaseUrl = Configuration["ApiSettings:BaseUrl"]
                       ?? Configuration["ApiUrl"]
                       ?? "https://localhost:7123";
 
     apiBaseUrl = apiBaseUrl.TrimEnd('/');
+
+
+    bool autenticado = User.Identity?.IsAuthenticated ?? false;
 }
 
 <!-- HERO SECTION -->
@@ -64,7 +66,6 @@ else
                 <div class="my-auto py-3 d-flex justify-content-center align-items-center">
                     @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
                     {
-                        // 🟢 Construye la URL concatenando la API Base URL si la ruta es relativa
                         var rutaImagen = Model.ImagenUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
                             ? Model.ImagenUrl
                             : $"{apiBaseUrl}{(Model.ImagenUrl.StartsWith("/") ? "" : "/")}{Model.ImagenUrl}";
@@ -75,7 +76,6 @@ else
                              style="max-height: 380px; max-width: 100%; object-fit: contain;"
                              onerror="this.onerror=null; this.style.display='none'; document.getElementById('fallback-portada').classList.remove('d-none'); document.getElementById('fallback-portada').classList.add('d-flex');" />
 
-                        <!-- Placeholder si la imagen da error 404 al cargar desde la API -->
                         <div id="fallback-portada" class="bg-body-tertiary rounded-3 d-none flex-column align-items-center justify-content-center border mx-auto py-5 w-100" style="max-width: 220px; height: 300px;">
                             <i class="bi bi-journal-bookmark text-body-tertiary display-1 mb-2"></i>
                             <span class="text-body-secondary small">Imagen no encontrada</span>
@@ -128,7 +128,6 @@ else
                         </div>
                     </div>
 
-                    <!-- 🟢 SECCIÓN DE DESCRIPCIÓN DEL RECURSO -->
                     <div class="mb-4">
                         <h5 class="fw-bold text-body-emphasis mb-2 d-flex align-items-center gap-2">
                             <i class="bi bi-text-paragraph text-primary"></i> Descripción del Recurso
@@ -150,11 +149,22 @@ else
 
                     @if (Model.CopiasDisponibles > 0)
                     {
-                        <!-- Envia el ID real del ejemplar físico disponible -->
-                        <a asp-controller="Solicitudes" asp-action="Solicitar" asp-route-ejemplarId="@Model.EjemplarDisponibleId"
-                           class="btn btn-primary btn-lg fw-bold px-4 rounded-3 d-inline-flex align-items-center gap-2 shadow-sm">
-                            <i class="bi bi-bookmark-plus-fill"></i> Solicitar Préstamo
-                        </a>
+                        if (autenticado)
+                        {
+                            <a asp-controller="Solicitudes" asp-action="Solicitar"
+                               asp-route-ejemplarId="@Model.EjemplarDisponibleId"
+                               asp-route-tituloLibro="@Model.Titulo"
+                               class="btn btn-primary btn-lg fw-bold px-4 rounded-3 d-inline-flex align-items-center gap-2 shadow-sm">
+                                <i class="bi bi-bookmark-plus-fill"></i> Solicitar Préstamo
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Autenticacion" asp-action="Login"
+                               class="btn btn-outline-primary btn-lg fw-bold px-4 rounded-3 d-inline-flex align-items-center gap-2 shadow-sm">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión para solicitar
+                            </a>
+                        }
                     }
                     else
                     {

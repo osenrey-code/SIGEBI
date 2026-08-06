@@ -8,5 +8,8 @@ namespace SIGEBI.AppWeb.Models.ViewModels.Solicitudes
         [Range(1, int.MaxValue, ErrorMessage = "El identificador del ejemplar debe ser mayor a cero.")]
         [Display(Name = "ID del Ejemplar")]
         public int EjemplarId { get; set; }
+
+        [Display(Name = "Título del Libro")]
+        public string TituloLibro { get; set; } = string.Empty;
     }
 }

@@ -14,5 +14,7 @@ namespace SIGEBI.AppEscritorio.Dtos.Reporte
         public decimal MontoMora { get; set; }
         public DateTime FechaGeneracion { get; set; }
         public string Estado { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = string.Empty;       
+        public string IdentificacionUsuario { get; set; } = string.Empty;
     }
 }

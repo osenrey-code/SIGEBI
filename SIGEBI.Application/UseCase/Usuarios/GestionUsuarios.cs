@@ -1,5 +1,4 @@
-﻿using SIGEBI.Application.Common;
-using SIGEBI.Application.DTOs.Request;
+﻿using SIGEBI.Application.DTOs.Request;
 using SIGEBI.Application.DTOs.Response;
 using SIGEBI.Application.Interfaces.Repositories;
 using SIGEBI.Application.Interfaces.Service;
@@ -7,6 +6,7 @@ using SIGEBI.Domain.Common;
 using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Domain.Exceptions;
+using System.Transactions;
 
 namespace SIGEBI.Application.UseCase.Usuarios
 {
@@ -441,6 +441,77 @@ namespace SIGEBI.Application.UseCase.Usuarios
             );
 
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<UsuarioResponse> RegistrarUsuarioPublicoAsync(RegistrarUsuarioRequest request)
+        {
+            Guard.NotNull(request, "Los datos del registro");
+
+            Guard.NotNullOrWhiteSpace(request.Identificacion, "La identificación (Matrícula / Código de Empleado)");
+            Guard.NotNullOrWhiteSpace(request.NombreCompleto, "El nombre completo");
+            Guard.NotNullOrWhiteSpace(request.Correo, "El correo electrónico");
+            Guard.NotNullOrWhiteSpace(request.Tipo, "El tipo de usuario");
+            Guard.NotNullOrWhiteSpace(request.Password, "La contraseña");
+
+            string identificacion = request.Identificacion.Trim();
+            string nombreCompleto = request.NombreCompleto.Trim();
+            string correo = request.Correo.Trim().ToLower();
+            string tipo = request.Tipo.Trim().ToLower();
+            string passwordIngresada = request.Password!.Trim();
+
+            if (passwordIngresada.Length < 6)
+            {
+                throw new BusinessException("La contraseña debe tener al menos 6 caracteres.");
+            }
+
+            if (tipo != "estudiante" && tipo != "docente")
+            {
+                throw new BusinessException("Solo es posible registrarse públicamente como Estudiante o Docente.");
+            }
+
+            var usuarioExistente = await _usuarios.ObtenerUsuarioPorIdentificacionAsync(identificacion);
+            if (usuarioExistente is not null)
+            {
+                throw new BusinessException($"Ya existe un usuario registrado con esta identificación.");
+            }
+
+            bool correoOcupado = await _usuarios.ExisteCorreoAsync(correo);
+            if (correoOcupado)
+            {
+                throw new BusinessException("Ya existe un usuario registrado con este correo electrónico.");
+            }
+
+            string passwordHash = _password.GenerarHash(passwordIngresada);
+
+            Usuario usuario = CrearUsuarioPorTipo(
+                tipo,
+                identificacion,
+                passwordHash
+            );
+
+            usuario.NombreCompleto = nombreCompleto;
+            usuario.Correo = correo;
+            usuario.Estado = EstadoUsuario.Activo;
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                await _usuarios.AgregarAsync(usuario);
+
+                await _db.SaveChangesAsync();
+
+                await _auditoria.RegistrarAsync(
+                    UsuarioId: usuario.UsuarioId,
+                    Accion: "Autorregistro Público",
+                    EntidadAfectada: "Usuarios",
+                    detalles: $"El usuario '{usuario.NombreCompleto}' se autorregistró como {tipo} con la identificación '{identificacion}'."
+                );
+
+                await _db.SaveChangesAsync();
+
+                scope.Complete();
+            } 
+
+            return MapearUsuario(usuario);
         }
     }
 }

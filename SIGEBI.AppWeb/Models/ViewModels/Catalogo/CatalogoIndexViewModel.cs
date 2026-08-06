@@ -1,4 +1,8 @@
-﻿namespace SIGEBI.AppWeb.Models.ViewModels.Catalogo
+﻿
+
+using SIGEBI.AppWeb.Models.DTOs.Catalogo;
+
+namespace SIGEBI.AppWeb.Models.ViewModels.Catalogo
 {
     public class CatalogoIndexViewModel
     {
@@ -7,9 +11,8 @@
         public string? Autor { get; set; }
         public string? Categoria { get; set; }
         public bool SoloDisponibles { get; set; }
-
-        // Lista de recursos a renderizar
         public List<RecursoItemViewModel> Recursos { get; set; } = new();
+        public List<RecursoMasSolicitadoResponse> LibrosDestacados { get; set; } = new();
     }
 
     public class RecursoItemViewModel

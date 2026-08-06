@@ -1,49 +1,61 @@
 ﻿@model SIGEBI.AppWeb.Models.ViewModels.Solicitudes.RegistrarSolicitudViewModel
 
 @{
-    ViewData["Title"] = "Solicitar Préstamo";
+    ViewData["Title"] = "Confirmar Solicitud";
 }
 
 <!-- HERO SECTION -->
 <div class="page-hero p-4 p-lg-5 mb-4">
     <div>
         <span class="hero-badge">Nuevo Préstamo</span>
-        <h1 class="fw-bold mb-2"><i class="bi bi-journal-plus me-2"></i>Registrar Solicitud</h1>
+        <h1 class="fw-bold mb-2"><i class="bi bi-journal-plus me-2"></i>Confirmar Solicitud</h1>
         <p class="hero-description mb-0">Confirma la solicitud del ejemplar seleccionado para completar tu préstamo.</p>
     </div>
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="content-card card shadow-sm rounded-4 border-0 p-4 p-lg-5">
+    <div class="col-md-8 col-lg-5">
+        <div class="content-card card shadow-sm rounded-4 border-0 p-4 p-lg-5 text-center">
 
             <!-- ALERTAS DE ERROR -->
             @if (TempData["Error"] != null)
             {
-                <div class="alert alert-danger border-0 bg-danger-subtle text-danger alert-dismissible fade show rounded-3 p-3 mb-4 d-flex align-items-center gap-2 shadow-sm" role="alert">
+                <div class="alert alert-danger border-0 bg-danger-subtle text-danger alert-dismissible fade show rounded-3 p-3 mb-4 d-flex align-items-center gap-2 shadow-sm text-start" role="alert">
                     <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
                     <span>@TempData["Error"]</span>
                     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
                 </div>
             }
 
+            <!-- ÍCONO Y MENSAJE DE CONFIRMACIÓN -->
+            <div class="mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3 p-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-bookmark-check-fill text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h4 class="fw-bold text-body-emphasis mb-2">¿Deseas solicitar este libro?</h4>
+                <p class="text-body-secondary small mb-0">
+                    Se registrará la solicitud en el sistema y podrás pasar a retirarlo a la biblioteca.
+                </p>
+            </div>
+
+            <!-- MUESTRA EL TÍTULO DEL LIBRO AL USUARIO -->
+            <div class="p-3 bg-body-tertiary rounded-3 mb-4 text-center border">
+                <span class="text-body-secondary small fw-semibold d-block mb-1 text-uppercase">Libro seleccionado</span>
+                <h5 class="fw-bold text-primary mb-0">
+                    @(string.IsNullOrWhiteSpace(Model?.TituloLibro) ? "Recurso Bibliográfico" : Model.TituloLibro)
+                </h5>
+            </div>
+
             <form asp-action="Solicitar" method="post">
                 @Html.AntiForgeryToken()
 
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm rounded-3 mb-4" role="alert"></div>
 
-                <div class="mb-4">
-                    <label asp-for="EjemplarId" class="form-label fw-semibold text-body-secondary"></label>
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text border-end-0 bg-body-tertiary"><i class="bi bi-upc-scan text-primary"></i></span>
-                        <input asp-for="EjemplarId" class="form-control border-start-0 fs-5 fw-bold font-monospace" placeholder="Ej. 1, 2, 3..." />
-                    </div>
-                    <span asp-validation-for="EjemplarId" class="text-danger small mt-1 d-block"></span>
-                    <div class="form-text mt-2 text-body-secondary">
-                        <i class="bi bi-info-circle me-1"></i> Identificador asignado automáticamente desde el catálogo.
-                    </div>
-                </div>
+                <!-- CAMPOS OCULTOS FUNCIONALES PARA EL BACKEND -->
+                <input type="hidden" asp-for="EjemplarId" />
+                <input type="hidden" asp-for="TituloLibro" />
 
+                <!-- BOTONES DE ACCIÓN -->
                 <div class="d-flex gap-2 pt-2">
                     <button type="submit" class="btn btn-primary btn-lg flex-fill fw-bold rounded-3 shadow-sm">
                         <i class="bi bi-send me-2"></i> Confirmar Solicitud

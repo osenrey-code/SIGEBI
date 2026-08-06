@@ -15,24 +15,36 @@ namespace SIGEBI.Application.UseCase
 
         public ServicioNotificacion(
             IRepositorioNotificacion repoNotificacion,
-            IRepositorioPrestamo repoPrestamo, IApplicationDbContext db)
+            IRepositorioPrestamo repoPrestamo,
+            IApplicationDbContext db)
         {
             _repoNotificacion = repoNotificacion;
             _repoPrestamo = repoPrestamo;
             _db = db;
         }
 
-        public async Task<IEnumerable<NotificacionResponse>> ObtenerPendientesAsync(
-            int usuarioId)
+        // 🟢 Obtiene sólo las no leídas
+        public async Task<IEnumerable<NotificacionResponse>> ObtenerPendientesAsync(int usuarioId)
         {
             if (usuarioId <= 0)
                 throw new BusinessException("El usuario es obligatorio.");
 
-            var pendientes = await _repoNotificacion.ObtenerNoLeidasPorUsuarioAsync(
-                usuarioId
-            );
+            var pendientes = await _repoNotificacion.ObtenerNoLeidasPorUsuarioAsync(usuarioId);
 
             return pendientes
+                .Select(MapearNotificacion)
+                .ToList();
+        }
+
+        // 🟢 NUEVO: Obtiene todas las notificaciones del usuario (Leídas y No Leídas)
+        public async Task<IEnumerable<NotificacionResponse>> ObtenerTodasAsync(int usuarioId)
+        {
+            if (usuarioId <= 0)
+                throw new BusinessException("El usuario es obligatorio.");
+
+            var todas = await _repoNotificacion.ObtenerPorUsuarioAsync(usuarioId);
+
+            return todas
                 .Select(MapearNotificacion)
                 .ToList();
         }
@@ -42,9 +54,7 @@ namespace SIGEBI.Application.UseCase
             if (notificacionId <= 0)
                 throw new BusinessException("La notificación es obligatoria.");
 
-            var notificacion = await _repoNotificacion.ObtenerporIdAsync(
-                notificacionId
-            );
+            var notificacion = await _repoNotificacion.ObtenerporIdAsync(notificacionId);
 
             if (notificacion is null)
                 throw new BusinessException("La notificación no existe.");
@@ -79,21 +89,14 @@ namespace SIGEBI.Application.UseCase
             await _db.SaveChangesAsync();
         }
 
-        public async Task GenerarNotificacionesDeVencimientoAsync(
-            int diasAntelacion)
+        public async Task GenerarNotificacionesDeVencimientoAsync(int diasAntelacion)
         {
             if (diasAntelacion < 0)
                 throw new BusinessException("Los días de antelación no pueden ser negativos.");
 
-            DateTime fechaObjetivo = DateTime.UtcNow.Date.AddDays(
-                diasAntelacion
-            );
+            DateTime fechaObjetivo = DateTime.UtcNow.Date.AddDays(diasAntelacion);
 
-            var prestamosActivos = await _repoPrestamo.ConsultarActivosAsync(
-                null,
-                null,
-                null
-            );
+            var prestamosActivos = await _repoPrestamo.ConsultarActivosAsync(null, null, null);
 
             var prestamosAVencer = prestamosActivos
                 .Where(p => p.FechaLimite.Date == fechaObjetivo)
@@ -112,6 +115,20 @@ namespace SIGEBI.Application.UseCase
             }
         }
 
+        public async Task EliminarAsync(int notificacionId)
+        {
+            if (notificacionId <= 0)
+                throw new BusinessException("La notificación es obligatoria.");
+
+            var notificacion = await _repoNotificacion.ObtenerporIdAsync(notificacionId);
+
+            if (notificacion is null)
+                throw new BusinessException("La notificación no existe.");
+
+            await _repoNotificacion.EliminarAsync(notificacion);
+            await _db.SaveChangesAsync();
+        }
+
         public async Task<IEnumerable<NotificacionResponse>> ConsultarHistorialGlobalAsync()
         {
             var historial = await _repoNotificacion.ObtenerTodoElHistorialAsync();
@@ -121,8 +138,7 @@ namespace SIGEBI.Application.UseCase
                 .ToList();
         }
 
-        private static NotificacionResponse MapearNotificacion(
-            Notificacion notificacion)
+        private static NotificacionResponse MapearNotificacion(Notificacion notificacion)
         {
             return new NotificacionResponse
             {

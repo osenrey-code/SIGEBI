@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SIGEBI.Application.Common;
 using SIGEBI.Application.DTOs.Response.ReporteResponse;
 using SIGEBI.Application.Interfaces.Repositories;
+using SIGEBI.Domain.Entities;
 using SIGEBI.Domain.Enums;
 using SIGEBI.Infrastructure.Persistence;
 
@@ -89,6 +90,12 @@ namespace SIGEBI.Infrastructure.Repositories
                         Titulo = s.Ejemplar != null && s.Ejemplar.RecursoBibliografico != null
                             ? s.Ejemplar.RecursoBibliografico.Titulo
                             : "Sin título",
+                        Autor = s.Ejemplar != null && s.Ejemplar.RecursoBibliografico != null
+                            ? s.Ejemplar.RecursoBibliografico.Autor
+                            : "Desconocido",
+                        ImagenUrl = s.Ejemplar != null && s.Ejemplar.RecursoBibliografico != null
+                            ? s.Ejemplar.RecursoBibliografico.ImagenUrl
+                            : null,
                         Categoria = s.Ejemplar != null && s.Ejemplar.RecursoBibliografico != null && s.Ejemplar.RecursoBibliografico.Categoria != null
                             ? s.Ejemplar.RecursoBibliografico.Categoria.Nombre
                             : "Sin categoría"
@@ -109,11 +116,13 @@ namespace SIGEBI.Infrastructure.Repositories
 
                 var recursosMasSolicitados = solicitudes
                     .Where(s => s.RecursoBibliograficoId > 0)
-                    .GroupBy(s => new { s.RecursoBibliograficoId, s.Titulo })
+                    .GroupBy(s => new { s.RecursoBibliograficoId, s.Titulo, s.Autor, s.ImagenUrl })
                     .Select(grupo => new RecursoMasSolicitadoResponse
                     {
                         RecursoBibliograficoId = grupo.Key.RecursoBibliograficoId,
                         Titulo = grupo.Key.Titulo,
+                        Autor = grupo.Key.Autor ?? "Desconocido",
+                        ImagenUrl = grupo.Key.ImagenUrl,
                         CantidadSolicitudes = grupo.Count()
                     })
                     .OrderByDescending(r => r.CantidadSolicitudes)
@@ -246,6 +255,13 @@ namespace SIGEBI.Infrastructure.Repositories
                     {
                         PenalizacionId = p.PenalizacionId,
                         UsuarioId = p.UsuarioId,
+                        NombreUsuario = p.Usuario != null ? p.Usuario.NombreCompleto : "Desconocido",
+                        IdentificacionUsuario = p.Usuario switch
+                        {
+                            Estudiante est => est.Matricula ?? "N/A",
+                            Docente doc => doc.CodigoEmpleado ?? "N/A",
+                            _ => "N/A"
+                        },
                         TipoUsuario = p.Usuario.ObtenerTipoUsuario(),
                         Motivo = p.Motivo,
                         DiasRetraso = p.DiasRetraso,

@@ -19,5 +19,7 @@ namespace SIGEBI.Application.DTOs.Response.ReporteResponse
         public DateTime FechaGeneracion { get; set; }
 
         public string Estado { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string IdentificacionUsuario { get; set; } = string.Empty;
     }
 }

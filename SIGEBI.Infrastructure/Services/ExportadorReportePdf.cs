@@ -81,17 +81,15 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(45);
-                                    columns.RelativeColumn(2);
-                                    columns.RelativeColumn(1);
-                                    columns.ConstantColumn(75);
-                                    columns.ConstantColumn(75);
-                                    columns.ConstantColumn(75);
+                                    columns.RelativeColumn(3); // Recurso (título más amplio)
+                                    columns.RelativeColumn(1); // Ejemplar
+                                    columns.ConstantColumn(75); // Inicio
+                                    columns.ConstantColumn(75); // Límite
+                                    columns.ConstantColumn(75); // Estado
                                 });
 
                                 table.Header(header =>
                                 {
-                                    CrearCeldaEncabezado(header, "ID");
                                     CrearCeldaEncabezado(header, "Recurso");
                                     CrearCeldaEncabezado(header, "Ejemplar");
                                     CrearCeldaEncabezado(header, "Inicio");
@@ -101,7 +99,6 @@ namespace SIGEBI.Infrastructure.Services
 
                                 foreach (var prestamo in reporte.Prestamos)
                                 {
-                                    CrearCeldaTexto(table, prestamo.PrestamoId.ToString());
                                     CrearCeldaTexto(table, prestamo.TituloRecurso);
                                     CrearCeldaTexto(table, prestamo.IdentificadorEjemplar);
                                     CrearCeldaTexto(table, FormatearFecha(prestamo.FechaPrestamo));
@@ -169,7 +166,6 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(45);
                                     columns.RelativeColumn(2);
                                     columns.RelativeColumn(1);
                                     columns.ConstantColumn(50);
@@ -180,7 +176,6 @@ namespace SIGEBI.Infrastructure.Services
 
                                 table.Header(header =>
                                 {
-                                    CrearCeldaEncabezado(header, "ID");
                                     CrearCeldaEncabezado(header, "Título");
                                     CrearCeldaEncabezado(header, "Categoría");
                                     CrearCeldaEncabezado(header, "Total");
@@ -191,7 +186,6 @@ namespace SIGEBI.Infrastructure.Services
 
                                 foreach (var recurso in reporte.Recursos)
                                 {
-                                    CrearCeldaTexto(table, recurso.RecursoBibliograficoId.ToString());
                                     CrearCeldaTexto(table, recurso.Titulo);
                                     CrearCeldaTexto(table, recurso.Categoria);
                                     CrearCeldaTexto(table, recurso.TotalEjemplares.ToString());
@@ -267,21 +261,18 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(70);
                                     columns.RelativeColumn();
                                     columns.ConstantColumn(90);
                                 });
 
                                 table.Header(header =>
                                 {
-                                    CrearCeldaEncabezado(header, "ID Recurso");
                                     CrearCeldaEncabezado(header, "Título");
                                     CrearCeldaEncabezado(header, "Solicitudes");
                                 });
 
                                 foreach (var recurso in reporte.RecursosMasSolicitados)
                                 {
-                                    CrearCeldaTexto(table, recurso.RecursoBibliograficoId.ToString());
                                     CrearCeldaTexto(table, recurso.Titulo);
                                     CrearCeldaTexto(table, recurso.CantidadSolicitudes.ToString());
                                 }
@@ -424,18 +415,18 @@ namespace SIGEBI.Infrastructure.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(40);
-                                    columns.ConstantColumn(65);
-                                    columns.RelativeColumn();
-                                    columns.ConstantColumn(45);
-                                    columns.ConstantColumn(80);
-                                    columns.ConstantColumn(70);
+                                    columns.RelativeColumn(1.5f); // Lector
+                                    columns.ConstantColumn(85);   // Identificación
+                                    columns.RelativeColumn(2f);   // Motivo
+                                    columns.ConstantColumn(40);   // Días
+                                    columns.ConstantColumn(75);   // Monto
+                                    columns.ConstantColumn(65);   // Estado
                                 });
 
                                 table.Header(header =>
                                 {
-                                    CrearCeldaEncabezado(header, "ID");
-                                    CrearCeldaEncabezado(header, "Usuario");
+                                    CrearCeldaEncabezado(header, "Lector");
+                                    CrearCeldaEncabezado(header, "Identificación");
                                     CrearCeldaEncabezado(header, "Motivo");
                                     CrearCeldaEncabezado(header, "Días");
                                     CrearCeldaEncabezado(header, "Monto");
@@ -444,9 +435,9 @@ namespace SIGEBI.Infrastructure.Services
 
                                 foreach (var penalizacion in reporte.Detalles)
                                 {
-                                    CrearCeldaTexto(table, penalizacion.PenalizacionId.ToString());
-                                    CrearCeldaTexto(table, penalizacion.UsuarioId.ToString());
-                                    CrearCeldaTexto(table, RecortarTexto(penalizacion.Motivo, 60));
+                                    CrearCeldaTexto(table, penalizacion.NombreUsuario);
+                                    CrearCeldaTexto(table, penalizacion.IdentificacionUsuario);
+                                    CrearCeldaTexto(table, RecortarTexto(penalizacion.Motivo, 50));
                                     CrearCeldaTexto(table, penalizacion.DiasRetraso.ToString());
                                     CrearCeldaTexto(table, FormatearMonto(penalizacion.MontoMora));
                                     CrearCeldaTexto(table, penalizacion.Estado);

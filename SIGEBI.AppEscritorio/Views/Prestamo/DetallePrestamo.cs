@@ -171,7 +171,8 @@ namespace SIGEBI.AppEscritorio.Views.Shared
 
             btnCancelar.Text = "Cancelar";
 
-            this.ClientSize = new Size(520, 480);
+            this.ClientSize = new Size(520, 520);
+            AplicarBordesRedondeados();
 
             btnConfirmarDevolucion.Location = new Point(20, 14);
             btnConfirmarDevolucion.Size = new Size(225, 38);
