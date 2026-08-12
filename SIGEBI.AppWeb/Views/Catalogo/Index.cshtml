@@ -1,243 +1,474 @@
 ﻿@model SIGEBI.AppWeb.Models.ViewModels.Catalogo.CatalogoIndexViewModel
+
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
+
+
 @{
+
     ViewData["Title"] = "Catálogo de Recursos Bibliográficos";
 
+
+
     string apiBaseUrl = Configuration["ApiSettings:BaseUrl"]
+
                         ?? Configuration["ApiUrl"]
+
                         ?? "https://localhost:7123";
 
+
+
     apiBaseUrl = apiBaseUrl.TrimEnd('/');
+
     bool autenticado = User.Identity?.IsAuthenticated ?? false;
+
 }
 
+
+
 <!-- HERO SECTION ORIGINAL RESTAURADO -->
+
 <div class="page-hero p-4 p-lg-5 mb-4">
+
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
         <div>
+
             <span class="hero-badge">Módulo de Catálogo</span>
+
             <h1 class="fw-bold mb-2 text-white"><i class="bi bi-bookshelf me-2"></i>Catálogo de Recursos</h1>
+
             <p class="hero-description mb-0 text-white-50">Consulta la disponibilidad de libros organizada por categorías, revisa tendencias y gestiona tus préstamos.</p>
+
         </div>
+
     </div>
+
 </div>
+
+
 
 <!-- ALERTAS DE SISTEMA -->
 @if (!string.IsNullOrWhiteSpace(TempData["Success"]?.ToString()))
+
 {
+
     <div class="alert alert-success border-0 bg-success-subtle text-success alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+
         <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+
         <span class="fw-semibold text-center mb-0">@TempData["Success"]</span>
+
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+
     </div>
+
 }
+
+
 
 @if (!string.IsNullOrWhiteSpace(TempData["Error"]?.ToString()))
+
 {
+
     <div class="alert alert-danger border-0 bg-danger-subtle text-danger alert-dismissible fade show rounded-4 p-3 mb-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" role="alert">
+
         <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+
         <span class="fw-semibold text-center mb-0">@TempData["Error"]</span>
+
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+
     </div>
+
 }
 
+
+
 <!-- BUSCADOR MODERNO -->
+
 <div class="content-card card shadow-sm rounded-4 border-0 mb-5">
+
     <div class="card-body p-3 p-lg-4">
+
         <form method="get" asp-action="Index" class="row g-3 align-items-center">
+
             <div class="col-md-9">
+
                 <div class="input-group input-group-lg bg-body-tertiary rounded-3 overflow-hidden border">
+
                     <span class="input-group-text border-0 bg-transparent ps-3"><i class="bi bi-search text-muted"></i></span>
+
                     <input type="text" id="inputBuscador" name="Titulo" class="form-control border-0 bg-transparent fs-6 shadow-none" placeholder="Buscar por título, autor o número ISBN..." value="@Model?.Titulo" onkeyup="filtrarEstanteriaLocal()" />
+
                 </div>
+
             </div>
+
             <div class="col-md-3 d-flex gap-2">
+
                 <button type="submit" class="btn btn-primary btn-lg fs-6 w-100 fw-semibold rounded-3 shadow-sm">
+
                     <i class="bi bi-search me-1"></i> Buscar
+
                 </button>
+
                 <a asp-action="Index" class="btn btn-outline-secondary btn-lg fs-6 w-100 fw-semibold rounded-3">Limpiar</a>
+
             </div>
+
         </form>
+
     </div>
+
 </div>
+
+
 
 <!-- 🌟 TENDENCIAS / MÁS SOLICITADOS (CARRUSEL HORIZONTAL AMPLIADO) -->
 @if (Model?.LibrosDestacados != null && Model.LibrosDestacados.Any())
+
 {
+
     <div class="mb-5">
+
         <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+
             <h4 class="fw-bold text-body-emphasis m-0 d-flex align-items-center gap-2">
+
                 <i class="bi bi-fire text-danger"></i> Tendencias de Lectura
+
             </h4>
+
             <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-semibold small">Más Solicitados</span>
+
         </div>
+
+
 
         <div class="tendencias-container d-flex overflow-x-auto pb-4 gap-4" style="scroll-snap-type: x mandatory; scrollbar-width: thin;">
+
             @foreach (var item in Model.LibrosDestacados)
+
             {
+
                 <div class="tendencia-item" style="flex: 0 0 230px; scroll-snap-align: start;">
+
                     <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden tarjeta-portada rounded-4">
 
+
+
                         <!-- BADGE DE SOLICITUDES -->
+
                         <div class="position-absolute top-0 end-0 m-2 z-3">
+
                             <span class="badge bg-dark text-white border border-light shadow-sm extra-small fw-bold px-2 py-1 rounded-pill">
+
                                 <i class="bi bi-fire text-danger me-1"></i>@item.CantidadSolicitudes solicitudes
+
                             </span>
+
                         </div>
+
+
 
                         <!-- PORTADA -->
+
                         <div class="portada-wrapper position-relative">
+
                             @if (!string.IsNullOrEmpty(item.ImagenUrl))
+
                             {
+
                                 var rutaImagen = item.ImagenUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+
                                     ? item.ImagenUrl
+
                                     : $"{apiBaseUrl}{(item.ImagenUrl.StartsWith("/") ? "" : "/")}{item.ImagenUrl}";
 
+
+
                                 <img src="@rutaImagen" alt="Portada de @item.Titulo" class="portada-img" />
+
                             }
+
                             else
+
                             {
+
                                 <div class="portada-placeholder d-flex flex-column align-items-center justify-content-center p-3 text-center">
+
                                     <i class="bi bi-journal-bookmark text-danger fs-1 mb-2 opacity-50"></i>
+
                                     <span class="fw-bold small text-body-emphasis line-clamp-2">@item.Titulo</span>
+
                                 </div>
+
                             }
+
                         </div>
 
+
+
                         <!-- INFO -->
+
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
+
                             <div>
+
                                 <h6 class="book-title line-clamp-1 mb-1" title="@item.Titulo">@item.Titulo</h6>
+
                                 <p class="book-author line-clamp-1 mb-3"><i class="bi bi-person me-1"></i>@item.Autor</p>
+
                             </div>
+
                             <!-- BOTÓN VISIBLE Y ESTILIZADO -->
+
                             <a asp-action="Detalles" asp-route-id="@item.RecursoBibliograficoId"
                                class="btn btn-sm btn-outline-primary w-100 rounded-3 fw-semibold">
+
                                 <i class="bi bi-eye me-1"></i> Ver detalle
+
                             </a>
+
                         </div>
+
                     </div>
+
                 </div>
+
             }
+
         </div>
+
     </div>
+
 }
+
+
 
 <!-- ESTANTERÍA GENERAL DE RECURSOS (4 COLUMNAS PARA LIBROS MÁS GRANDES Y CÓMODOS) -->
 @if (Model?.Recursos != null && Model.Recursos.Any())
+
 {
+
     var gruposCategoria = Model.Recursos.GroupBy(x => string.IsNullOrWhiteSpace(x.Categoria) ? "Sin Categoría" : x.Categoria);
 
+
+
     foreach (var grupo in gruposCategoria)
+
     {
+
         <div class="seccion-categoria mb-5">
+
             <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+
                 <h4 class="fw-bold text-body-emphasis m-0 d-flex align-items-center gap-2">
+
                     <i class="bi bi-tag-fill text-primary"></i> @grupo.Key
+
                 </h4>
+
                 <span class="text-muted small">@grupo.Count() volúmenes registrados</span>
+
             </div>
 
+
+
             <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-4 row-cols-xl-4 g-4">
+
                 @foreach (var item in grupo)
+
                 {
+
                     <div class="col tarjeta-libro-item" data-titulo="@item.Titulo.ToLower()" data-autor="@item.Autor.ToLower()" data-isbn="@(item.ISBN?.ToLower() ?? "")">
+
                         <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden tarjeta-portada rounded-4">
 
+
+
                             <!-- PORTADA -->
+
                             <div class="portada-wrapper position-relative">
+
                                 @if (!string.IsNullOrEmpty(item.ImagenUrl))
+
                                 {
+
                                     var rutaImagen = item.ImagenUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+
                                         ? item.ImagenUrl
+
                                         : $"{apiBaseUrl}{(item.ImagenUrl.StartsWith("/") ? "" : "/")}{item.ImagenUrl}";
 
+
+
                                     <img src="@rutaImagen" alt="Portada de @item.Titulo" class="portada-img" />
+
                                 }
+
                                 else
+
                                 {
+
                                     <div class="portada-placeholder d-flex flex-column align-items-center justify-content-center p-3 text-center">
+
                                         <i class="bi bi-journal-bookmark text-primary fs-1 mb-2 opacity-50"></i>
+
                                         <span class="fw-bold small text-body-emphasis line-clamp-2">@item.Titulo</span>
+
                                     </div>
+
                                 }
+
                             </div>
 
+
+
                             <!-- INFORMACIÓN DEL LIBRO -->
+
                             <div class="card-body p-3 d-flex flex-column justify-content-between">
+
                                 <div>
+
                                     <h6 class="book-title line-clamp-1 mb-1" title="@item.Titulo">
+
                                         @item.Titulo
+
                                     </h6>
+
                                     <p class="book-author line-clamp-1 mb-1" title="@item.Autor">
+
                                         <i class="bi bi-person me-1"></i>@item.Autor
+
                                     </p>
+
                                     <p class="font-monospace text-muted extra-small mb-2">
+
                                         ISBN: @(string.IsNullOrWhiteSpace(item.ISBN) ? "-" : item.ISBN)
+
                                     </p>
+
+
 
                                     <div class="mb-3">
+
                                         <span class="badge @(item.CopiasDisponibles > 0 ? "text-bg-success" : "text-bg-danger") fw-semibold extra-small px-2 py-1 rounded-pill">
+
                                             <i class="bi @(item.CopiasDisponibles > 0 ? "bi-check-circle-fill" : "bi-x-circle-fill") me-1"></i>
+
                                             @(item.CopiasDisponibles > 0 ? $"{item.CopiasDisponibles}/{item.TotalEjemplares} Disponibles" : "Agotado")
+
                                         </span>
+
                                     </div>
+
                                 </div>
 
+
+
                                 <!-- ACCIONES -->
+
                                 <div class="pt-2 border-top border-secondary border-opacity-10 d-flex flex-column gap-2">
+
                                     <a asp-action="Detalles" asp-route-id="@item.RecursoBibliograficoId"
                                        class="btn btn-sm btn-outline-secondary w-100 rounded-3 fw-semibold">
+
                                         <i class="bi bi-eye me-1"></i> Detalle
+
                                     </a>
 
+
+
                                     @if (item.CopiasDisponibles > 0)
+
                                     {
+
                                         if (autenticado)
+
                                         {
+
                                             <a asp-controller="Solicitudes" asp-action="Solicitar"
                                                asp-route-ejemplarId="@item.EjemplarDisponibleId"
                                                asp-route-tituloLibro="@item.Titulo"
                                                class="btn btn-sm btn-primary w-100 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-1 shadow-sm">
+
                                                 <i class="bi bi-bookmark-plus"></i> Solicitar
+
                                             </a>
+
                                         }
+
                                         else
+
                                         {
+
                                             <a asp-controller="Autenticacion" asp-action="Login"
                                                class="btn btn-sm btn-outline-primary w-100 rounded-3 fw-semibold d-flex align-items-center justify-content-center gap-1">
+
                                                 <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+
                                             </a>
+
                                         }
+
                                     }
+
                                     else
+
                                     {
+
                                         <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-3 fw-semibold opacity-50" disabled>
+
                                             Agotado
+
                                         </button>
+
                                     }
+
                                 </div>
+
                             </div>
 
+
+
                         </div>
+
                     </div>
+
                 }
+
             </div>
+
         </div>
+
     }
-}
-else
-{
-    <div class="content-card card border-0 shadow-sm rounded-4 p-5 text-center my-4">
-        <i class="bi bi-journal-x fs-1 d-block mb-3 text-body-tertiary"></i>
-        <h4 class="fw-bold text-body-emphasis">No se encontraron recursos bibliográficos</h4>
-        <p class="text-body-secondary mb-0">No hay libros registrados que coincidan con el criterio de búsqueda actual.</p>
-    </div>
+
 }
 
+else
+
+{
+
+    <div class="content-card card border-0 shadow-sm rounded-4 p-5 text-center my-4">
+
+        <i class="bi bi-journal-x fs-1 d-block mb-3 text-body-tertiary"></i>
+
+        <h4 class="fw-bold text-body-emphasis">No se encontraron recursos bibliográficos</h4>
+
+        <p class="text-body-secondary mb-0">No hay libros registrados que coincidan con el criterio de búsqueda actual.</p>
+
+    </div>
+
+}
+
+
+
 <style>
+
     /* Estética de Portadas y Tarjetas */
+
     .portada-wrapper {
         aspect-ratio: 2 / 3;
         width: 100%;
@@ -245,9 +476,13 @@ else
         overflow: hidden;
     }
 
+
+
     [data-bs-theme="dark"] .portada-wrapper {
         background-color: rgba(255, 255, 255, 0.03);
     }
+
+
 
     .portada-img {
         width: 100%;
@@ -256,31 +491,45 @@ else
         transition: transform 0.4s ease;
     }
 
+
+
     .portada-placeholder {
         height: 100%;
         background: linear-gradient(135deg, rgba(13, 110, 253, 0.04), rgba(13, 110, 253, 0.1));
     }
 
+
+
     .tarjeta-portada {
         background: #ffffff;
         border-radius: 1rem !important; /* Bordes redondeados elegantes como pediste */
+
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
+
+
 
     [data-bs-theme="dark"] .tarjeta-portada {
         background: #1e293b;
     }
+
+
 
     .tarjeta-portada:hover {
         transform: translateY(-6px);
         box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12) !important;
     }
 
+
+
         .tarjeta-portada:hover .portada-img {
             transform: scale(1.04);
         }
 
+
+
     /* Tipografía */
+
     .book-title {
         font-size: 1.02rem;
         font-weight: 700;
@@ -288,10 +537,14 @@ else
         line-height: 1.35;
     }
 
+
+
     .book-author {
         font-size: 0.88rem;
         color: var(--bs-secondary-color);
     }
+
+
 
     .line-clamp-1 {
         display: -webkit-box;
@@ -300,6 +553,8 @@ else
         overflow: hidden;
     }
 
+
+
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -307,52 +562,93 @@ else
         overflow: hidden;
     }
 
+
+
     .extra-small {
         font-size: 0.75rem;
     }
 
+
+
     /* Scrollbar sutil para tendencias */
+
     .tendencias-container::-webkit-scrollbar {
         height: 6px;
     }
+
+
 
     .tendencias-container::-webkit-scrollbar-track {
         background: transparent;
     }
 
+
+
     .tendencias-container::-webkit-scrollbar-thumb {
         background: rgba(0, 0, 0, 0.15);
         border-radius: 4px;
     }
+
 </style>
 
+
+
 @section Scripts {
+
     <script>
+
         function filtrarEstanteriaLocal() {
+
             const query = document.getElementById('inputBuscador').value.toLowerCase().trim();
+
             const tarjetas = document.querySelectorAll('.tarjeta-libro-item');
+
             const secciones = document.querySelectorAll('.seccion-categoria');
 
+
+
             tarjetas.forEach(tarjeta => {
+
                 const titulo = tarjeta.getAttribute('data-titulo') || '';
+
                 const autor = tarjeta.getAttribute('data-autor') || '';
+
                 const isbn = tarjeta.getAttribute('data-isbn') || '';
 
+
+
                 if (titulo.includes(query) || autor.includes(query) || isbn.includes(query)) {
+
                     tarjeta.classList.remove('d-none');
+
                 } else {
+
                     tarjeta.classList.add('d-none');
+
                 }
+
             });
 
+
+
             secciones.forEach(seccion => {
+
                 const visibles = seccion.querySelectorAll('.tarjeta-libro-item:not(.d-none)');
+
                 if (visibles.length === 0 && query !== '') {
+
                     seccion.classList.add('d-none');
+
                 } else {
+
                     seccion.classList.remove('d-none');
+
                 }
+
             });
+
         }
+
     </script>
+
 }
